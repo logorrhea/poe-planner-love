@@ -1,17 +1,20 @@
-------------------------------
--- Move to a new file later --
+------------------------------------------------------------
+------------------------------------------------------------
+-----------------   MOVE TO NEW FILE    --------------------
+------------------------------------------------------------
+------------------------------------------------------------
 local SkillsPerOrbit = {1, 6, 12, 12, 12}
 local OrbitRadii = {0, 82, 162, 335, 493}
 local NodeRadii = {
-    standard = 51,
-    keystone = 109,
-    notable = 70,
-    mastery = 107,
-    classStart = 200
+  standard = 51,
+  keystone = 109,
+  notable = 70,
+  mastery = 107,
+  classStart = 200
 }
 
 function arc(node)
-    return 2 * math.pi * node.orbitIndex / SkillsPerOrbit[node.orbit]
+  return 2 * math.pi * node.orbitIndex / SkillsPerOrbit[node.orbit]
 end
 
 function nodePosition(node)
@@ -28,7 +31,28 @@ function nodePosition(node)
 
   return {x = x, y = y}
 end
-------------------------------
+
+function nodeRadius(node)
+  local radius = NodeRadii.standard
+
+  if #node.startPositionClasses ~= 0 then
+    return NodeRadii.classStart
+  elseif node.isMastery then
+    return NodeRadii.mastery
+  elseif node.isNotable then
+    return NodeRadii.notable
+  elseif node.isKeystone then
+    return NodeRadii.keystone
+  end
+
+  return radius
+end
+
+------------------------------------------------------------
+------------------------------------------------------------
+-----------------------   BREAK   --------------------------
+------------------------------------------------------------
+------------------------------------------------------------
 
 function love.load()
   json = require('vendor/dkjson')
@@ -42,15 +66,6 @@ function love.load()
   -- Parse json data into table
   Tree, err = json.decode(dataString)
 
-  -- for k,v in pairs(data) do
-  --   print(k)
-  --   if k == "nodes" then
-  --     for k2,v2 in pairs(v) do
-  --       print("\t"..k2)
-  --     end
-  --   end
-  -- end
-
 end
 
 function love.update(dt)
@@ -60,8 +75,10 @@ function love.draw()
   love.graphics.setColor(255, 255, 255)
   for nid, node in pairs(Tree.nodes) do
     local pos = nodePosition(node)
-    love.graphics.circle('fill', pos.x, pos.y, 10, 10)
+    local radius = nodeRadius(node)
+    love.graphics.circle('fill', pos.x, pos.y, radius, 15)
   end
 
-   love.graphics.print("Current FPS: "..tostring(love.timer.getFPS( )), 10, 10)
+  -- print FPS counter in top-left
+  love.graphics.print("Current FPS: "..tostring(love.timer.getFPS( )), 10, 10)
 end
