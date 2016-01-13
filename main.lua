@@ -1,64 +1,12 @@
-------------------------------------------------------------
-------------------------------------------------------------
------------------   MOVE TO NEW FILE    --------------------
-------------------------------------------------------------
-------------------------------------------------------------
-local SkillsPerOrbit = {1, 6, 12, 12, 12}
-local OrbitRadii = {0, 82, 162, 335, 493}
-local NodeRadii = {
-  standard = 51,
-  keystone = 109,
-  notable = 70,
-  mastery = 107,
-  classStart = 200
-}
-
-function arc(node)
-  return 2 * math.pi * node.orbitIndex / SkillsPerOrbit[node.orbit]
-end
-
-function nodePosition(node)
-  local x = 0
-  local y = 0
-
-  if node.group ~= nil then
-    local r = OrbitRadii[node.orbit]
-    local a = arc(node)
-
-    x = node.group.position.x - r * math.sin(-a)
-    y = node.group.position.y - r * math.cos(-a)
-  end
-
-  return {x = x, y = y}
-end
-
-function nodeRadius(node)
-  local radius = NodeRadii.standard
-
-  if #node.startPositionClasses ~= 0 then
-    return NodeRadii.classStart
-  elseif node.isMastery then
-    return NodeRadii.mastery
-  elseif node.isNotable then
-    return NodeRadii.notable
-  elseif node.isKeystone then
-    return NodeRadii.keystone
-  end
-
-  return radius
-end
-
-------------------------------------------------------------
-------------------------------------------------------------
------------------------   BREAK   --------------------------
-------------------------------------------------------------
-------------------------------------------------------------
+local json = require('vendor/dkjson')
+require 'node'
+require 'group'
 
 function love.load()
-  json = require('vendor/dkjson')
 
   -- Read data file
-  file, err = love.filesystem.newFile('data/json/skillTree.json')
+  -- file, err = love.filesystem.newFile('data/json/skillTree.json')
+  file, err = love.filesystem.newFile('dat.json')
   file:open('r')
   dataString = file:read()
   file:close()
@@ -66,18 +14,32 @@ function love.load()
   -- Parse json data into table
   Tree, err = json.decode(dataString)
 
+  -- Create grups
+  groups = {}
+  for gid, group in pairs(Tree.groups) do
+    local id = tonumber(gid)
+    groups[id] = Group.create(id, group)
+  end
+
+  -- Create nodes
+  nodes = {}
+  for _, node in pairs(Tree.nodes) do
+    local node = Node.create(node, groups[node.g])
+    nodes[node.id] = node
+  end
+
 end
 
 function love.update(dt)
 end
 
 function love.draw()
-  love.graphics.setColor(255, 255, 255)
-  for nid, node in pairs(Tree.nodes) do
-    local pos = nodePosition(node)
-    local radius = nodeRadius(node)
-    love.graphics.circle('fill', pos.x, pos.y, radius, 15)
+  love.graphics.push()
+  love.graphics.scale(0.1, 0.1)
+  for nid, node in pairs(nodes) do
+    node:draw()
   end
+  love.graphics.pop()
 
   -- print FPS counter in top-left
   love.graphics.print("Current FPS: "..tostring(love.timer.getFPS( )), 10, 10)
