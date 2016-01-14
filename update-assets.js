@@ -26,7 +26,19 @@ function downloadAssets(assets) {
             throw "No size found"
         }
     }
+
     return assetPaths;
+}
+
+function downloadSkillSprites(imageRoot, skillSprites) {
+    var fullImageRoot = imageRoot + "build-gen/passive-skill-sprite/"
+
+    for (skillSprite in skillSprites) {
+        var sizes = skillSprites[skillSprite];
+        var spriteInfo = sizes[sizes.length-1];
+        request(fullImageRoot+spriteInfo.filename)
+            .pipe(fs.createWriteStream('assets/'+spriteInfo.filename));
+    }
 }
 
 
@@ -40,8 +52,10 @@ fs.readFile('dat.json', readFileOpts, function (err, data) {
     var data = JSON.parse(data);
 
     // Download new assets
-    var assetData = downloadAssets(data.assets);
+    // var assetData = downloadAssets(data.assets);
 
+    // Download new skill sprites
+    // var skillSprites = downloadSkillSprites(data.imageRoot, data.skillSprites);
 });
 
 
