@@ -66,7 +66,6 @@ function Node.create(data, group)
 
   -- Compute position now, rather than on-the-fly later
   -- since the nodes aren't moving anywhere
-  print(node.id)
   node.position = Node.nodePosition(node)
 
   return node
@@ -74,10 +73,6 @@ end
 
 -- Renders the node (love2d-style)
 function Node:draw()
-  -- debug
-  -- print(self.id, self.position.x, self.position.y)
-  -- print('----------------------------------------')
-
   love.graphics.setColor(255, 255, 255)
   love.graphics.circle('fill', self.position.x, self.position.y, Node.Radii[self.type], 20)
 end

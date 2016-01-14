@@ -2,6 +2,12 @@ local json = require('vendor/dkjson')
 require 'node'
 require 'group'
 
+local camera = {
+  x     = 0,
+  y     = 0,
+  scale = 0.1
+}
+
 function love.load()
 
   -- Read data file
@@ -35,7 +41,8 @@ end
 
 function love.draw()
   love.graphics.push()
-  love.graphics.scale(0.1, 0.1)
+  love.graphics.scale(camera.scale, camera.scale)
+  love.graphics.translate(-camera.x/camera.scale, -camera.y/camera.scale)
   for nid, node in pairs(nodes) do
     node:draw()
   end
@@ -43,4 +50,17 @@ function love.draw()
 
   -- print FPS counter in top-left
   love.graphics.print("Current FPS: "..tostring(love.timer.getFPS( )), 10, 10)
+end
+
+function love.mousepressed(x, y, button, isTouch)
+end
+
+function love.mousereleased(x, y, button, isTouch)
+end
+
+function love.mousemoved(x, y, dx, dy)
+  if love.mouse.isDown(1) then
+    camera.x = camera.x - dx
+    camera.y = camera.y - dy
+  end
 end
