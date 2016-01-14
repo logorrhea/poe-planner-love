@@ -3,9 +3,12 @@ require 'node'
 require 'group'
 
 local camera = {
-  x     = 0,
-  y     = 0,
-  scale = 0.1
+  x         = 0,
+  y         = 0,
+  scale     = 0.1,
+  maxScale  = 0.5,
+  minScale  = 0.1,
+  scaleStep = 0.05
 }
 
 function love.load()
@@ -19,6 +22,13 @@ function love.load()
 
   -- Parse json data into table
   Tree, err = json.decode(dataString)
+
+  -- Generate images
+  images = {}
+  for name, sheet in pairs(Tree.spriteSheets) do
+    print(sheet)
+    -- images[name] = love.graphics.newImage(sheet)
+  end
 
   -- Create grups
   groups = {}
@@ -62,5 +72,21 @@ function love.mousemoved(x, y, dx, dy)
   if love.mouse.isDown(1) then
     camera.x = camera.x - dx
     camera.y = camera.y - dy
+  end
+end
+
+function love.keypressed(key, scancode, isRepeat)
+  if key == 'up' then
+    camera.scale = camera.scale + camera.scaleStep
+    if camera.scale > camera.maxScale then
+      camera.scale = camera.maxScale
+    end
+  elseif key == 'down' then
+    camera.scale = camera.scale - camera.scaleStep
+    if camera.scale < camera.minScale then
+      camera.scale = camera.minScale
+    else
+      print(camera.scale)
+    end
   end
 end
