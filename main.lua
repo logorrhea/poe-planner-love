@@ -1,8 +1,9 @@
 local json = require('vendor/dkjson')
+
 require 'node'
 require 'group'
 
-local camera = {
+camera = {
   x         = 0,
   y         = 0,
   scale     = 0.1,
@@ -24,6 +25,7 @@ function love.load()
   Tree, err = json.decode(dataString)
 
   -- Generate images
+  -- @TODO: Store all this shit as SpriteBatches
   images = {}
   for name, sizes in pairs(Tree.assets) do
     local filePath = nil
@@ -66,6 +68,25 @@ function love.load()
   nodes = {}
   for _, node in pairs(Tree.nodes) do
     local node = Node.create(node, groups[node.g])
+
+    -- Determine sprite sheet to use
+
+    if node.type == Node.NT_NOTABLE then
+      node.activeSheet = images["notableActive"]
+      node.inactiveSheet = images["notableInactive"]
+    elseif node.type == Node.NT_KEYSTONE then
+      node.activeSheet = images["keystoneActive"]
+      node.inactiveSheet = images["keystoneInactive"]
+    elseif node.type == Node.NT_MASTERY then
+      node.activeSheet = images["mastery"]
+      node.inactiveSheet = images["mastery"]
+    else
+      node.activeSheet = images["normalActive"]
+      node.inactiveSheet = images["normalInactive"]
+    end
+
+    node.imageQuad = spriteQuads[node.icon]
+
     nodes[node.id] = node
   end
 
@@ -91,7 +112,7 @@ function love.draw()
       node.position.x + tx >= 0 and
       node.position.y + ty >= 0 and
       node.position.y + ty <= scaledHeight then
-      love.graphics.draw(images['normalActive'], spriteQuads[node.icon], node.position.x, node.position.y)
+        node:draw()
     end
   end
   love.graphics.pop()

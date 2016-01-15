@@ -73,8 +73,8 @@ end
 
 -- Renders the node (love2d-style)
 function Node:draw()
-  love.graphics.setColor(255, 255, 255)
-  love.graphics.circle('fill', self.position.x, self.position.y, Node.Radii[self.type], 20)
+  local sheet = self.active and self.activeSheet or self.inactiveSheet
+  love.graphics.draw(sheet, self.imageQuad, self.position.x, self.position.y)
 end
 
 return Node
