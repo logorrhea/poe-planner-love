@@ -7,7 +7,7 @@ camera = {
   x         = 0,
   y         = 0,
   scale     = 0.1,
-  maxScale  = 0.5,
+  maxScale  = 0.6,
   minScale  = 0.1,
   scaleStep = 0.05
 }
@@ -46,6 +46,13 @@ function love.load()
       images[name] = love.graphics.newImage('assets/'..fileName)
     end
   end
+
+  -- Get connection images
+  images.straight_connector = {
+    active = love.graphics.newImage('assets/LineConnectorActive.png'),
+    intermediate = love.graphics.newImage('assets/LineConnectorIntermediate.png'),
+    inactive = love.graphics.newImage('assets/LineConnectorNormal.png')
+  }
 
   spriteQuads = {}
   for name, sizes in pairs(Tree.skillSprites) do
@@ -99,6 +106,7 @@ function love.update(dt)
 end
 
 function love.draw()
+  love.graphics.clear(255, 255, 255, 255)
   love.graphics.push()
   love.graphics.scale(camera.scale, camera.scale)
 
@@ -107,13 +115,10 @@ function love.draw()
   love.graphics.translate(tx, ty)
 
   for nid, node in pairs(nodes) do
-    -- @TODO: Wrap all this into node:draw()
-    if node.position.x + tx <= scaledWidth and
-      node.position.x + tx >= 0 and
-      node.position.y + ty >= 0 and
-      node.position.y + ty <= scaledHeight then
-        node:draw()
-    end
+    -- @TODO: Once we move everything over to SpriteBatches, we can probably
+    -- do these comparisons at SpriteBatch-creation-time. Simply leave out all
+    -- the ones that don't need to drawn
+    node:draw(tx, ty)
   end
   love.graphics.pop()
 
