@@ -11,8 +11,8 @@ Node.NT_START    = 5
 Node.NT_JEWEL    = 6
 
 -- Some contants for drawing
-Node.SkillsPerOrbit = {1, 6, 12, 12, 12}
-Node.OrbitRadii = {0, 82, 162, 335, 493}
+Node.SkillsPerOrbit = {1, 6, 12, 12, 40}
+Node.OrbitRadii = {0, 81.5, 163, 326, 489}
 Node.Radii = {51, 70, 107, 109, 200, 51}
 
 function Node.arc(node)
@@ -29,9 +29,6 @@ function Node.nodePosition(node)
 
     x = node.group.position.x - r * math.sin(-a)
     y = node.group.position.y - r * math.cos(-a)
-    if node.id == 54142 then
-      print(a)
-    end
   end
 
   return {x = x, y = y}
@@ -46,15 +43,12 @@ function Node.create(data, group)
   -- Set non-computed attributes
   node.id         = tonumber(data.id)
   node.gid        = tonumber(data.g)
-  node.orbit      = data.o + 1 -- lua arrays are not 0-indexed
-  node.orbitIndex = data.oidx
+  node.orbit      = tonumber(data.o) + 1 -- lua arrays are not 0-indexed
+  node.orbitIndex = tonumber(data.oidx)
   node.icon       = data.icon
   node.out        = data.out
   node.name       = data.dn
   node.startPositionClasses = data.spc
-  if node.group.orbit == nil then
-    node.group.orbit = node.orbit
-  end
 
   -- Set nodes to active for now, until we get further along. it's too hard
   -- to see everything otherwise
@@ -91,10 +85,9 @@ function Node:draw(tx, ty)
 
     -- @NOTE: Potential optimization point -- move this positional adjustment into
     -- initialization code.
-    local r,g,b,a = love.graphics.getColor()
     love.graphics.setColor(0, 0, 0, 255)
     self:drawConnections()
-    love.graphics.setColor(r,g,b,a)
+    clearColor()
     local sheet = self.active and self.activeSheet or self.inactiveSheet
     local _,_,w,h = self.imageQuad:getViewport()
     love.graphics.draw(sheet, self.imageQuad, self.position.x - w/2, self.position.y - h/2)
@@ -157,8 +150,6 @@ function Node:drawArcedConnection(other)
     return
   end
 
-  -- print("steps", steps)
-  -- print("#points", #points)
   love.graphics.line(points)
 end
 

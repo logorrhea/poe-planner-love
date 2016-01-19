@@ -14,8 +14,8 @@ camera = {
 }
 
 clickCoords = {x = 0, y = 0}
-
 visibleNodes = {}
+orig_r, orig_g, orig_b, orig_a = love.graphics.getColor()
 
 function love.load()
 
@@ -78,8 +78,11 @@ function love.load()
 
   -- Create nodes
   nodes = {}
-  for _, node in pairs(Tree.nodes) do
-    local node = Node.create(node, groups[node.g])
+  for _, n in pairs(Tree.nodes) do
+    local node = Node.create(n, groups[n.g])
+    if groups[n.g].orbit == nil and node.orbit ~= nil then
+      groups[n.g].orbit = node.orbit
+    end
 
     -- Determine sprite sheet to use
 
@@ -105,6 +108,11 @@ function love.load()
   -- Use these for culling later
   winWidth, winHeight = love.graphics.getDimensions()
   scaledWidth, scaledHeight = winWidth/camera.scale, winHeight/camera.scale
+
+  -- Set better starting position
+  -- @TODO: Set this to look at a character start node
+  camera.x = -winWidth/2
+  camera.y = -winHeight/2
 end
 
 function love.update(dt)
@@ -119,13 +127,6 @@ function love.draw()
   local tx, ty = -camera.x/camera.scale, -camera.y/camera.scale
   love.graphics.translate(tx, ty)
 
-  local r,g,b,a = love.graphics.getColor()
-  love.graphics.setColor(200, 255, 58, 255)
-  for gid, group in pairs(groups) do
-    love.graphics.circle("line", group.position.x, group.position.y, Node.OrbitRadii[group.orbit], 20)
-  end
-  love.graphics.setColor(r, g, b, a)
-
   for nid, node in pairs(nodes) do
     -- @TODO: Once we move everything over to SpriteBatches, we can probably
     -- do these comparisons at SpriteBatch-creation-time. Simply leave out all
@@ -135,7 +136,9 @@ function love.draw()
   love.graphics.pop()
 
   -- print FPS counter in top-left
+  love.graphics.setColor(0, 0, 0, 255)
   love.graphics.print("Current FPS: "..tostring(love.timer.getFPS( )), 10, 10)
+  clearColor()
 end
 
 function love.mousepressed(x, y, button, isTouch)
@@ -184,9 +187,13 @@ function checkIfNodeClicked(x, y, button, isTouch)
     local dy = (node.position.y*camera.scale) - camera.y - y
     local r = Node.Radii[node.type] * camera.scale
     if dx * dx + dy * dy <= r * r then
+      print(node.id)
       node.active = not node.active
-      print(node.id .. ' was clicked')
       return
     end
   end
+end
+
+function clearColor()
+  love.graphics.setColor(orig_r, orig_g, orig_b, orig_a)
 end
