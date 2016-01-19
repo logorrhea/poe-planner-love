@@ -15,6 +15,24 @@ Node.SkillsPerOrbit = {1, 6, 12, 12, 40}
 Node.OrbitRadii = {0, 81.5, 163, 326, 489}
 Node.Radii = {51, 70, 107, 109, 200, 51}
 
+Node.InactiveSkillFrameNames = {
+  "PSSkillFrame",
+  "NotableFrameUnallocated",
+  nil,
+  "KeystoneFrameUnallocated",
+  nil,
+  "JewelFrameUnallocated"
+}
+
+Node.ActiveSkillFrames = {
+  "PSSkillFrameActive",
+  "NotableFrameAllocated",
+  nil,
+  "KeystoneFrameAllocated",
+  nil,
+  "JewelFrameAllocated"
+}
+
 function Node.arc(node)
   return 2 * math.pi * node.orbitIndex / Node.SkillsPerOrbit[node.orbit]
 end
@@ -107,6 +125,16 @@ function Node:draw(tx, ty)
     if visibleNodes[self.id] == nil then
       visibleNodes[self.id] = self
     end
+
+    self:drawFrame()
+  end
+end
+
+function Node:drawFrame()
+  local sheetName = self.active and Node.ActiveSkillFrames[self.type] or Node.InactiveSkillFrameNames[self.type]
+  if sheetName ~= nil then
+    local w, h = images[sheetName]:getDimensions()
+    love.graphics.draw(images[sheetName], self.position.x - w/2, self.position.y - h/2)
   end
 end
 

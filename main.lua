@@ -6,8 +6,7 @@ require 'group'
 camera = {
   x         = 0,
   y         = 0,
-  scale     = 0.1,
-  -- scale = 1.0,
+  scale     = 0.25,
   maxScale  = 1.0,
   minScale  = 0.1,
   scaleStep = 0.05
@@ -50,6 +49,7 @@ function love.load()
       fileName = fileName:gsub(".gif", ".png") -- this needs a better solution, probably
       images[name] = love.graphics.newImage('assets/'..fileName)
     end
+
   end
 
   -- Get connection images
@@ -149,7 +149,7 @@ function love.draw()
 
   -- print FPS counter in top-left
   love.graphics.setColor(0, 0, 0, 255)
-  love.graphics.print("Current FPS: "..tostring(love.timer.getFPS()), 10, 10)
+  love.graphics.print(string.format("Current FPS: %.2f | Average frame time: %.3f ms", love.timer.getFPS(), 1000 * love.timer.getAverageDelta()), 10, 10)
   clearColor()
 end
 
@@ -191,7 +191,6 @@ function love.keypressed(key, scancode, isRepeat)
     scaledHeight = winHeight/camera.scale
     scaledWidth = winWidth/camera.scale
   end
-  print(camera.scale)
 end
 
 function checkIfNodeClicked(x, y, button, isTouch)
