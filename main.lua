@@ -103,18 +103,30 @@ function love.load()
   -- @TODO: Set this to look at a character start node
   camera.x = -winWidth/2
   camera.y = -winHeight/2
+
+  -- Create SpriteBatch for background image
+  local bgImage = love.graphics.newImage('assets/Background1.png')
+  background = love.graphics.newSpriteBatch(bgImage)
+  local w, h = bgImage:getDimensions()
+  local tilesX, tilesY = math.ceil(winWidth/w), math.ceil(winHeight/h)
+  for tx = 0, tilesX do
+    for ty=0, tilesY do
+      background:add(w*tx, h*ty)
+    end
+  end
 end
 
 function love.update(dt)
 end
 
 function love.draw()
-  love.graphics.clear(255, 255, 255, 255)
-  love.graphics.push()
-  love.graphics.scale(camera.scale, camera.scale)
+  -- Draw background image separate from transformations
+  love.graphics.draw(background)
 
   -- Store the translation info, for profit
   local tx, ty = -camera.x/camera.scale, -camera.y/camera.scale
+  love.graphics.push()
+  love.graphics.scale(camera.scale, camera.scale)
   love.graphics.translate(tx, ty)
 
   -- @TODO: Once we move everything over to SpriteBatches, we can probably
