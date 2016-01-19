@@ -79,19 +79,31 @@ function Node.create(data, group)
   return node
 end
 
+-- Updates viewport as well as visible boundaries fer draw-call checking
+function Node:setQuad(quad)
+  self.imageQuad = quad
+  local _,_,w,h = quad:getViewport()
+
+  self.visibleQuad = {
+    top    = self.position.y - h/2,
+    bottom = self.position.y + h/2,
+    left   = self.position.x - w/2,
+    right  = self.position.x + w/2
+  }
+end
+
+function Node:isVisible(tx, ty)
+  return (self.visibleQuad.top + ty) < scaledHeight and
+         (self.visibleQuad.bottom + ty) > 0 and
+         (self.visibleQuad.left + tx) < scaledWidth and
+         (self.visibleQuad.right + tx) > 0
+end
+
 -- Renders the node (love2d-style)
 function Node:draw(tx, ty)
-  if self.position.x + tx <= scaledWidth and self.position.x + tx >= 0 and self.position.y + ty >= 0 and self.position.y + ty <= scaledHeight then
-
-    -- @NOTE: Potential optimization point -- move this positional adjustment into
-    -- initialization code.
-    love.graphics.setColor(0, 0, 0, 255)
-    self:drawConnections()
-    clearColor()
+  if self:isVisible(tx, ty) then
     local sheet = self.active and self.activeSheet or self.inactiveSheet
-    local _,_,w,h = self.imageQuad:getViewport()
-    love.graphics.draw(sheet, self.imageQuad, self.position.x - w/2, self.position.y - h/2)
-
+    love.graphics.draw(sheet, self.imageQuad, self.visibleQuad.left, self.visibleQuad.top)
     if visibleNodes[self.id] == nil then
       visibleNodes[self.id] = self
     end

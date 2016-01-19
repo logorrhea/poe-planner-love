@@ -8,7 +8,7 @@ camera = {
   y         = 0,
   scale     = 0.1,
   -- scale = 1.0,
-  maxScale  = 0.6,
+  maxScale  = 1.0,
   minScale  = 0.1,
   scaleStep = 0.05
 }
@@ -100,7 +100,7 @@ function love.load()
       node.inactiveSheet = images["normalInactive"]
     end
 
-    node.imageQuad = spriteQuads[node.icon]
+    node:setQuad(spriteQuads[node.icon])
 
     nodes[node.id] = node
   end
@@ -127,17 +127,29 @@ function love.draw()
   local tx, ty = -camera.x/camera.scale, -camera.y/camera.scale
   love.graphics.translate(tx, ty)
 
+  -- @TODO: Once we move everything over to SpriteBatches, we can probably
+  -- do these comparisons at SpriteBatch-creation-time. Simply leave out all
+  -- the ones that don't need to drawn
+
+  -- Draw connections first, so they are on the bottom
+  love.graphics.setColor(0, 0, 0, 255)
+  love.graphics.setLineWidth(1/camera.scale)
   for nid, node in pairs(nodes) do
-    -- @TODO: Once we move everything over to SpriteBatches, we can probably
-    -- do these comparisons at SpriteBatch-creation-time. Simply leave out all
-    -- the ones that don't need to drawn
+    node:drawConnections()
+  end
+  love.graphics.setLineWidth(1)
+  clearColor()
+
+  -- Draw each node
+  for nid, node in pairs(nodes) do
     node:draw(tx, ty)
   end
+
   love.graphics.pop()
 
   -- print FPS counter in top-left
   love.graphics.setColor(0, 0, 0, 255)
-  love.graphics.print("Current FPS: "..tostring(love.timer.getFPS( )), 10, 10)
+  love.graphics.print("Current FPS: "..tostring(love.timer.getFPS()), 10, 10)
   clearColor()
 end
 
@@ -179,6 +191,7 @@ function love.keypressed(key, scancode, isRepeat)
     scaledHeight = winHeight/camera.scale
     scaledWidth = winWidth/camera.scale
   end
+  print(camera.scale)
 end
 
 function checkIfNodeClicked(x, y, button, isTouch)
