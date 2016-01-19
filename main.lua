@@ -119,6 +119,13 @@ function love.draw()
   local tx, ty = -camera.x/camera.scale, -camera.y/camera.scale
   love.graphics.translate(tx, ty)
 
+  local r,g,b,a = love.graphics.getColor()
+  love.graphics.setColor(200, 255, 58, 255)
+  for gid, group in pairs(groups) do
+    love.graphics.circle("line", group.position.x, group.position.y, Node.OrbitRadii[group.orbit], 20)
+  end
+  love.graphics.setColor(r, g, b, a)
+
   for nid, node in pairs(nodes) do
     -- @TODO: Once we move everything over to SpriteBatches, we can probably
     -- do these comparisons at SpriteBatch-creation-time. Simply leave out all

@@ -29,6 +29,9 @@ function Node.nodePosition(node)
 
     x = node.group.position.x - r * math.sin(-a)
     y = node.group.position.y - r * math.cos(-a)
+    if node.id == 54142 then
+      print(a)
+    end
   end
 
   return {x = x, y = y}
@@ -49,6 +52,9 @@ function Node.create(data, group)
   node.out        = data.out
   node.name       = data.dn
   node.startPositionClasses = data.spc
+  if node.group.orbit == nil then
+    node.group.orbit = node.orbit
+  end
 
   -- Set nodes to active for now, until we get further along. it's too hard
   -- to see everything otherwise
