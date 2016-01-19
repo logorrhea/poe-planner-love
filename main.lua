@@ -173,8 +173,8 @@ end
 
 function checkIfNodeClicked(x, y, button, isTouch)
   for nid, node in pairs(visibleNodes) do
-    local dx = (node.position.x - camera.x)*camera.scale - x
-    local dy = (node.position.y - camera.y)*camera.scale - y
+    local dx = (node.position.x*camera.scale) - camera.x - x
+    local dy = (node.position.y*camera.scale) - camera.y - y
     local r = Node.Radii[node.type] * camera.scale
     if dx * dx + dy * dy <= r * r then
       node.active = not node.active
