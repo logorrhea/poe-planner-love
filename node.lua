@@ -92,6 +92,10 @@ function Node:draw(tx, ty)
     local sheet = self.active and self.activeSheet or self.inactiveSheet
     local _,_,w,h = self.imageQuad:getViewport()
     love.graphics.draw(sheet, self.imageQuad, self.position.x - w/2, self.position.y - h/2)
+
+    if visibleNodes[self.id] == nil then
+      visibleNodes[self.id] = self
+    end
   end
 end
 

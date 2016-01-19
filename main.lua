@@ -7,10 +7,15 @@ camera = {
   x         = 0,
   y         = 0,
   scale     = 0.1,
+  -- scale = 1.0,
   maxScale  = 0.6,
   minScale  = 0.1,
   scaleStep = 0.05
 }
+
+clickCoords = {x = 0, y = 0}
+
+visibleNodes = {}
 
 function love.load()
 
@@ -127,9 +132,18 @@ function love.draw()
 end
 
 function love.mousepressed(x, y, button, isTouch)
+  clickCoords.x, clickCoords.y = x, y
 end
 
 function love.mousereleased(x, y, button, isTouch)
+  local dx = x - clickCoords.x
+  local dy = y - clickCoords.y
+
+  if math.abs(dx) <= 3 and math.abs(dy) <= 3 then
+    checkIfNodeClicked(x, y, button, isTouch)
+  else
+    visibleNodes = {}
+  end
 end
 
 function love.mousemoved(x, y, dx, dy)
@@ -154,5 +168,18 @@ function love.keypressed(key, scancode, isRepeat)
     end
     scaledHeight = winHeight/camera.scale
     scaledWidth = winWidth/camera.scale
+  end
+end
+
+function checkIfNodeClicked(x, y, button, isTouch)
+  for nid, node in pairs(visibleNodes) do
+    local dx = (node.position.x - camera.x)*camera.scale - x
+    local dy = (node.position.y - camera.y)*camera.scale - y
+    local r = Node.Radii[node.type] * camera.scale
+    if dx * dx + dy * dy <= r * r then
+      node.active = not node.active
+      print(node.id .. ' was clicked')
+      return
+    end
   end
 end
