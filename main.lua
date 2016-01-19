@@ -64,8 +64,9 @@ function love.load()
     local spriteInfo = sizes[#sizes]
     local sheet = love.graphics.newImage('assets/'..spriteInfo.filename)
     images[name] = sheet
+    spriteQuads[name] = {}
     for title, coords in pairs(spriteInfo.coords) do
-      spriteQuads[title] = love.graphics.newQuad(coords.x, coords.y, coords.w, coords.h, sheet:getDimensions())
+      spriteQuads[name][title] = love.graphics.newQuad(coords.x, coords.y, coords.w, coords.h, sheet:getDimensions())
     end
   end
 
@@ -85,22 +86,11 @@ function love.load()
     end
 
     -- Determine sprite sheet to use
-
-    if node.type == Node.NT_NOTABLE then
-      node.activeSheet = images["notableActive"]
-      node.inactiveSheet = images["notableInactive"]
-    elseif node.type == Node.NT_KEYSTONE then
-      node.activeSheet = images["keystoneActive"]
-      node.inactiveSheet = images["keystoneInactive"]
-    elseif node.type == Node.NT_MASTERY then
-      node.activeSheet = images["mastery"]
-      node.inactiveSheet = images["mastery"]
-    else
-      node.activeSheet = images["normalActive"]
-      node.inactiveSheet = images["normalInactive"]
-    end
-
-    node:setQuad(spriteQuads[node.icon])
+    local activeName = Node.ActiveSkillsheets[node.type]
+    local inactiveName = Node.InactiveSkillsheets[node.type]
+    node.activeSheet = images[activeName]
+    node.inactiveSheet = images[inactiveName]
+    node:setQuad(spriteQuads[activeName][node.icon])
 
     nodes[node.id] = node
   end

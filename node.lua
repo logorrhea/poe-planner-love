@@ -15,6 +15,24 @@ Node.SkillsPerOrbit = {1, 6, 12, 12, 40}
 Node.OrbitRadii = {0, 81.5, 163, 326, 489}
 Node.Radii = {51, 70, 107, 109, 200, 51}
 
+Node.ActiveSkillsheets = {
+  "normalActive",
+  "notableActive",
+  "mastery",
+  "keystoneActive",
+  "normalActive",
+  "normalActive",
+}
+
+Node.InactiveSkillsheets = {
+  "normalInactive",
+  "notableInactive",
+  "mastery",
+  "keystoneInactive",
+  "normalInactive",
+  "normalInactive",
+}
+
 Node.InactiveSkillFrameNames = {
   "PSSkillFrame",
   "NotableFrameUnallocated",
