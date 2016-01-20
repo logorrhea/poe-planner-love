@@ -2,6 +2,7 @@ local json = require('vendor/dkjson')
 
 require 'node'
 require 'group'
+require 'colors'
 
 camera = {
   x         = 0,
@@ -120,8 +121,11 @@ function love.update(dt)
 end
 
 function love.draw()
+  love.graphics.clear(255, 255, 255, 255)
+  love.graphics.setColor(255, 255, 255, 230)
   -- Draw background image separate from transformations
   love.graphics.draw(background)
+  clearColor()
 
   -- Store the translation info, for profit
   local tx, ty = -camera.x/camera.scale, -camera.y/camera.scale
@@ -134,7 +138,7 @@ function love.draw()
   -- the ones that don't need to drawn
 
   -- Draw connections first, so they are on the bottom
-  love.graphics.setColor(0, 0, 0, 255)
+  love.graphics.setColor(inactiveConnector)
   love.graphics.setLineWidth(1/camera.scale)
   for nid, node in pairs(nodes) do
     node:drawConnections()
@@ -150,7 +154,7 @@ function love.draw()
   love.graphics.pop()
 
   -- print FPS counter in top-left
-  love.graphics.setColor(0, 0, 0, 255)
+  love.graphics.setColor(255, 255, 255, 255)
   love.graphics.print(string.format("Current FPS: %.2f | Average frame time: %.3f ms", love.timer.getFPS(), 1000 * love.timer.getAverageDelta()), 10, 10)
   clearColor()
 end
