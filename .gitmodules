@@ -1,0 +1,3 @@
+[submodule "vendor/Ser"]
+	path = vendor/Ser
+	url = https://github.com/gvx/Ser

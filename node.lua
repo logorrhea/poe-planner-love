@@ -51,6 +51,17 @@ Node.ActiveSkillFrames = {
   "JewelFrameAllocated"
 }
 
+-- Translate start classes
+Node.classframes = {
+  'centerscion',
+  'centermarauder',
+  'centerranger',
+  'centerwitch',
+  'centerduelist',
+  'centertemplar',
+  'centershadow',
+}
+
 function Node.arc(node)
   return 2 * math.pi * node.orbitIndex / Node.SkillsPerOrbit[node.orbit]
 end
@@ -88,7 +99,7 @@ function Node.create(data, group)
 
   -- Set nodes to active for now, until we get further along. it's too hard
   -- to see everything otherwise
-  node.active = true
+  node.active = false
 
   -- Set node type
   if #node.startPositionClasses ~= 0 then
@@ -149,10 +160,27 @@ function Node:draw(tx, ty)
 end
 
 function Node:drawFrame()
-  local sheetName = self.active and Node.ActiveSkillFrames[self.type] or Node.InactiveSkillFrameNames[self.type]
-  if sheetName ~= nil then
-    local w, h = images[sheetName]:getDimensions()
-    love.graphics.draw(images[sheetName], self.position.x - w/2, self.position.y - h/2)
+  if #self.startPositionClasses > 0 then
+    local bg = images['PSGroupBackground3']
+    local w, h = bg:getDimensions()
+    love.graphics.draw(bg, self.position.x - w/2, self.position.y - h)
+    love.graphics.draw(bg, self.position.x + w/2, self.position.y + h, math.pi)
+
+    -- Draw all as inactive fer now
+    -- @TODO: Stop doing that.
+    local spc = self.startPositionClasses[1] + 1 -- there is only ever one
+    local sprite = images['PSStartNodeBackgroundInactive']
+    if spc == activeClass then
+      sprite = images[Node.classframes[spc]]
+    end
+    w, h = sprite:getDimensions()
+    love.graphics.draw(sprite, self.position.x - w/2, self.position.y - h/2)
+  else
+    local sheetName = self.active and Node.ActiveSkillFrames[self.type] or Node.InactiveSkillFrameNames[self.type]
+    if sheetName ~= nil then
+      local w, h = images[sheetName]:getDimensions()
+      love.graphics.draw(images[sheetName], self.position.x - w/2, self.position.y - h/2)
+    end
   end
 end
 

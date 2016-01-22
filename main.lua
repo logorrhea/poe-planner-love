@@ -13,6 +13,7 @@ camera = {
   scaleStep = 0.05
 }
 
+activeClass = 1
 clickCoords = {x = 0, y = 0}
 visibleNodes = {}
 orig_r, orig_g, orig_b, orig_a = love.graphics.getColor()
@@ -55,9 +56,9 @@ function love.load()
 
   -- Get connection images
   images.straight_connector = {
-    active = love.graphics.newImage('assets/LineConnectorActive.png'),
+    active       = love.graphics.newImage('assets/LineConnectorActive.png'),
     intermediate = love.graphics.newImage('assets/LineConnectorIntermediate.png'),
-    inactive = love.graphics.newImage('assets/LineConnectorNormal.png')
+    inactive     = love.graphics.newImage('assets/LineConnectorNormal.png')
   }
 
   spriteQuads = {}
@@ -70,6 +71,10 @@ function love.load()
       spriteQuads[name][title] = love.graphics.newQuad(coords.x, coords.y, coords.w, coords.h, sheet:getDimensions())
     end
   end
+
+  -- for name, _ in pairs(images) do
+  --   print(name)
+  -- end
 
   -- Create groups
   groups = {}
