@@ -101,6 +101,18 @@ function love.load()
     nodes[node.id] = node
   end
 
+  -- Run through nodes a second time, so we can make links
+  -- go both directions
+  for nid, node in pairs(nodes) do
+    print(nid)
+    for _, lnid in ipairs(node.out) do
+      print(' ', lnid)
+      if lnid ~= nid and nodes[lnid].neighbors[nid] == nil then
+        table.insert(nodes[lnid].neighbors, nid)
+      end
+    end
+  end
+
   -- Use these for culling later
   winWidth, winHeight = love.graphics.getDimensions()
   scaledWidth, scaledHeight = winWidth/camera.scale, winHeight/camera.scale
@@ -211,7 +223,9 @@ function checkIfNodeClicked(x, y, button, isTouch)
     local r = Node.Radii[node.type] * camera.scale
     if dx * dx + dy * dy <= r * r then
       print(node.id)
-      node.active = not node.active
+      if node.active or node:hasActiveNeighbors() then
+        node.active = not node.active
+      end
       return
     end
   end

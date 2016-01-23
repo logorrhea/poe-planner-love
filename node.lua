@@ -96,6 +96,7 @@ function Node.create(data, group)
   node.orbitIndex = tonumber(data.oidx)
   node.icon       = data.icon
   node.out        = data.out
+  node.neighbors  = data.out
   node.name       = data.dn
   node.startPositionClasses = data.spc
 
@@ -204,9 +205,7 @@ function Node:drawConnections()
 end
 
 function Node:drawConnection(other)
-  -- local dx, dy = self.position.x - other.position.x, self.position.y - other.position.y
-  -- local a = math.atan(dy/dx) * 180 / math.pi
-  -- love.graphics.draw(images.straight_connector.active, self.position.x, self.position.y, a)
+  -- @TODO: (low priority) Draw line graphics instead of line objects?
   love.graphics.line(self.position.x, self.position.y, other.position.x, other.position.y)
 end
 
@@ -245,6 +244,17 @@ function Node:drawArcedConnection(other)
   end
 
   love.graphics.line(points)
+end
+
+function Node:hasActiveNeighbors()
+  -- @TODO: This will likely need refactored once we work once
+  -- allowing for proper node deactivation
+  for _, nid in pairs(self.neighbors) do
+    if nodes[nid].active then
+      return true
+    end
+  end
+  return false
 end
 
 return Node
