@@ -1,3 +1,5 @@
+require 'colors'
+
 Node = {}
 Node.__index = Node
 
@@ -104,6 +106,9 @@ function Node.create(data, group)
   -- Set node type
   if #node.startPositionClasses ~= 0 then
     node.type = Node.NT_START
+    if node.startPositionClasses[1]+1 == activeClass then
+      node.active = true
+    end
   elseif data.m then
     node.type = Node.NT_MASTERY
   elseif data["not"] then
@@ -187,11 +192,14 @@ end
 function Node:drawConnections()
     for _, nid in pairs(self.out) do
       local other = nodes[nid]
+      local color = (self.active and other.active) and activeConnector or inactiveConnector
+      love.graphics.setColor(color)
       if (self.group.id ~= other.group.id) or (self.orbit ~= other.orbit) then
         self:drawConnection(other)
       else
         self:drawArcedConnection(other)
       end
+      clearColor()
     end
 end
 
