@@ -35,7 +35,7 @@ Node.InactiveSkillsheets = {
   "normalInactive",
 }
 
-Node.InactiveSkillFrameNames = {
+Node.InactiveSkillFrames = {
   "PSSkillFrame",
   "NotableFrameUnallocated",
   nil,
@@ -156,7 +156,8 @@ end
 function Node:draw(tx, ty)
   if self:isVisible(tx, ty) then
     local sheet = self.active and self.activeSheet or self.inactiveSheet
-    love.graphics.draw(sheet, self.imageQuad, self.visibleQuad.left, self.visibleQuad.top)
+    batches[sheet]:add(self.imageQuad, self.visibleQuad.left, self.visibleQuad.top)
+    -- love.graphics.draw(sheet, self.imageQuad, self.visibleQuad.left, self.visibleQuad.top)
     if visibleNodes[self.id] == nil then
       visibleNodes[self.id] = self
     end
@@ -167,25 +168,30 @@ end
 
 function Node:drawFrame()
   if #self.startPositionClasses > 0 then
-    local bg = images['PSGroupBackground3']
+    local bg = batches['PSGroupBackground3']:getTexture()
     local w, h = bg:getDimensions()
-    love.graphics.draw(bg, self.position.x - w/2, self.position.y - h)
-    love.graphics.draw(bg, self.position.x + w/2, self.position.y + h, math.pi)
+    batches['PSGroupBackground3']:add(self.position.x - w/2, self.position.y - h)
+    batches['PSGroupBackground3']:add(self.position.x + w/2, self.position.y + h, math.pi)
+    -- love.graphics.draw(bg, self.position.x - w/2, self.position.y - h)
+    -- love.graphics.draw(bg, self.position.x + w/2, self.position.y + h, math.pi)
 
     -- Draw all as inactive fer now
     -- @TODO: Stop doing that.
     local spc = self.startPositionClasses[1] + 1 -- there is only ever one
-    local sprite = images['PSStartNodeBackgroundInactive']
     if spc == activeClass then
-      sprite = images[Node.classframes[spc]]
+      local sprite = images[Node.classframes[spc]]
+      w, h = sprite:getDimensions()
+      love.graphics.draw(sprite, self.position.x - w/2, self.position.y - h/2)
+    else
+      w, h = sprite:getDimensions()
+      batches['PSStartNodeBackgroundInactive']:add(self.position.x - w/2, self.position.y - h/2)
     end
-    w, h = sprite:getDimensions()
-    love.graphics.draw(sprite, self.position.x - w/2, self.position.y - h/2)
   else
-    local sheetName = self.active and Node.ActiveSkillFrames[self.type] or Node.InactiveSkillFrameNames[self.type]
+    local sheetName = self.active and Node.ActiveSkillFrames[self.type] or Node.InactiveSkillFrames[self.type]
     if sheetName ~= nil then
-      local w, h = images[sheetName]:getDimensions()
-      love.graphics.draw(images[sheetName], self.position.x - w/2, self.position.y - h/2)
+      local w, h = batches[sheetName]:getTexture():getDimensions()
+      batches[sheetName]:add(self.position.x - w/2, self.position.y - h/2)
+      -- love.graphics.draw(images[sheetName], self.position.x - w/2, self.position.y - h/2)
     end
   end
 end

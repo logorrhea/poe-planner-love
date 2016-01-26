@@ -30,9 +30,13 @@ function love.load()
   -- Parse json data into table
   Tree, err = json.decode(dataString)
 
+  -- Cache node count
+  local nodeCount = #Tree.nodes
+
   -- Generate images
   -- @TODO: Store all this shit as SpriteBatches
   images = {}
+  batches = {}
   for name, sizes in pairs(Tree.assets) do
     local filePath = nil
     local largest = 0
@@ -49,7 +53,20 @@ function love.load()
         fileName = match
       end
       fileName = fileName:gsub(".gif", ".png") -- this needs a better solution, probably
-      images[name] = love.graphics.newImage('assets/'..fileName)
+
+      local image = love.graphics.newImage('assets/'..fileName)
+      if tableContainsValue(Node.InactiveSkillFrames, name) then
+        print(name)
+        batches[name] = love.graphics.newSpriteBatch(image, nodeCount)
+      elseif tableContainsValue(Node.ActiveSkillFrames, name) then
+        batches[name] = love.graphics.newSpriteBatch(image, nodeCount)
+      elseif name == 'PSGroupBackground3' then
+        batches[name] = love.graphics.newSpriteBatch(image, (#Node.classframes)*2)
+      elseif name == 'PSStartNodeBackgroundInactive' then
+        batches[name] = love.graphics.newSpriteBatch(image, #Node.classframes)
+      else
+        images[name] = image
+      end
     end
 
   end
@@ -64,15 +81,15 @@ function love.load()
   spriteQuads = {}
   for name, sizes in pairs(Tree.skillSprites) do
     local spriteInfo = sizes[#sizes]
-    local sheet = love.graphics.newImage('assets/'..spriteInfo.filename)
-    images[name] = sheet
+    local image = love.graphics.newImage('assets/'..spriteInfo.filename)
+    batches[name] = love.graphics.newSpriteBatch(image, nodeCount)
     spriteQuads[name] = {}
     for title, coords in pairs(spriteInfo.coords) do
-      spriteQuads[name][title] = love.graphics.newQuad(coords.x, coords.y, coords.w, coords.h, sheet:getDimensions())
+      spriteQuads[name][title] = love.graphics.newQuad(coords.x, coords.y, coords.w, coords.h, image:getDimensions())
     end
   end
 
-  -- for name, _ in pairs(images) do
+  -- for name, _ in pairs(batches) do
   --   print(name)
   -- end
 
@@ -94,8 +111,8 @@ function love.load()
     -- Determine sprite sheet to use
     local activeName = Node.ActiveSkillsheets[node.type]
     local inactiveName = Node.InactiveSkillsheets[node.type]
-    node.activeSheet = images[activeName]
-    node.inactiveSheet = images[inactiveName]
+    node.activeSheet = activeName
+    node.inactiveSheet = inactiveName
     node:setQuad(spriteQuads[activeName][node.icon])
 
     nodes[node.id] = node
@@ -104,9 +121,7 @@ function love.load()
   -- Run through nodes a second time, so we can make links
   -- go both directions
   for nid, node in pairs(nodes) do
-    print(nid)
     for _, lnid in ipairs(node.out) do
-      print(' ', lnid)
       if lnid ~= nid and nodes[lnid].neighbors[nid] == nil then
         table.insert(nodes[lnid].neighbors, nid)
       end
@@ -124,20 +139,24 @@ function love.load()
 
   -- Create SpriteBatch for background image
   local bgImage = love.graphics.newImage('assets/Background1.png')
-  background = love.graphics.newSpriteBatch(bgImage)
   local w, h = bgImage:getDimensions()
   local tilesX, tilesY = math.ceil(winWidth/w), math.ceil(winHeight/h)
+  background = love.graphics.newSpriteBatch(bgImage, (tilesX+1)*(tilesY+1), "static")
   for tx = 0, tilesX do
     for ty=0, tilesY do
       background:add(w*tx, h*ty)
     end
   end
+
+  -- Fill up sprite batches
+  refillBatches()
 end
 
 function love.update(dt)
 end
 
 function love.draw()
+
   love.graphics.clear(255, 255, 255, 255)
   love.graphics.setColor(255, 255, 255, 230)
   -- Draw background image separate from transformations
@@ -154,6 +173,10 @@ function love.draw()
   -- do these comparisons at SpriteBatch-creation-time. Simply leave out all
   -- the ones that don't need to drawn
 
+  -- Draw the start node decorations first, they should be in the very back
+  love.graphics.draw(batches['PSGroupBackground3'])
+  love.graphics.draw(batches['PSStartNodeBackgroundInactive'])
+
   -- Draw connections first, so they are on the bottom
   love.graphics.setColor(inactiveConnector)
   love.graphics.setLineWidth(1/camera.scale)
@@ -163,9 +186,20 @@ function love.draw()
   love.graphics.setLineWidth(1)
   clearColor()
 
-  -- Draw each node
-  for nid, node in pairs(nodes) do
-    node:draw(tx, ty)
+  -- Draw skill icons next
+  for _, name in pairs(Node.ActiveSkillsheets) do
+    love.graphics.draw(batches[name])
+  end
+  for _, name in pairs(Node.InactiveSkillsheets) do
+    love.graphics.draw(batches[name])
+  end
+
+  -- Draw frames last
+  for _, name in pairs(Node.ActiveSkillFrames) do
+    love.graphics.draw(batches[name])
+  end
+  for _, name in pairs(Node.InactiveSkillFrames) do
+    love.graphics.draw(batches[name])
   end
 
   love.graphics.pop()
@@ -233,4 +267,26 @@ end
 
 function clearColor()
   love.graphics.setColor(orig_r, orig_g, orig_b, orig_a)
+end
+
+function refillBatches()
+  -- Clear out batches
+  for name, _ in pairs(batches) do
+    batches[name]:clear()
+  end
+
+  -- Re-fill them
+  local tx, ty = -camera.x/camera.scale, -camera.y/camera.scale
+  for nid, node in pairs(nodes) do
+    node:draw(tx, ty)
+  end
+end
+
+function tableContainsValue(t, v)
+  for _, n in pairs(t) do
+    if n == v then
+      return true
+    end
+  end
+  return false
 end
