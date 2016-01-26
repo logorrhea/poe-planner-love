@@ -13,6 +13,7 @@ camera = {
   scaleStep = 0.05
 }
 
+maxActive = 123
 activeClass = 1
 clickCoords = {x = 0, y = 0}
 visibleNodes = {}
@@ -37,6 +38,7 @@ function love.load()
   -- @TODO: Store all this shit as SpriteBatches
   images = {}
   batches = {}
+
   for name, sizes in pairs(Tree.assets) do
     local filePath = nil
     local largest = 0
@@ -56,16 +58,16 @@ function love.load()
 
       local image = love.graphics.newImage('assets/'..fileName)
       if tableContainsValue(Node.InactiveSkillFrames, name) then
-        print(name)
         batches[name] = love.graphics.newSpriteBatch(image, nodeCount)
       elseif tableContainsValue(Node.ActiveSkillFrames, name) then
-        batches[name] = love.graphics.newSpriteBatch(image, nodeCount)
+        batches[name] = love.graphics.newSpriteBatch(image, maxActive)
       elseif name == 'PSGroupBackground3' then
         batches[name] = love.graphics.newSpriteBatch(image, (#Node.classframes)*2)
       elseif name == 'PSStartNodeBackgroundInactive' then
         batches[name] = love.graphics.newSpriteBatch(image, #Node.classframes)
       else
-        images[name] = image
+        batches[name] = love.graphics.newSpriteBatch(image, 10)
+        -- images[name] = image
       end
     end
 
@@ -82,7 +84,8 @@ function love.load()
   for name, sizes in pairs(Tree.skillSprites) do
     local spriteInfo = sizes[#sizes]
     local image = love.graphics.newImage('assets/'..spriteInfo.filename)
-    batches[name] = love.graphics.newSpriteBatch(image, nodeCount)
+    local slots = string.match(name, 'Active') ~= nil and maxActive or nodeCount
+    batches[name] = love.graphics.newSpriteBatch(image, slots)
     spriteQuads[name] = {}
     for title, coords in pairs(spriteInfo.coords) do
       spriteQuads[name][title] = love.graphics.newQuad(coords.x, coords.y, coords.w, coords.h, image:getDimensions())
@@ -153,6 +156,7 @@ function love.load()
 end
 
 function love.update(dt)
+  -- countLinesDrawn = 0
 end
 
 function love.draw()
@@ -169,10 +173,6 @@ function love.draw()
   love.graphics.scale(camera.scale, camera.scale)
   love.graphics.translate(tx, ty)
 
-  -- @TODO: Once we move everything over to SpriteBatches, we can probably
-  -- do these comparisons at SpriteBatch-creation-time. Simply leave out all
-  -- the ones that don't need to drawn
-
   -- Draw the start node decorations first, they should be in the very back
   love.graphics.draw(batches['PSGroupBackground3'])
   love.graphics.draw(batches['PSStartNodeBackgroundInactive'])
@@ -180,7 +180,7 @@ function love.draw()
   -- Draw connections first, so they are on the bottom
   love.graphics.setColor(inactiveConnector)
   love.graphics.setLineWidth(1/camera.scale)
-  for nid, node in pairs(nodes) do
+  for nid, node in pairs(visibleNodes) do
     node:drawConnections()
   end
   love.graphics.setLineWidth(1)
@@ -194,7 +194,7 @@ function love.draw()
     love.graphics.draw(batches[name])
   end
 
-  -- Draw frames last
+  -- Draw frames
   for _, name in pairs(Node.ActiveSkillFrames) do
     love.graphics.draw(batches[name])
   end
@@ -202,11 +202,22 @@ function love.draw()
     love.graphics.draw(batches[name])
   end
 
+  -- Draw active class frames
+  for _, name in pairs(Node.classframes) do
+    love.graphics.draw(batches[name])
+  end
+
   love.graphics.pop()
+
+  local numVisible = 0
+  for i, _ in pairs(visibleNodes) do
+    numVisible = numVisible + 1
+  end
 
   -- print FPS counter in top-left
   love.graphics.setColor(255, 255, 255, 255)
   love.graphics.print(string.format("Current FPS: %.2f | Average frame time: %.3f ms", love.timer.getFPS(), 1000 * love.timer.getAverageDelta()), 10, 10)
+  -- love.graphics.print(string.format("Lines: %d", countLinesDrawn), 10, winHeight-30)
   clearColor()
 end
 
@@ -220,8 +231,6 @@ function love.mousereleased(x, y, button, isTouch)
 
   if math.abs(dx) <= 3 and math.abs(dy) <= 3 then
     checkIfNodeClicked(x, y, button, isTouch)
-  else
-    visibleNodes = {}
   end
 end
 
@@ -229,6 +238,7 @@ function love.mousemoved(x, y, dx, dy)
   if love.mouse.isDown(1) then
     camera.x = camera.x - dx
     camera.y = camera.y - dy
+    refillBatches()
   end
 end
 
@@ -240,6 +250,7 @@ function love.keypressed(key, scancode, isRepeat)
     end
     scaledHeight = winHeight/camera.scale
     scaledWidth = winWidth/camera.scale
+    refillBatches()
   elseif key == 'down' then
     camera.scale = camera.scale - camera.scaleStep
     if camera.scale < camera.minScale then
@@ -247,6 +258,7 @@ function love.keypressed(key, scancode, isRepeat)
     end
     scaledHeight = winHeight/camera.scale
     scaledWidth = winWidth/camera.scale
+    refillBatches()
   end
 end
 
@@ -256,8 +268,9 @@ function checkIfNodeClicked(x, y, button, isTouch)
     local dy = (node.position.y*camera.scale) - camera.y - y
     local r = Node.Radii[node.type] * camera.scale
     if dx * dx + dy * dy <= r * r then
-      print(node.id)
-      if node.active or node:hasActiveNeighbors() then
+      -- print(node.id)
+      if (node.active or node:hasActiveNeighbors()) and node.type ~= Node.NT_START then
+        print(node.id)
         node.active = not node.active
       end
       return
@@ -270,14 +283,22 @@ function clearColor()
 end
 
 function refillBatches()
+
   -- Clear out batches
   for name, _ in pairs(batches) do
     batches[name]:clear()
   end
 
-  -- Re-fill them
+  -- Re-calculate visible nodes
   local tx, ty = -camera.x/camera.scale, -camera.y/camera.scale
   for nid, node in pairs(nodes) do
+    if node:isVisible(tx, ty) then
+      visibleNodes[node.id] = node
+    end
+  end
+
+  -- Re-fill them batches
+  for nid, node in pairs(visibleNodes) do
     node:draw(tx, ty)
   end
 end

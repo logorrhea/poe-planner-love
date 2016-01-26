@@ -179,11 +179,11 @@ function Node:drawFrame()
     -- @TODO: Stop doing that.
     local spc = self.startPositionClasses[1] + 1 -- there is only ever one
     if spc == activeClass then
-      local sprite = images[Node.classframes[spc]]
-      w, h = sprite:getDimensions()
-      love.graphics.draw(sprite, self.position.x - w/2, self.position.y - h/2)
+      local name = Node.classframes[spc]
+      w, h = batches[name]:getTexture():getDimensions()
+      batches[name]:add(self.position.x - w/2, self.position.y - h/2)
     else
-      w, h = sprite:getDimensions()
+      w, h = batches['PSStartNodeBackgroundInactive']:getTexture():getDimensions()
       batches['PSStartNodeBackgroundInactive']:add(self.position.x - w/2, self.position.y - h/2)
     end
   else
@@ -212,6 +212,7 @@ end
 
 function Node:drawConnection(other)
   -- @TODO: (low priority) Draw line graphics instead of line objects?
+  -- countLinesDrawn = countLinesDrawn + 1
   love.graphics.line(self.position.x, self.position.y, other.position.x, other.position.y)
 end
 
@@ -233,8 +234,11 @@ function Node:drawArcedConnection(other)
 
   local center = self.group.position
   local radius = Node.OrbitRadii[self.orbit]
+  local arcScale = 30*camera.scale
   local steps = math.ceil(30*(delta/(math.pi*2)))
   local stepSize = delta/steps
+
+  -- countLinesDrawn = countLinesDrawn + steps
 
   local points = {}
   local radians = 0
