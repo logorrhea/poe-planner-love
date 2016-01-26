@@ -1,13 +1,16 @@
+scaleFix = 2.5
+
 local json = require('vendor/dkjson')
 
 require 'node'
 require 'group'
 require 'colors'
 
+
 camera = {
   x         = 0,
   y         = 0,
-  scale     = 0.25,
+  scale     = 0.75,
   maxScale  = 1.0,
   minScale  = 0.1,
   scaleStep = 0.05
@@ -268,10 +271,10 @@ function checkIfNodeClicked(x, y, button, isTouch)
     local dy = (node.position.y*camera.scale) - camera.y - y
     local r = Node.Radii[node.type] * camera.scale
     if dx * dx + dy * dy <= r * r then
-      -- print(node.id)
       if (node.active or node:hasActiveNeighbors()) and node.type ~= Node.NT_START then
         print(node.id)
         node.active = not node.active
+        refillBatches()
       end
       return
     end

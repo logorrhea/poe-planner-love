@@ -1,5 +1,6 @@
 require 'colors'
 
+
 Node = {}
 Node.__index = Node
 
@@ -14,8 +15,8 @@ Node.NT_JEWEL    = 6
 
 -- Some contants for drawing
 Node.SkillsPerOrbit = {1, 6, 12, 12, 40}
-Node.OrbitRadii = {0, 81.5, 163, 326, 489}
-Node.Radii = {51, 70, 107, 109, 200, 51}
+Node.OrbitRadii = {0, 81.5/scaleFix, 163/scaleFix, 326/scaleFix, 489/scaleFix}
+Node.Radii = {51/scaleFix, 70/scaleFix, 107/scaleFix, 109/scaleFix, 200/scaleFix, 51/scaleFix}
 
 Node.ActiveSkillsheets = {
   "normalActive",
@@ -217,6 +218,7 @@ function Node:drawConnection(other)
 end
 
 function Node:drawArcedConnection(other)
+  -- print(self.orbit)
   local startAngle = Node.arc(self)
   local endAngle = Node.arc(other)
 
@@ -232,7 +234,7 @@ function Node:drawArcedConnection(other)
     delta = c
   end
 
-  local center = self.group.position
+  local center = {x = self.group.position.x, y = self.group.position.y}
   local radius = Node.OrbitRadii[self.orbit]
   local arcScale = 30*camera.scale
   local steps = math.ceil(30*(delta/(math.pi*2)))
