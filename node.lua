@@ -212,7 +212,8 @@ function Node:drawConnections()
 end
 
 function Node:drawConnection(other)
-  -- @TODO: (low priority) Draw line graphics instead of line objects?
+  -- @TODO: (medium priority) Draw line graphics instead of line objects? Should improve performance
+  -- should performance become an issue. Seems slow on VM and mactop, but perhaps iPad is faster
   -- countLinesDrawn = countLinesDrawn + 1
   love.graphics.line(self.position.x, self.position.y, other.position.x, other.position.y)
 end
