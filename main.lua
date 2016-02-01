@@ -294,6 +294,7 @@ function refillBatches()
 
   -- Re-calculate visible nodes
   local tx, ty = -camera.x/camera.scale, -camera.y/camera.scale
+  visibleNodes = {}
   for nid, node in pairs(nodes) do
     if node:isVisible(tx, ty) then
       visibleNodes[node.id] = node
