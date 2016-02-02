@@ -185,7 +185,7 @@ function love.draw()
 
   -- Store the translation info, for profit
   -- local tx, ty = -camera.x/camera.scale, -camera.y/camera.scale
-  local cx, cy = love.graphics.getWidth()/(2*camera.scale), love.graphics.getHeight()/(2*camera.scale)
+  local cx, cy = winWidth/(2*camera.scale), winHeight/(2*camera.scale)
   love.graphics.push()
   love.graphics.scale(camera.scale)
   love.graphics.translate(cx, cy)
@@ -319,8 +319,7 @@ function refillBatches()
   end
 
   -- Re-calculate visible nodes
-  local tx = love.graphics.getWidth()/(2*camera.scale)-camera.x
-  local ty = love.graphics.getHeight()/(2*camera.scale)-camera.y
+  local tx, ty = winWidth/(2*camera.scale)-camera.x, winHeight/(2*camera.scale)-camera.y
   visibleNodes = {}
   for nid, node in pairs(nodes) do
     if node:isVisible(tx, ty) then
