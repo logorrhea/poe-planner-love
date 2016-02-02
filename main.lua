@@ -33,7 +33,7 @@ local layout = Layout(elements)
 local dark = require('vendor.luigi.luigi.theme.dark')
 layout:setTheme(dark)
 
-
+local lastClicked = nil
 
 function love.load()
 
@@ -184,10 +184,12 @@ function love.draw()
   clearColor()
 
   -- Store the translation info, for profit
-  local tx, ty = -camera.x/camera.scale, -camera.y/camera.scale
+  -- local tx, ty = -camera.x/camera.scale, -camera.y/camera.scale
+  local cx, cy = love.graphics.getWidth()/(2*camera.scale), love.graphics.getHeight()/(2*camera.scale)
   love.graphics.push()
-  love.graphics.scale(camera.scale, camera.scale)
-  love.graphics.translate(tx, ty)
+  love.graphics.scale(camera.scale)
+  love.graphics.translate(cx, cy)
+  love.graphics.translate(-camera.x, -camera.y)
 
   -- Draw connections first, so they are on the bottom
   love.graphics.setColor(inactiveConnector)
@@ -251,8 +253,8 @@ end
 
 function love.mousemoved(x, y, dx, dy)
   if love.mouse.isDown(1) then
-    camera.x = camera.x - dx
-    camera.y = camera.y - dy
+    camera.x = camera.x - (dx/camera.scale)
+    camera.y = camera.y - (dy/camera.scale)
     refillBatches()
   end
 end
@@ -283,10 +285,22 @@ function checkIfNodeClicked(x, y, button, isTouch)
     local dy = (node.position.y*camera.scale) - camera.y - y
     local r = Node.Radii[node.type] * camera.scale
     if dx * dx + dy * dy <= r * r then
-      if (node.active or node:hasActiveNeighbors()) and node.type ~= Node.NT_START then
-        print(node.id)
-        node.active = not node.active
-        refillBatches()
+
+      -- Debug
+      -- print(node.id)
+
+      if node.id == lastClicked then
+        -- On second click, toggle all nodes in highlighted trail
+        if (node.active or node:hasActiveNeighbors()) and node.type ~= Node.NT_START then
+          node.active = not node.active
+          refillBatches()
+        end
+      else
+        -- On first click, we should give some preview information:
+        --  Dialog box diplaying information about the clicked node
+        --  Preview a route from closest active node
+        lastClicked = node.id
+        showNodeDialog(nid)
       end
       return
     end
@@ -305,7 +319,8 @@ function refillBatches()
   end
 
   -- Re-calculate visible nodes
-  local tx, ty = -camera.x/camera.scale, -camera.y/camera.scale
+  local tx = love.graphics.getWidth()/(2*camera.scale)-camera.x
+  local ty = love.graphics.getHeight()/(2*camera.scale)-camera.y
   visibleNodes = {}
   for nid, node in pairs(nodes) do
     if node:isVisible(tx, ty) then
@@ -326,4 +341,7 @@ function tableContainsValue(t, v)
     end
   end
   return false
+end
+
+function showNodeDialog(nid)
 end
