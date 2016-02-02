@@ -39,6 +39,12 @@ local dialog = Layout {
   outline    = {255, 255, 255, 255},
 }
 
+-- Listen for onPress event, emulate love.mousereleased
+dialog:onPress(function(e)
+    dialog:hide()
+    checkIfNodeClicked(e.x, e.y, e.button, e.hit)
+end)
+
 -- Adjust UI theme
 local dark = require('vendor.luigi.luigi.theme.dark')
 layout:setTheme(dark)
@@ -295,11 +301,10 @@ end
 
 function checkIfNodeClicked(x, y, button, isTouch)
   for nid, node in pairs(visibleNodes) do
-    local dx = (node.position.x*camera.scale) - camera.x - x
-    local dy = (node.position.y*camera.scale) - camera.y - y
+    local wx, wy = cameraCoords(node.position.x, node.position.y)
+    local dx, dy = wx - x, wy - y
     local r = Node.Radii[node.type] * camera.scale
     if dx * dx + dy * dy <= r * r then
-
       -- Debug
       print(node.id)
 
@@ -313,7 +318,6 @@ function checkIfNodeClicked(x, y, button, isTouch)
         -- On first click, we should give some preview information:
         --  Dialog box diplaying information about the clicked node
         --  Preview a route from closest active node
-        print('showing node dialog')
         showNodeDialog(nid)
       end
       return
@@ -359,4 +363,14 @@ end
 function showNodeDialog(nid)
   dialog:show()
   lastClicked = nid
+end
+
+function screenToWorldCoords(x, y)
+  x, y = (x - winWidth/2) / camera.scale, (y - winHeight/2) / camera.scale
+  return x + camera.x, y + camera.y
+end
+
+function cameraCoords(x, y)
+  x, y = x - camera.x, y - camera.y
+  return x * camera.scale + winWidth/2, y * camera.scale + winHeight/2
 end
