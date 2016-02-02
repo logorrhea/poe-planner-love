@@ -1,6 +1,8 @@
 scaleFix = 2.5
 
-local json = require('vendor/dkjson')
+local json = require('vendor.dkjson')
+-- local class = require('vendor.middleclass.middleclass')
+local Layout = require('vendor.luigi.luigi.layout')
 
 require 'node'
 require 'group'
@@ -20,7 +22,18 @@ maxActive = 123
 activeClass = 1
 clickCoords = {x = 0, y = 0}
 visibleNodes = {}
+startNodes = {}
 orig_r, orig_g, orig_b, orig_a = love.graphics.getColor()
+
+-- Load GUI layout(s)
+local elements = require('ui.layout')
+local layout = Layout(elements)
+
+-- Adjust UI theme
+local dark = require('vendor.luigi.luigi.theme.dark')
+layout:setTheme(dark)
+
+
 
 function love.load()
 
@@ -38,7 +51,6 @@ function love.load()
   local nodeCount = #Tree.nodes
 
   -- Generate images
-  -- @TODO: Store all this shit as SpriteBatches
   images = {}
   batches = {}
 
@@ -70,7 +82,6 @@ function love.load()
         batches[name] = love.graphics.newSpriteBatch(image, #Node.classframes)
       else
         batches[name] = love.graphics.newSpriteBatch(image, 10)
-        -- images[name] = image
       end
     end
 
@@ -95,10 +106,6 @@ function love.load()
     end
   end
 
-  -- for name, _ in pairs(batches) do
-  --   print(name)
-  -- end
-
   -- Create groups
   groups = {}
   for gid, group in pairs(Tree.groups) do
@@ -120,6 +127,11 @@ function love.load()
     node.activeSheet = activeName
     node.inactiveSheet = inactiveName
     node:setQuad(spriteQuads[activeName][node.icon])
+
+    -- Add to startNode table if it is one
+    if node.type == Node.NT_START then
+      startNodes[#startNodes+1] = node.id
+    end
 
     nodes[node.id] = node
   end
@@ -166,6 +178,7 @@ function love.draw()
 
   love.graphics.clear(255, 255, 255, 255)
   love.graphics.setColor(255, 255, 255, 230)
+
   -- Draw background image separate from transformations
   love.graphics.draw(background)
   clearColor()
@@ -212,16 +225,14 @@ function love.draw()
 
   love.graphics.pop()
 
-  local numVisible = 0
-  for i, _ in pairs(visibleNodes) do
-    numVisible = numVisible + 1
-  end
-
   -- print FPS counter in top-left
   local fps, timePerFrame = love.timer.getFPS(), 1000 * love.timer.getAverageDelta()
   love.graphics.setColor(255, 255, 255, 255)
   love.graphics.print(string.format("Current FPS: %.2f | Average frame time: %.3f ms", fps, timePerFrame), 10, 10)
   clearColor()
+
+  -- Print GUI
+  layout:show()
 end
 
 function love.mousepressed(x, y, button, isTouch)
@@ -235,6 +246,7 @@ function love.mousereleased(x, y, button, isTouch)
   if math.abs(dx) <= 3 and math.abs(dy) <= 3 then
     checkIfNodeClicked(x, y, button, isTouch)
   end
+
 end
 
 function love.mousemoved(x, y, dx, dy)

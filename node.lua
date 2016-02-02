@@ -65,6 +65,16 @@ Node.classframes = {
   'centershadow',
 }
 
+Node.classes = {
+  'Scion',
+  'Marauder',
+  'Ranger',
+  'Witch',
+  'Duelist',
+  'Templar',
+  'Shadow',
+}
+
 function Node.arc(node)
   return 2 * math.pi * node.orbitIndex / Node.SkillsPerOrbit[node.orbit]
 end
@@ -200,17 +210,17 @@ function Node:drawFrame()
 end
 
 function Node:drawConnections()
-    for _, nid in pairs(self.out) do
-      local other = nodes[nid]
-      local color = (self.active and other.active) and activeConnector or inactiveConnector
-      love.graphics.setColor(color)
-      if (self.group.id ~= other.group.id) or (self.orbit ~= other.orbit) then
-        self:drawConnection(other)
-      else
-        self:drawArcedConnection(other)
-      end
-      clearColor()
+  for _, nid in pairs(self.out) do
+    local other = nodes[nid]
+    local color = (self.active and other.active) and activeConnector or inactiveConnector
+    love.graphics.setColor(color)
+    if (self.group.id ~= other.group.id) or (self.orbit ~= other.orbit) then
+      self:drawConnection(other)
+    else
+      self:drawArcedConnection(other)
     end
+    clearColor()
+  end
 end
 
 function Node:drawConnection(other)
@@ -221,7 +231,6 @@ function Node:drawConnection(other)
 end
 
 function Node:drawArcedConnection(other)
-  -- print(self.orbit)
   local startAngle = Node.arc(self)
   local endAngle = Node.arc(other)
 
@@ -242,8 +251,6 @@ function Node:drawArcedConnection(other)
   local arcScale = 30*camera.scale
   local steps = math.ceil(30*(delta/(math.pi*2)))
   local stepSize = delta/steps
-
-  -- countLinesDrawn = countLinesDrawn + steps
 
   local points = {}
   local radians = 0

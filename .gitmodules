@@ -1,3 +1,6 @@
 [submodule "vendor/Ser"]
 	path = vendor/Ser
 	url = https://github.com/gvx/Ser
+[submodule "vendor/luigi"]
+	path = vendor/luigi
+	url = https://github.com/airstruck/luigi
