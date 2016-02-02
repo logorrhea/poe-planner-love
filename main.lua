@@ -176,10 +176,6 @@ function love.draw()
   love.graphics.scale(camera.scale, camera.scale)
   love.graphics.translate(tx, ty)
 
-  -- Draw the start node decorations first, they should be in the very back
-  love.graphics.draw(batches['PSGroupBackground3'])
-  love.graphics.draw(batches['PSStartNodeBackgroundInactive'])
-
   -- Draw connections first, so they are on the bottom
   love.graphics.setColor(inactiveConnector)
   love.graphics.setLineWidth(1/camera.scale)
@@ -188,6 +184,10 @@ function love.draw()
   end
   love.graphics.setLineWidth(1)
   clearColor()
+
+  -- Draw the start node decorations first, they should be in the very back
+  love.graphics.draw(batches['PSGroupBackground3'])
+  love.graphics.draw(batches['PSStartNodeBackgroundInactive'])
 
   -- Draw skill icons next
   for _, name in pairs(Node.ActiveSkillsheets) do
@@ -218,9 +218,9 @@ function love.draw()
   end
 
   -- print FPS counter in top-left
+  local fps, timePerFrame = love.timer.getFPS(), 1000 * love.timer.getAverageDelta()
   love.graphics.setColor(255, 255, 255, 255)
-  love.graphics.print(string.format("Current FPS: %.2f | Average frame time: %.3f ms", love.timer.getFPS(), 1000 * love.timer.getAverageDelta()), 10, 10)
-  -- love.graphics.print(string.format("Lines: %d", countLinesDrawn), 10, winHeight-30)
+  love.graphics.print(string.format("Current FPS: %.2f | Average frame time: %.3f ms", fps, timePerFrame), 10, 10)
   clearColor()
 end
 

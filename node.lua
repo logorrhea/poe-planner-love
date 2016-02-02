@@ -136,8 +136,17 @@ end
 -- Updates viewport as well as visible boundaries fer draw-call checking
 function Node:setQuad(quad)
   self.imageQuad = quad
-  local _,_,w,h = quad:getViewport()
 
+  -- Width and height are different for start nodes
+  local _,w,h = nil
+  if self.type == Node.NT_START then
+    local startNodeBG = batches['PSGroupBackground3']:getTexture()
+    w,h = startNodeBG:getDimensions()
+  else
+    _,_,w,h = quad:getViewport()
+  end
+
+  -- Set visible quad so that we know when to start drawing the node
   self.visibleQuad = {
     top    = self.position.y - h/2,
     bottom = self.position.y + h/2,
@@ -153,31 +162,25 @@ function Node:isVisible(tx, ty)
          (self.visibleQuad.right + tx) > 0
 end
 
--- Renders the node (love2d-style)
 function Node:draw(tx, ty)
-  if self:isVisible(tx, ty) then
+
+  -- Only draw node if node is not start node
+  if self.type ~= Node.NT_START then
     local sheet = self.active and self.activeSheet or self.inactiveSheet
     batches[sheet]:add(self.imageQuad, self.visibleQuad.left, self.visibleQuad.top)
-    -- love.graphics.draw(sheet, self.imageQuad, self.visibleQuad.left, self.visibleQuad.top)
-    if visibleNodes[self.id] == nil then
-      visibleNodes[self.id] = self
-    end
-
-    self:drawFrame()
   end
+
+  -- Draw frame for all visible nodes
+  self:drawFrame()
 end
 
 function Node:drawFrame()
-  if #self.startPositionClasses > 0 then
+  if self.type == Node.NT_START then
     local bg = batches['PSGroupBackground3']:getTexture()
     local w, h = bg:getDimensions()
     batches['PSGroupBackground3']:add(self.position.x - w/2, self.position.y - h)
     batches['PSGroupBackground3']:add(self.position.x + w/2, self.position.y + h, math.pi)
-    -- love.graphics.draw(bg, self.position.x - w/2, self.position.y - h)
-    -- love.graphics.draw(bg, self.position.x + w/2, self.position.y + h, math.pi)
 
-    -- Draw all as inactive fer now
-    -- @TODO: Stop doing that.
     local spc = self.startPositionClasses[1] + 1 -- there is only ever one
     if spc == activeClass then
       local name = Node.classframes[spc]
@@ -192,7 +195,6 @@ function Node:drawFrame()
     if sheetName ~= nil then
       local w, h = batches[sheetName]:getTexture():getDimensions()
       batches[sheetName]:add(self.position.x - w/2, self.position.y - h/2)
-      -- love.graphics.draw(images[sheetName], self.position.x - w/2, self.position.y - h/2)
     end
   end
 end
