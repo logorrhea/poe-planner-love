@@ -29,6 +29,16 @@ orig_r, orig_g, orig_b, orig_a = love.graphics.getColor()
 local elements = require('ui.layout')
 local layout = Layout(elements)
 
+local dialog = Layout {
+  type       = 'panel',
+  text       = 'Node information dialog box\nShould have a line break in it, but who knows?',
+  width      = 350,
+  height     = 150,
+  wrap       = true,
+  background = {200, 200, 200, 240},
+  outline    = {255, 255, 255, 255},
+}
+
 -- Adjust UI theme
 local dark = require('vendor.luigi.luigi.theme.dark')
 layout:setTheme(dark)
@@ -168,6 +178,10 @@ function love.load()
 
   -- Fill up sprite batches
   refillBatches()
+
+  -- Show GUI
+  layout:show()
+  dialog:hide()
 end
 
 function love.update(dt)
@@ -234,10 +248,10 @@ function love.draw()
   clearColor()
 
   -- Print GUI
-  layout:show()
 end
 
 function love.mousepressed(x, y, button, isTouch)
+  dialog:hide()
   clickCoords.x, clickCoords.y = x, y
 end
 
@@ -287,7 +301,7 @@ function checkIfNodeClicked(x, y, button, isTouch)
     if dx * dx + dy * dy <= r * r then
 
       -- Debug
-      -- print(node.id)
+      print(node.id)
 
       if node.id == lastClicked then
         -- On second click, toggle all nodes in highlighted trail
@@ -299,7 +313,7 @@ function checkIfNodeClicked(x, y, button, isTouch)
         -- On first click, we should give some preview information:
         --  Dialog box diplaying information about the clicked node
         --  Preview a route from closest active node
-        lastClicked = node.id
+        print('showing node dialog')
         showNodeDialog(nid)
       end
       return
@@ -343,4 +357,6 @@ function tableContainsValue(t, v)
 end
 
 function showNodeDialog(nid)
+  dialog:show()
+  lastClicked = nid
 end
