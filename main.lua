@@ -1,8 +1,7 @@
 scaleFix = 2.5
 
 local json = require('vendor.dkjson')
--- local class = require('vendor.middleclass.middleclass')
-local Layout = require('vendor.luigi.luigi.layout')
+local Layout = require 'vendor.luigi.luigi.layout'
 
 require 'node'
 require 'group'
@@ -29,10 +28,9 @@ orig_r, orig_g, orig_b, orig_a = love.graphics.getColor()
 local elements = require('ui.layout')
 local layout = Layout(elements)
 
-local dialog = nil
-local dialogOpts = {
+local dialog = Layout {
   type       = 'panel',
-  text       = 'Node information dialog box\nShould have a line break in it, but who knows?',
+  text       = '',
   width      = 350,
   height     = 150,
   wrap       = true,
@@ -40,15 +38,15 @@ local dialogOpts = {
   outline    = {255, 255, 255, 255},
 }
 
--- Listen for onPress event, emulate love.mousereleased
-local dialogOnPress = function(e)
-    -- hideNodeDialog()
+dialog:onPress(function(e)
+    dialog:hide()
     checkIfNodeClicked(e.x, e.y, e.button, e.hit)
-end
+end)
 
 -- Adjust UI theme
 local dark = require('vendor.luigi.luigi.theme.dark')
 layout:setTheme(dark)
+dialog:setTheme(dark)
 
 local lastClicked = nil
 
@@ -188,6 +186,7 @@ function love.load()
 
   -- Show GUI
   layout:show()
+  dialog:hide()
 end
 
 function love.update(dt)
@@ -254,7 +253,7 @@ function love.draw()
 end
 
 function love.mousepressed(x, y, button, isTouch)
-  hideNodeDialog()
+  dialog:hide()
   clickCoords.x, clickCoords.y = x, y
 end
 
@@ -358,21 +357,9 @@ function tableContainsValue(t, v)
   return false
 end
 
-function hideNodeDialog()
-  print('hideNodeDialog')
-  if dialog ~= nil then
-    print('setting dialog to nil')
-    dialog:hide()
-    dialog = nil
-  end
-end
-
 function showNodeDialog(nid)
-  print('showNodeDialog')
   local node = nodes[nid]
-  dialogOpts.text = node.name
-  dialog = Layout(dialogOpts)
-  dialog:onPress(dialogOnPress)
+  dialog.root.text = node.name
   dialog:show()
   lastClicked = nid
 end
