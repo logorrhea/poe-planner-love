@@ -1,6 +1,6 @@
 scaleFix = 2.5
 
-local json = require('vendor.dkjson')
+local json = require 'vendor.dkjson'
 local Layout = require 'vendor.luigi.luigi.layout'
 
 require 'node'
@@ -18,7 +18,7 @@ camera = {
 }
 
 maxActive = 123
-activeClass = 1
+activeClass = 2
 clickCoords = {x = 0, y = 0}
 visibleNodes = {}
 startNodes = {}
@@ -145,7 +145,8 @@ function love.load()
 
     -- Add to startNode table if it is one
     if node.type == Node.NT_START then
-      startNodes[#startNodes+1] = node.id
+      local spc = node:startPositionClass()
+      startNodes[spc] = node.id
     end
 
     nodes[node.id] = node
@@ -166,9 +167,10 @@ function love.load()
   scaledWidth, scaledHeight = winWidth/camera.scale, winHeight/camera.scale
 
   -- Set better starting position
-  -- @TODO: Set this to look at a character start node
-  camera.x = -winWidth/2
-  camera.y = -winHeight/2
+  local startnid = startNodes[activeClass]
+  local startNode = nodes[startnid]
+  camera.x = startNode.position.x
+  camera.y = startNode.position.y
 
   -- Create SpriteBatch for background image
   local bgImage = love.graphics.newImage('assets/Background1.png')
@@ -202,7 +204,6 @@ function love.draw()
   clearColor()
 
   -- Store the translation info, for profit
-  -- local tx, ty = -camera.x/camera.scale, -camera.y/camera.scale
   local cx, cy = winWidth/(2*camera.scale), winHeight/(2*camera.scale)
   love.graphics.push()
   love.graphics.scale(camera.scale)

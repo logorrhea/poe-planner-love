@@ -65,15 +65,6 @@ Node.classframes = {
   'centershadow',
 }
 
-Node.classes = {
-  'Scion',
-  'Marauder',
-  'Ranger',
-  'Witch',
-  'Duelist',
-  'Templar',
-  'Shadow',
-}
 
 function Node.arc(node)
   return 2 * math.pi * node.orbitIndex / Node.SkillsPerOrbit[node.orbit]
@@ -110,6 +101,9 @@ function Node.create(data, group)
   node.neighbors  = data.out
   node.name       = data.dn
   node.startPositionClasses = data.spc
+  for i, c in ipairs(node.startPositionClasses) do
+    node.startPositionClasses[i] = c+1
+  end
 
   -- Set nodes to active for now, until we get further along. it's too hard
   -- to see everything otherwise
@@ -118,7 +112,8 @@ function Node.create(data, group)
   -- Set node type
   if #node.startPositionClasses ~= 0 then
     node.type = Node.NT_START
-    if node.startPositionClasses[1]+1 == activeClass then
+    if node.startPositionClasses[1] == activeClass then
+      print(node.name)
       node.active = true
     end
   elseif data.m then
@@ -191,7 +186,7 @@ function Node:drawFrame()
     batches['PSGroupBackground3']:add(self.position.x - w/2, self.position.y - h)
     batches['PSGroupBackground3']:add(self.position.x + w/2, self.position.y + h, math.pi)
 
-    local spc = self.startPositionClasses[1] + 1 -- there is only ever one
+    local spc = self.startPositionClasses[1] -- there is only ever one
     if spc == activeClass then
       local name = Node.classframes[spc]
       w, h = batches[name]:getTexture():getDimensions()
@@ -224,9 +219,6 @@ function Node:drawConnections()
 end
 
 function Node:drawConnection(other)
-  -- @TODO: (medium priority) Draw line graphics instead of line objects? Should improve performance
-  -- should performance become an issue. Seems slow on VM and mactop, but perhaps iPad is faster
-  -- countLinesDrawn = countLinesDrawn + 1
   love.graphics.line(self.position.x, self.position.y, other.position.x, other.position.y)
 end
 
@@ -271,12 +263,16 @@ end
 function Node:hasActiveNeighbors()
   -- @TODO: This will likely need refactored once we work once
   -- allowing for proper node deactivation
-  for _, nid in pairs(self.neighbors) do
+  for _, nid in ipairs(self.neighbors) do
     if nodes[nid].active then
       return true
     end
   end
   return false
+end
+
+function Node:startPositionClass()
+  return self.startPositionClasses[1]
 end
 
 return Node
