@@ -29,7 +29,8 @@ orig_r, orig_g, orig_b, orig_a = love.graphics.getColor()
 local elements = require('ui.layout')
 local layout = Layout(elements)
 
-local dialog = Layout {
+local dialog = nil
+local dialogOpts = {
   type       = 'panel',
   text       = 'Node information dialog box\nShould have a line break in it, but who knows?',
   width      = 350,
@@ -40,10 +41,10 @@ local dialog = Layout {
 }
 
 -- Listen for onPress event, emulate love.mousereleased
-dialog:onPress(function(e)
-    dialog:hide()
+local dialogOnPress = function(e)
+    -- hideNodeDialog()
     checkIfNodeClicked(e.x, e.y, e.button, e.hit)
-end)
+end
 
 -- Adjust UI theme
 local dark = require('vendor.luigi.luigi.theme.dark')
@@ -187,7 +188,6 @@ function love.load()
 
   -- Show GUI
   layout:show()
-  dialog:hide()
 end
 
 function love.update(dt)
@@ -195,7 +195,6 @@ function love.update(dt)
 end
 
 function love.draw()
-
   love.graphics.clear(255, 255, 255, 255)
   love.graphics.setColor(255, 255, 255, 230)
 
@@ -252,12 +251,10 @@ function love.draw()
   love.graphics.setColor(255, 255, 255, 255)
   love.graphics.print(string.format("Current FPS: %.2f | Average frame time: %.3f ms", fps, timePerFrame), 10, 10)
   clearColor()
-
-  -- Print GUI
 end
 
 function love.mousepressed(x, y, button, isTouch)
-  dialog:hide()
+  hideNodeDialog()
   clickCoords.x, clickCoords.y = x, y
 end
 
@@ -314,6 +311,7 @@ function checkIfNodeClicked(x, y, button, isTouch)
           node.active = not node.active
           refillBatches()
         end
+        lastClicked = nil
       else
         -- On first click, we should give some preview information:
         --  Dialog box diplaying information about the clicked node
@@ -360,7 +358,21 @@ function tableContainsValue(t, v)
   return false
 end
 
+function hideNodeDialog()
+  print('hideNodeDialog')
+  if dialog ~= nil then
+    print('setting dialog to nil')
+    dialog:hide()
+    dialog = nil
+  end
+end
+
 function showNodeDialog(nid)
+  print('showNodeDialog')
+  local node = nodes[nid]
+  dialogOpts.text = node.name
+  dialog = Layout(dialogOpts)
+  dialog:onPress(dialogOnPress)
   dialog:show()
   lastClicked = nid
 end
