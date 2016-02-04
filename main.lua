@@ -31,11 +31,13 @@ local layout = Layout(elements)
 local dialog = Layout {
   type       = 'panel',
   text       = '',
-  width      = 350,
+  width      = 300,
   height     = 150,
   wrap       = true,
-  background = {200, 200, 200, 240},
+  background = {1, 1, 1, 240},
   outline    = {255, 255, 255, 255},
+  font       = 'fonts/fontin-bold-webfont.ttf',
+  size       = 20,
 }
 
 dialog:onPress(function(e)
@@ -47,6 +49,13 @@ end)
 local dark = require('vendor.luigi.luigi.theme.dark')
 layout:setTheme(dark)
 dialog:setTheme(dark)
+
+-- Adjust style
+local style = {
+  font = 'fonts/fontin-bold-webfont.ttf',
+}
+layout:setStyle(style)
+dialog:setStyle(style)
 
 local lastClicked = nil
 
@@ -360,8 +369,15 @@ end
 
 function showNodeDialog(nid)
   local node = nodes[nid]
+
+  -- Update text and calculate dialog box position
   dialog.root.text = node.name
+  local x, y = cameraCoords(node.position.x, node.position.y)
+  x, y = adjustDialogPosition(x, y, dialog.root.width, dialog.root.height, 20)
+
+  -- Position has to be updated after displaying it
   dialog:show()
+  dialog.root.position = {x = x, y = y}
   lastClicked = nid
 end
 
@@ -373,4 +389,18 @@ end
 function cameraCoords(x, y)
   x, y = x - camera.x, y - camera.y
   return x * camera.scale + winWidth/2, y * camera.scale + winHeight/2
+end
+
+function adjustDialogPosition(x, y, w, h, offset)
+  if x >= winWidth - w then
+    x = x - w - offset
+  else
+    x = x + offset
+  end
+  if y >= winHeight - h then
+    y = y - h - offset
+  else
+    y = y + offset
+  end
+  return x, y
 end

@@ -13,5 +13,7 @@ return { id = 'ui',
     { value = 1, text = 'Duelist' },
     { value = 1, text = 'Templar' },
     { value = 1, text = 'Shadow' },
-  }
+  },
+  font = 'fonts/fontin-bold-webfont.ttf',
+  size = 20,
 }
