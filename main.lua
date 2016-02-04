@@ -1,5 +1,6 @@
 scaleFix = 2.5
 
+local OS = love.system.getOS()
 local json = require 'vendor.dkjson'
 local Layout = require 'vendor.luigi.luigi.layout'
 
@@ -262,47 +263,76 @@ function love.draw()
   clearColor()
 end
 
-function love.mousepressed(x, y, button, isTouch)
-  dialog:hide()
-  clickCoords.x, clickCoords.y = x, y
-end
+if OS == 'iOS' then
 
-function love.mousereleased(x, y, button, isTouch)
-  local dx = x - clickCoords.x
-  local dy = y - clickCoords.y
-
-  if math.abs(dx) <= 3 and math.abs(dy) <= 3 then
-    checkIfNodeClicked(x, y, button, isTouch)
+  function love.touchpressed(id, x, y, dx, dy, pressure)
+    dialog:hide()
   end
 
-end
-
-function love.mousemoved(x, y, dx, dy)
-  if love.mouse.isDown(1) then
-    camera.x = camera.x - (dx/camera.scale)
-    camera.y = camera.y - (dy/camera.scale)
-    refillBatches()
+  function love.touchreleased(id, x, y, dx, dy, pressure)
+    checkIfNodeClicked(x, y, id, true)
   end
-end
 
-function love.keypressed(key, scancode, isRepeat)
-  if key == 'up' then
-    camera.scale = camera.scale + camera.scaleStep
-    if camera.scale > camera.maxScale then
-      camera.scale = camera.maxScale
+  function love.touchmoved(id, x, y, dx, dy, pressure)
+    dialog:hide()
+    local touches = love.touch.getTouches()
+    if #touches == 1 then
+      camera.x = camera.x - (dx/camera.scale)
+      camera.y = camera.y - (dy/camera.scale)
+      refillBatches()
+    elseif #touches == 2 then
+      -- @TODO: handle zooming in and out with multitouch
+    elseif #touches == 5 then
+      love.event.quit()
     end
-    scaledHeight = winHeight/camera.scale
-    scaledWidth = winWidth/camera.scale
-    refillBatches()
-  elseif key == 'down' then
-    camera.scale = camera.scale - camera.scaleStep
-    if camera.scale < camera.minScale then
-      camera.scale = camera.minScale
-    end
-    scaledHeight = winHeight/camera.scale
-    scaledWidth = winWidth/camera.scale
-    refillBatches()
   end
+
+else
+
+  function love.mousepressed(x, y, button, isTouch)
+    dialog:hide()
+    clickCoords.x, clickCoords.y = x, y
+  end
+
+  function love.mousereleased(x, y, button, isTouch)
+    if not isTouch then
+      local dx = x - clickCoords.x
+      local dy = y - clickCoords.y
+
+      if math.abs(dx) <= 3 and math.abs(dy) <= 3 then
+        checkIfNodeClicked(x, y, button, isTouch)
+      end
+    end
+  end
+
+  function love.mousemoved(x, y, dx, dy)
+    if love.mouse.isDown(1) then
+      camera.x = camera.x - (dx/camera.scale)
+      camera.y = camera.y - (dy/camera.scale)
+      refillBatches()
+    end
+  end
+
+  function love.keypressed(key, scancode, isRepeat)
+    if key == 'up' then
+      camera.scale = camera.scale + camera.scaleStep
+      if camera.scale > camera.maxScale then
+        camera.scale = camera.maxScale
+      end
+      scaledHeight = winHeight/camera.scale
+      scaledWidth = winWidth/camera.scale
+      refillBatches()
+    elseif key == 'down' then
+      camera.scale = camera.scale - camera.scaleStep
+      if camera.scale < camera.minScale then
+        camera.scale = camera.minScale
+      end
+      scaledHeight = winHeight/camera.scale
+      scaledWidth = winWidth/camera.scale
+      refillBatches()
+    end
+  end
+
 end
 
 function checkIfNodeClicked(x, y, button, isTouch)
