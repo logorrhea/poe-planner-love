@@ -1,8 +1,9 @@
 scaleFix = 2.5
 
 local OS = love.system.getOS()
-local json = require 'vendor.dkjson'
+local json   = require 'vendor.dkjson'
 local Layout = require 'vendor.luigi.luigi.layout'
+local dark   = require 'vendor.luigi.luigi.theme.dark'
 
 require 'node'
 require 'group'
@@ -47,7 +48,6 @@ dialog:onPress(function(e)
 end)
 
 -- Adjust UI theme
-local dark = require('vendor.luigi.luigi.theme.dark')
 layout:setTheme(dark)
 dialog:setTheme(dark)
 
