@@ -9,6 +9,7 @@ require 'node'
 require 'group'
 require 'colors'
 
+pinches = {nil, nil}
 
 camera = {
   x         = 0,
@@ -282,6 +283,16 @@ if OS == 'iOS' then
       refillBatches()
     elseif #touches == 2 then
       -- @TODO: handle zooming in and out with multitouch
+      local other = nil
+      for tid, touch in pairs(touches) do
+        if tid ~= id then
+          other = touch
+        end
+      end
+      local d1 = dist({x=other.x, y=other.y}, {x=x, y=y})
+      local d2 = dist({x=other.x, y=other.y}, {x=x-dx, y=y-dy})
+
+      camera.scale = camera.scale + (d2-d1) -- should handle both zoom in and out
     elseif #touches == 5 then
       love.event.quit()
     end
@@ -433,4 +444,8 @@ function adjustDialogPosition(x, y, w, h, offset)
     y = y + offset
   end
   return x, y
+end
+
+function dist(v1, v2)
+  return math.sqrt((v2.x - v1.x)*(v2.x - v1.x) + (v2.y - v1.y)*(v2.y - v1.y))
 end
