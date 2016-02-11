@@ -24,6 +24,7 @@ maxActive = 123
 activeClass = 2
 clickCoords = {x = 0, y = 0}
 visibleNodes = {}
+visibleGroups = {}
 startNodes = {}
 orig_r, orig_g, orig_b, orig_a = love.graphics.getColor()
 
@@ -75,6 +76,10 @@ function love.load()
 
   -- Cache node count
   local nodeCount = #Tree.nodes
+  local groupCount = 0
+  for gid, group in pairs(Tree.groups) do
+    groupCount = groupCount + 1
+  end
 
   -- Generate images
   images = {}
@@ -102,8 +107,12 @@ function love.load()
         batches[name] = love.graphics.newSpriteBatch(image, nodeCount)
       elseif tableContainsValue(Node.ActiveSkillFrames, name) then
         batches[name] = love.graphics.newSpriteBatch(image, maxActive)
+      elseif name == 'PSGroupBackground1' then
+        batches[name] = love.graphics.newSpriteBatch(image, groupCount)
+      elseif name == 'PSGroupBackground2' then
+        batches[name] = love.graphics.newSpriteBatch(image, groupCount)
       elseif name == 'PSGroupBackground3' then
-        batches[name] = love.graphics.newSpriteBatch(image, (#Node.classframes)*2)
+        batches[name] = love.graphics.newSpriteBatch(image, (#Node.classframes + groupCount)*2)
       elseif name == 'PSStartNodeBackgroundInactive' then
         batches[name] = love.graphics.newSpriteBatch(image, #Node.classframes)
       else
@@ -136,7 +145,8 @@ function love.load()
   groups = {}
   for gid, group in pairs(Tree.groups) do
     local id = tonumber(gid)
-    groups[id] = Group.create(id, group)
+    local group = Group.create(id, group)
+    groups[id] = group
   end
 
   -- Create nodes
@@ -198,7 +208,7 @@ function love.load()
   refillBatches()
 
   -- Show GUI
-  layout:show()
+  -- layout:show()
   dialog:hide()
 end
 
@@ -221,9 +231,14 @@ function love.draw()
   love.graphics.translate(cx, cy)
   love.graphics.translate(-camera.x, -camera.y)
 
-  -- Draw connections first, so they are on the bottom
+  -- Draw group backgrounds
+  love.graphics.draw(batches['PSGroupBackground1'])
+  love.graphics.draw(batches['PSGroupBackground2'])
+  love.graphics.draw(batches['PSGroupBackground3'])
+
+  -- Draw connections
   love.graphics.setColor(inactiveConnector)
-  love.graphics.setLineWidth(1/camera.scale)
+  love.graphics.setLineWidth(2/camera.scale)
   for nid, node in pairs(visibleNodes) do
     node:drawConnections()
   end
@@ -231,7 +246,6 @@ function love.draw()
   clearColor()
 
   -- Draw the start node decorations first, they should be in the very back
-  love.graphics.draw(batches['PSGroupBackground3'])
   love.graphics.draw(batches['PSStartNodeBackgroundInactive'])
 
   -- Draw skill icons next
@@ -387,15 +401,23 @@ function refillBatches()
   -- Re-calculate visible nodes
   local tx, ty = winWidth/(2*camera.scale)-camera.x, winHeight/(2*camera.scale)-camera.y
   visibleNodes = {}
+  visibleGroups = {}
   for nid, node in pairs(nodes) do
     if node:isVisible(tx, ty) then
       visibleNodes[node.id] = node
+      if visibleGroups[node.gid] == nil then
+        visibleGroups[node.gid] = groups[node.gid]
+      end
     end
   end
 
   -- Re-fill them batches
   for nid, node in pairs(visibleNodes) do
-    node:draw(tx, ty)
+    node:draw()
+  end
+
+  for gid, group in pairs(visibleGroups) do
+    group:draw()
   end
 end
 

@@ -115,7 +115,6 @@ function Node.create(data, group)
   if #node.startPositionClasses ~= 0 then
     node.type = Node.NT_START
     if node.startPositionClasses[1] == activeClass then
-      print(node.name)
       node.active = true
     end
   elseif data.m then
@@ -128,6 +127,11 @@ function Node.create(data, group)
     node.type = Node.NT_JEWEL
   else
     node.type = Node.NT_COMMON
+  end
+
+  -- Set group's type if not already set
+  if group.type == nil then
+    groups[group.id].type = node.orbit
   end
 
   -- Set radius based on node type
@@ -169,7 +173,7 @@ function Node:isVisible(tx, ty)
          (self.visibleQuad.right + tx) > 0
 end
 
-function Node:draw(tx, ty)
+function Node:draw()
 
   -- Only draw node if node is not start node
   if self.type ~= Node.NT_START then
@@ -183,11 +187,6 @@ end
 
 function Node:drawFrame()
   if self.type == Node.NT_START then
-    local bg = batches['PSGroupBackground3']:getTexture()
-    local w, h = bg:getDimensions()
-    batches['PSGroupBackground3']:add(self.position.x - w/2, self.position.y - h)
-    batches['PSGroupBackground3']:add(self.position.x + w/2, self.position.y + h, math.pi)
-
     local spc = self.startPositionClasses[1] -- there is only ever one
     if spc == activeClass then
       local name = Node.classframes[spc]
