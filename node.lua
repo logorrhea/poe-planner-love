@@ -101,6 +101,8 @@ function Node.create(data, group)
   node.neighbors  = data.out
   node.name       = data.dn
   node.startPositionClasses = data.spc
+  node.descriptions = data.sd
+
   for i, c in ipairs(node.startPositionClasses) do
     node.startPositionClasses[i] = c+1
   end

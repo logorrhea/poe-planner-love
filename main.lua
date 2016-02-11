@@ -412,7 +412,11 @@ function showNodeDialog(nid)
   local node = nodes[nid]
 
   -- Update text and calculate dialog box position
-  dialog.root.text = node.name
+  local newText = node.name
+  for _, desc in ipairs(node.descriptions) do
+    newText = newText .. '\n\t' .. desc
+  end
+  dialog.root.text = newText
   local x, y = cameraCoords(node.position.x, node.position.y)
   x, y = adjustDialogPosition(x, y, dialog.root.width, dialog.root.height, 20)
 
