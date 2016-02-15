@@ -44,6 +44,7 @@ function Graph.planRoute(tid)
   -- From start node, travel to neighbor nearest target
   -- until we have reached the target
   local node = nodes[mid]
+  local start = mid -- save start node id
 
   local trail = {}
   local ignore = {}
@@ -52,10 +53,11 @@ function Graph.planRoute(tid)
   local lastBranch = nil
   local branchTaken = nil
 
+  print('Searching....')
   while node.id ~= tid do
     min, mid = nil, nil
-    for _, oid in ipairs(node.out) do
-      if not table.icontains(trail, oid) and not ignore[oid] and not table.icontains(startNodes, oid) then
+    for _, oid in ipairs(node.neighbors) do
+      if oid ~= start and not table.icontains(trail, oid) and not ignore[oid] and not table.icontains(startNodes, oid) then
         local dist = Node.distance(oid, tid)
         if min == nil or dist < min then
           min, mid = dist, oid
@@ -66,16 +68,33 @@ function Graph.planRoute(tid)
     -- If we are stuck, ignore current id and back up to previous
     -- trail position
     if mid == nil then
-      mid = trail[#trail-1]
       ignore[node.id] = true
-      trail[#trail] = nil
+      if #trail == 1 then
+        print('back to start')
+        trail = {}
+        mid = start
+      else
+        print('back up')
+        mid = trail[#trail-1]
+        trail[#trail] = nil
+      end
     else
       trail[#trail+1] = mid
     end
 
+    print(mid)
     node = nodes[mid]
   end
 
+  -- print('Ignoring:')
+  -- for _, id in ipairs(ignore) do
+  --   print('', id)
+  -- end
+
+  -- print('Trail:')
+  -- for _, id in ipairs(trail) do
+  --   print('', id)
+  -- end
 
   -- Convert trail to truth table and return
   local ttrail = {}
