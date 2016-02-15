@@ -85,6 +85,12 @@ function Node.nodePosition(node)
   return {x = x, y = y}
 end
 
+function Node.distance(nid, tid)
+  local node, target = nodes[nid], nodes[tid]
+  local p1, p2 = Node.nodePosition(node), Node.nodePosition(target)
+  return math.sqrt((p2.x - p1.x)*(p2.x - p1.x) + (p2.y - p1.y)*(p2.y - p1.y))
+end
+
 -- Create Node from json information, translating
 -- some of the parameters to more human-readable names
 function Node.create(data, group)
@@ -208,7 +214,16 @@ end
 function Node:drawConnections()
   for _, nid in pairs(self.out) do
     local other = nodes[nid]
-    local color = (self.active and other.active) and activeConnector or inactiveConnector
+    local color = nil
+    if (addTrail[self.id] and addTrail[nid]) or (addTrail[self.id] and other.active) or (self.active and addTrail[nid]) then
+      color = addConnector
+    elseif removeTrail[self.id] and removeTrail[nid] then
+      color = removeConnector
+    elseif self.active and other.active then
+      color = activeConnector
+    else
+      color = inactiveConnector
+    end
     love.graphics.setColor(color)
     if (self.group.id ~= other.group.id) or (self.orbit ~= other.orbit) then
       self:drawConnection(other)
@@ -223,6 +238,8 @@ function Node:drawConnection(other)
   love.graphics.line(self.position.x, self.position.y, other.position.x, other.position.y)
 end
 
+-- @TODO: Convert this method to use the new
+-- arc types introduced in 0.10.1
 function Node:drawArcedConnection(other)
   local startAngle = Node.arc(self)
   local endAngle = Node.arc(other)
@@ -241,7 +258,6 @@ function Node:drawArcedConnection(other)
 
   local center = {x = self.group.position.x, y = self.group.position.y}
   local radius = Node.OrbitRadii[self.orbit]
-  local arcScale = 30*camera.scale
   local steps = math.ceil(30*(delta/(math.pi*2)))
   local stepSize = delta/steps
 

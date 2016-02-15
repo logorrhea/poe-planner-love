@@ -8,13 +8,14 @@ local dark   = require 'vendor.luigi.luigi.theme.dark'
 require 'node'
 require 'group'
 require 'colors'
+require 'graph'
 
 pinches = {nil, nil}
 
 camera = {
   x         = 0,
   y         = 0,
-  scale     = 0.75,
+  scale     = 0.5,
   maxScale  = 1.0,
   minScale  = 0.1,
   scaleStep = 0.05
@@ -26,6 +27,8 @@ clickCoords = {x = 0, y = 0}
 visibleNodes = {}
 visibleGroups = {}
 startNodes = {}
+addTrail = {}
+removeTrail = {}
 orig_r, orig_g, orig_b, orig_a = love.graphics.getColor()
 
 -- Load GUI layout(s)
@@ -371,15 +374,17 @@ function checkIfNodeClicked(x, y, button, isTouch)
 
       if node.id == lastClicked then
         -- On second click, toggle all nodes in highlighted trail
-        if (node.active or node:hasActiveNeighbors()) and node.type ~= Node.NT_START then
-          node.active = not node.active
-          refillBatches()
+        for id,_ in pairs(addTrail) do
+          nodes[id].active = true
         end
+        addTrail = {}
+        refillBatches()
         lastClicked = nil
       else
         -- On first click, we should give some preview information:
         --  Dialog box diplaying information about the clicked node
         --  Preview a route from closest active node
+        addTrail = Graph.planRoute(nid)
         showNodeDialog(nid)
       end
       return
