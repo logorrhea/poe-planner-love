@@ -370,7 +370,12 @@ function checkIfNodeClicked(x, y, button, isTouch)
     local r = Node.Radii[node.type] * camera.scale
     if dx * dx + dy * dy <= r * r then
       -- Debug
-      print(node.id)
+      -- print(node.id)
+      -- local neighbors = ''
+      -- for _, nnid in ipairs(node.neighbors) do
+      --   neighbors = neighbors..' '..nnid
+      -- end
+      -- print('Neighbors:', neighbors)
 
       if node.id == lastClicked then
         -- On second click, toggle all nodes in highlighted trail
@@ -390,6 +395,11 @@ function checkIfNodeClicked(x, y, button, isTouch)
       return
     end
   end
+  -- Not sure which behavior is better?
+  -- Clear trail on empty click, or are they just trying to hide
+  -- the dialog window? Maybe make it an option at some point?
+  -- OR  - maybe the dialog window should have an obvious close button?
+  -- addTrail = {}
 end
 
 function clearColor()
