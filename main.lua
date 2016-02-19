@@ -370,7 +370,7 @@ function checkIfNodeClicked(x, y, button, isTouch)
     local r = Node.Radii[node.type] * camera.scale
     if dx * dx + dy * dy <= r * r then
       -- Debug
-      -- print(node.id)
+      print('clicked: '..node.id)
       -- local neighbors = ''
       -- for _, nnid in ipairs(node.neighbors) do
       --   neighbors = neighbors..' '..nnid
@@ -383,13 +383,25 @@ function checkIfNodeClicked(x, y, button, isTouch)
           nodes[id].active = true
         end
         addTrail = {}
+        -- Remove all nodes in removeTrail
+        for id,_ in pairs(removeTrail) do
+          nodes[id].active = false
+        end
+        removeTrail = {}
         refillBatches()
         lastClicked = nil
       else
         -- On first click, we should give some preview information:
         --  Dialog box diplaying information about the clicked node
         --  Preview a route from closest active node
-        addTrail = Graph.planRoute(nid)
+        if node.active then
+          print('refund node')
+          addTrail = {}
+          removeTrail = Graph.planRefund(nid)
+        else
+          removeTrail = {}
+          addTrail = Graph.planRoute(nid)
+        end
         showNodeDialog(nid)
       end
       return

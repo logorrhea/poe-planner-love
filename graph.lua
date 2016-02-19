@@ -105,3 +105,30 @@ function Graph.planRoute(tid)
   return ttrail
 end
 
+function Graph.planRefund(rid)
+  local rnode = nodes[rid]
+  local reachable = {}
+  local unreachable = {}
+
+  local root = startNodes[activeClass]
+  findReachable(root, reachable, rid)
+
+  for nid, node in pairs(nodes) do
+    if node.active and not reachable[nid] then
+      unreachable[nid] = true
+    end
+  end
+
+  return unreachable
+end
+
+function findReachable(from, reachable, clicked)
+  reachable[from] = true
+  local f = nodes[from]
+  for _, nid in ipairs(f.neighbors) do
+    local node = nodes[nid]
+    if node.active and node.id ~= clicked and reachable[nid] == nil then
+      findReachable(nid, reachable, clicked)
+    end
+  end
+end
