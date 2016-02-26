@@ -300,16 +300,21 @@ if OS == 'iOS' then
       refillBatches()
     elseif #touches == 2 then
       -- @TODO: handle zooming in and out with multitouch
-      local other = nil
+      local ox, oy = nil, nil
       for tid, touch in pairs(touches) do
         if tid ~= id then
-          other = touch
+          ox, oy = love.touch.getPosition(touch)
         end
       end
-      local d1 = dist({x=other.x, y=other.y}, {x=x, y=y})
-      local d2 = dist({x=other.x, y=other.y}, {x=x-dx, y=y-dy})
+      local d1 = dist({x=ox, y=oy}, {x=x, y=y})
+      local d2 = dist({x=ox, y=oy}, {x=x+dx, y=y+dy})
 
-      camera.scale = camera.scale + (d2-d1) -- should handle both zoom in and out
+      camera.scale = camera.scale + (d2-d1)/100 -- should handle both zoom in and out
+      if camera.scale > camera.maxScale then
+        camera.scale = camera.maxScale
+      elseif camera.scale < camera.minScale then
+        camera.scale = camera.minScale
+      end
     elseif #touches == 5 then
       love.event.quit()
     end
