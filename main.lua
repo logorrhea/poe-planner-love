@@ -4,6 +4,7 @@ local OS = love.system.getOS()
 local json   = require 'vendor.dkjson'
 local Layout = require 'vendor.luigi.luigi.layout'
 local dark   = require 'vendor.luigi.luigi.theme.dark'
+local Timer  = require 'vendor.hump.timer'
 
 require 'node'
 require 'group'
@@ -21,6 +22,10 @@ camera = {
   scaleStep = 0.05
 }
 
+-- Use these for culling later
+winWidth, winHeight = love.graphics.getDimensions()
+scaledWidth, scaledHeight = winWidth/camera.scale, winHeight/camera.scale
+
 maxActive = 123
 activeClass = 2
 clickCoords = {x = 0, y = 0}
@@ -34,6 +39,7 @@ orig_r, orig_g, orig_b, orig_a = love.graphics.getColor()
 -- Load GUI layout(s)
 local elements = require('ui.layout')
 local layout = Layout(elements)
+local guiButtons = {}
 
 local dialog = Layout {
   type       = 'panel',
@@ -51,6 +57,21 @@ dialog:onPress(function(e)
     dialog:hide()
     checkIfNodeClicked(e.x, e.y, e.button, e.hit)
 end)
+
+local statsShowing = false
+local stats = Layout {
+  type       = 'panel',
+  text       = 'Stats Panel',
+  left       = -300,
+  top        = 0,
+  width      = 300,
+  height     = winHeight,
+  wrap       = true,
+  background = {1, 1, 1, 240},
+  outline    = {255, 255, 255, 255},
+  font       = 'fonts/fontin-bold-webfont.ttf',
+  size       = 20,
+}
 
 -- Adjust UI theme
 layout:setTheme(dark)
@@ -186,10 +207,6 @@ function love.load()
     end
   end
 
-  -- Use these for culling later
-  winWidth, winHeight = love.graphics.getDimensions()
-  scaledWidth, scaledHeight = winWidth/camera.scale, winHeight/camera.scale
-
   -- Set better starting position
   local startnid = startNodes[activeClass]
   local startNode = nodes[startnid]
@@ -213,10 +230,29 @@ function love.load()
   -- Show GUI
   -- layout:show()
   dialog:hide()
+  stats:hide()
+  guiButtons.menuToggle = {
+    x     = 10,
+    y     = 10,
+    sx    = 0.1,
+    sy    = 0.1,
+    image = love.graphics.newImage('assets/menu.png'),
+    trigger = (function()
+        -- Show stats board
+        stats:show()
+
+        -- Slide in stats board
+        statsShowing = true
+        Timer.tween(1, stats.root, {left = 0}, 'in-out-quad')
+    end)
+  }
 end
 
 function love.update(dt)
-  -- countLinesDrawn = 0
+  Timer.update(dt)
+  if statsShowing then
+    stats:show()
+  end
 end
 
 function love.draw()
@@ -274,10 +310,15 @@ function love.draw()
 
   love.graphics.pop()
 
+  -- Draw menuToggle button in top-left
+  for _, item in pairs(guiButtons) do
+    love.graphics.draw(item.image, item.x, item.y, 0, item.sx, item.sy)
+  end
+
   -- print FPS counter in top-left
-  local fps, timePerFrame = love.timer.getFPS(), 1000 * love.timer.getAverageDelta()
-  love.graphics.setColor(255, 255, 255, 255)
-  love.graphics.print(string.format("Current FPS: %.2f | Average frame time: %.3f ms", fps, timePerFrame), 10, 10)
+  -- local fps, timePerFrame = love.timer.getFPS(), 1000 * love.timer.getAverageDelta()
+  -- love.graphics.setColor(255, 255, 255, 255)
+  -- love.graphics.print(string.format("Current FPS: %.2f | Average frame time: %.3f ms", fps, timePerFrame), 10, 10)
   clearColor()
 end
 
@@ -333,7 +374,10 @@ else
       local dy = y - clickCoords.y
 
       if math.abs(dx) <= 3 and math.abs(dy) <= 3 then
-        checkIfNodeClicked(x, y, button, isTouch)
+        local guiItemClicked = checkIfGUIItemClicked(x, y, button, isTouch)
+        if not guiItemClicked then
+          checkIfNodeClicked(x, y, button, isTouch)
+        end
       end
     end
   end
@@ -366,6 +410,22 @@ else
     end
   end
 
+end
+
+function checkIfGUIItemClicked(mx, my, button, isTouch)
+  for name, item in pairs(guiButtons) do
+    local w, h = item.image:getDimensions()
+    w, h = w*item.sx, h*item.sy
+    local x1, y1 = item.x, item.y
+    local x2, y2 = item.x + w, item.y + h
+
+    if mx >= x1 and mx <= x2 and my >= y1 and my <= y2 then
+      item.trigger()
+      return true
+    end
+
+    return false
+  end
 end
 
 function checkIfNodeClicked(x, y, button, isTouch)
@@ -409,7 +469,7 @@ function checkIfNodeClicked(x, y, button, isTouch)
         end
         showNodeDialog(nid)
       end
-      return
+      return true
     end
   end
   -- Not sure which behavior is better?
@@ -417,6 +477,7 @@ function checkIfNodeClicked(x, y, button, isTouch)
   -- the dialog window? Maybe make it an option at some point?
   -- OR  - maybe the dialog window should have an obvious close button?
   -- addTrail = {}
+  return false
 end
 
 function clearColor()

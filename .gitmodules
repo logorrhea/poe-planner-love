@@ -4,3 +4,6 @@
 [submodule "vendor/luigi"]
 	path = vendor/luigi
 	url = https://github.com/airstruck/luigi
+[submodule "vendor/hump"]
+	path = vendor/hump
+	url = https://github.com/vrld/hump.git
