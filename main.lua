@@ -58,20 +58,14 @@ dialog:onPress(function(e)
     checkIfNodeClicked(e.x, e.y, e.button, e.hit)
 end)
 
-local statsShowing = false
-local stats = Layout {
-  type       = 'panel',
-  text       = 'Stats Panel',
-  left       = -300,
-  top        = 0,
-  width      = 300,
-  height     = winHeight,
-  wrap       = true,
-  background = {1, 1, 1, 240},
-  outline    = {255, 255, 255, 255},
-  font       = 'fonts/fontin-bold-webfont.ttf',
-  size       = 20,
-}
+local statsShowing = true
+local statOpts = require 'ui.stat'
+local stats = Layout(statOpts)
+
+-- Set correct starter portrait
+stats.portrait.icon = 'assets/'..Node.portraits[activeClass]..'-portrait.png'
+
+-- @TODO: Adjust size of stats panel based on device?
 
 -- Adjust UI theme
 layout:setTheme(dark)
@@ -83,6 +77,7 @@ local style = {
 }
 layout:setStyle(style)
 dialog:setStyle(style)
+stats:setStyle(style)
 
 local lastClicked = nil
 
@@ -320,6 +315,11 @@ function love.draw()
   -- love.graphics.setColor(255, 255, 255, 255)
   -- love.graphics.print(string.format("Current FPS: %.2f | Average frame time: %.3f ms", fps, timePerFrame), 10, 10)
   clearColor()
+
+  -- Draw UI
+  if statsShowing then
+    drawStatsPanel()
+  end
 end
 
 if OS == 'iOS' then
@@ -586,4 +586,8 @@ end
 
 function dist(v1, v2)
   return math.sqrt((v2.x - v1.x)*(v2.x - v1.x) + (v2.y - v1.y)*(v2.y - v1.y))
+end
+
+function drawStatsPanel()
+
 end

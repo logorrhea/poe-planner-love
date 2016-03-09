@@ -65,6 +65,17 @@ Node.classframes = {
   'centershadow',
 }
 
+-- Translate activeClass into portrait paths
+Node.portraits = {
+  'scion',
+  'marauder',
+  'ranger',
+  'witch',
+  'duelist',
+  'templar',
+  'shadow',
+}
+
 
 function Node.arc(node)
   return 2 * math.pi * node.orbitIndex / Node.SkillsPerOrbit[node.orbit]
