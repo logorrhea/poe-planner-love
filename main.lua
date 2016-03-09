@@ -387,6 +387,8 @@ else
       camera.x = camera.x - (dx/camera.scale)
       camera.y = camera.y - (dy/camera.scale)
       refillBatches()
+    else
+      checkIfNodeHovered(x, y)
     end
   end
 
@@ -425,6 +427,23 @@ function checkIfGUIItemClicked(mx, my, button, isTouch)
     end
 
     return false
+  end
+end
+
+function checkIfNodeHovered(x, y)
+  local hovered = false
+  for nid, node in pairs(visibleNodes) do
+    local wx, wy = cameraCoords(node.position.x, node.position.y)
+    local dx, dy = wx - x, wy - y
+    local r = Node.Radii[node.type] * camera.scale
+    if dx * dx + dy * dy <= r * r then
+      hovered = true
+      showNodeDialog(nid)
+    end
+  end
+
+  if not hovered then
+    dialog:hide()
   end
 end
 
