@@ -487,6 +487,7 @@ function checkIfNodeClicked(x, y, button, isTouch)
           addTrail = Graph.planRoute(nid)
         end
         showNodeDialog(nid)
+        lastClicked = nid
       end
       return true
     end
@@ -557,7 +558,6 @@ function showNodeDialog(nid)
   -- Position has to be updated after displaying it
   dialog:show()
   dialog.root.position = {x = x, y = y}
-  lastClicked = nid
 end
 
 function screenToWorldCoords(x, y)
