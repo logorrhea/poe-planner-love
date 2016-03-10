@@ -58,9 +58,17 @@ dialog:onPress(function(e)
     checkIfNodeClicked(e.x, e.y, e.button, e.hit)
 end)
 
+local classPickerShowing = false
+local classPickerOpts = require 'ui.classPicker'
+local classPicker = Layout(classPickerOpts)
+
 local statsShowing = true
 local statOpts = require 'ui.stat'
 local stats = Layout(statOpts)
+stats.portrait:onPress(function(e)
+    print('portrait press event')
+    classPicker:show()
+end)
 
 -- Set correct starter portrait
 stats.portrait.icon = 'assets/'..Node.portraits[activeClass]..'-portrait.png'
@@ -77,7 +85,6 @@ local style = {
 }
 layout:setStyle(style)
 dialog:setStyle(style)
-stats:setStyle(style)
 
 local lastClicked = nil
 
