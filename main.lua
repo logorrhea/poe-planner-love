@@ -6,6 +6,9 @@ local Layout = require 'vendor.luigi.luigi.layout'
 local dark   = require 'vendor.luigi.luigi.theme.dark'
 local Timer  = require 'vendor.hump.timer'
 
+local lurker = require 'vendor.lurker.lurker'
+lurker.protected = false
+
 require 'node'
 require 'group'
 require 'colors'
@@ -251,6 +254,7 @@ function love.load()
 end
 
 function love.update(dt)
+  lurker.update(dt)
   Timer.update(dt)
   if statsShowing then
     stats:show()
@@ -416,6 +420,14 @@ else
       scaledHeight = winHeight/camera.scale
       scaledWidth = winWidth/camera.scale
       refillBatches()
+    elseif key == 'a' then
+      if classPickerShowing then
+        classPicker:hide();
+        classPickerShowing = false
+      else
+        classPicker:show();
+        classPickerShowing = true
+      end
     end
   end
 

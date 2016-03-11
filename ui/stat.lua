@@ -26,7 +26,7 @@ return {
     {
       id         = 'baseStats',
       margin     = 5,
-      text       = 'Base attributes',
+      text       = 'B-B-B-B-Base attributes',
       width      = 170,
       height     = 115,
       -- background = {0, 255, 255},
