@@ -5,6 +5,7 @@ local json   = require 'vendor.dkjson'
 local Layout = require 'vendor.luigi.luigi.layout'
 local dark   = require 'vendor.luigi.luigi.theme.dark'
 local Timer  = require 'vendor.hump.timer'
+local lume   = require 'vendor.lume.lume'
 
 local lurker = require 'vendor.lurker.lurker'
 lurker.protected = false
@@ -362,11 +363,7 @@ if OS == 'iOS' then
       local d2 = dist({x=ox, y=oy}, {x=x+dx, y=y+dy})
 
       camera.scale = camera.scale + (d2-d1)/100 -- should handle both zoom in and out
-      if camera.scale > camera.maxScale then
-        camera.scale = camera.maxScale
-      elseif camera.scale < camera.minScale then
-        camera.scale = camera.minScale
-      end
+      camera.scale = lume.clamp(camera.scale, camera.minScale, camera.maxScale)
     elseif #touches == 5 then
       love.event.quit()
     end
