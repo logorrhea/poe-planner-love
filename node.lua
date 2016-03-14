@@ -13,12 +13,28 @@ Node.NT_KEYSTONE = 4
 Node.NT_START    = 5
 Node.NT_JEWEL    = 6
 
+-- New Ascendancy node types
+Node.NT_ASC_COMMON   = 7
+Node.NT_ASC_NOTABLE  = 8
+Node.NT_ASC_MASTERY  = 9
+Node.NT_ASC_KEYSTONE = 10
+Node.NT_ASC_START    = 11
+Node.NT_ASC_JEWEL    = 12
+
 -- Some contants for drawing
 Node.SkillsPerOrbit = {1, 6, 12, 12, 40}
 Node.OrbitRadii = {0, 81.5/scaleFix, 163/scaleFix, 326/scaleFix, 489/scaleFix}
-Node.Radii = {51/scaleFix, 70/scaleFix, 107/scaleFix, 109/scaleFix, 200/scaleFix, 51/scaleFix}
+Node.Radii = {51/scaleFix, 70/scaleFix, 107/scaleFix, 109/scaleFix, 200/scaleFix, 51/scaleFix,
+              51/scaleFix, 70/scaleFix, 107/scaleFix, 109/scaleFix, 200/scaleFix, 51/scaleFix,}
 
 Node.ActiveSkillsheets = {
+  "normalActive",
+  "notableActive",
+  "mastery",
+  "keystoneActive",
+  "normalActive",
+  "normalActive",
+
   "normalActive",
   "notableActive",
   "mastery",
@@ -34,6 +50,13 @@ Node.InactiveSkillsheets = {
   "keystoneInactive",
   "normalInactive",
   "normalInactive",
+
+  "normalInactive",
+  "notableInactive",
+  "mastery",
+  "keystoneInactive",
+  "normalInactive",
+  "normalInactive",
 }
 
 Node.InactiveSkillFrames = {
@@ -42,7 +65,14 @@ Node.InactiveSkillFrames = {
   nil,
   "KeystoneFrameUnallocated",
   nil,
-  "JewelFrameUnallocated"
+  "JewelFrameUnallocated",
+
+  "PSSkillFrame",
+  "NotableFrameUnallocated",
+  nil,
+  "KeystoneFrameUnallocated",
+  nil,
+  "JewelFrameUnallocated",
 }
 
 Node.ActiveSkillFrames = {
@@ -51,7 +81,14 @@ Node.ActiveSkillFrames = {
   nil,
   "KeystoneFrameAllocated",
   nil,
-  "JewelFrameAllocated"
+  "JewelFrameAllocated",
+
+  "PSSkillFrameActive",
+  "NotableFrameAllocated",
+  nil,
+  "KeystoneFrameAllocated",
+  nil,
+  "JewelFrameAllocated",
 }
 
 -- Translate start classes
@@ -109,16 +146,24 @@ function Node.create(data, group)
   setmetatable(node, Node)
 
   -- Set non-computed attributes
-  node.id         = tonumber(data.id)
-  node.gid        = tonumber(data.g)
-  node.orbit      = tonumber(data.o) + 1 -- lua arrays are not 0-indexed
-  node.orbitIndex = tonumber(data.oidx)
-  node.icon       = data.icon
-  node.out        = data.out
-  node.neighbors  = data.out
-  node.name       = data.dn
-  node.startPositionClasses = data.spc
+  node.id           = tonumber(data.id)
+  node.gid          = tonumber(data.g)
+  node.orbit        = tonumber(data.o) + 1 -- lua arrays are not 0-indexed
+  node.orbitIndex   = tonumber(data.oidx)
+  node.icon         = data.icon
+  node.out          = data.out
+  node.neighbors    = data.out
+  node.name         = data.dn
   node.descriptions = data.sd
+  node.startPositionClasses = data.spc
+
+  -- Ascendancy stuff
+  node.ascendancyName         = data.ascendancyName
+  node.isAscendancyStart      = data.isAscendancyStart
+  node.isJewelSocket          = data.isJewelSocket
+  node.isMultipleChoice       = data.isMultipleChoice
+  node.isMultipleChoiceOption = data.isMultipleChoiceOption
+  node.passivePointsGranted   = data.passivePointsGranted
 
   for i, c in ipairs(node.startPositionClasses) do
     node.startPositionClasses[i] = c+1
@@ -140,10 +185,16 @@ function Node.create(data, group)
     node.type = Node.NT_NOTABLE
   elseif data.ks then
     node.type = Node.NT_KEYSTONE
-  elseif data.dn == 'Jewel Socket' then
+  elseif data.isJewelSocket then
     node.type = Node.NT_JEWEL
   else
     node.type = Node.NT_COMMON
+  end
+
+  -- Node type numbers are such that shifting them
+  -- by 6 will make it the corresponding ascendancy type
+  if node.ascendancyName ~= nil then
+    node.type = node.type+6
   end
 
   -- Set group's type if not already set
@@ -184,15 +235,24 @@ function Node:setQuad(quad)
 end
 
 function Node:isVisible(tx, ty)
-  return (self.visibleQuad.top + ty) < scaledHeight and
+  -- @TODO: Draw ascendancy stuff
+  return self.type < 7 and
+         (self.visibleQuad.top + ty) < scaledHeight and
          (self.visibleQuad.bottom + ty) > 0 and
          (self.visibleQuad.left + tx) < scaledWidth and
          (self.visibleQuad.right + tx) > 0
+  -- return (self.visibleQuad.top + ty) < scaledHeight and
+  --        (self.visibleQuad.bottom + ty) > 0 and
+  --        (self.visibleQuad.left + tx) < scaledWidth and
+  --        (self.visibleQuad.right + tx) > 0
 end
 
 function Node:draw()
 
   -- Only draw node if node is not start node
+  -- if self.type > 6 then
+  --   -- @TODO: Draw ascendancy stuff
+  -- elseif self.type ~= Node.NT_START then
   if self.type ~= Node.NT_START then
     local sheet = self.active and self.activeSheet or self.inactiveSheet
     batches[sheet]:add(self.imageQuad, self.visibleQuad.left, self.visibleQuad.top)
@@ -225,7 +285,11 @@ end
 function Node:drawConnections()
   for _, nid in pairs(self.out) do
     local other = nodes[nid]
+    if other.type > 6 or self.type > 6 then
+      return false
+    end
     local color = nil
+
     if (addTrail[self.id] and addTrail[nid]) or (addTrail[self.id] and other.active) or (self.active and addTrail[nid]) then
       color = addConnector
     elseif removeTrail[self.id] and removeTrail[nid] then
@@ -235,12 +299,15 @@ function Node:drawConnections()
     else
       color = inactiveConnector
     end
+
     love.graphics.setColor(color)
+
     if (self.group.id ~= other.group.id) or (self.orbit ~= other.orbit) then
       self:drawConnection(other)
     else
       self:drawArcedConnection(other)
     end
+
     clearColor()
   end
 end
