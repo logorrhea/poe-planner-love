@@ -499,8 +499,53 @@ function checkIfNodeClicked(x, y, button, isTouch)
       -- end
       -- print('Neighbors:', neighbors)
 
-      if node.id == lastClicked then
-        -- On second click, toggle all nodes in highlighted trail
+
+      -- For mobile, use two-tap node selection system
+      if OS == 'iOS' then
+        if node.id == lastClicked then
+          -- On second click, toggle all nodes in highlighted trail
+          for id,_ in pairs(addTrail) do
+            if not nodes[id].active then
+              activateNode(id)
+            end
+          end
+          addTrail = {}
+          -- Remove all nodes in removeTrail
+          for id,_ in pairs(removeTrail) do
+            deactivateNode(id)
+          end
+          removeTrail = {}
+          refillBatches()
+          lastClicked = nil
+        else
+
+          -- On first click, we should give some preview information:
+          --  Dialog box diplaying information about the clicked node
+          --  Preview a route from closest active node
+          if node.active then
+            print('refund node')
+            addTrail = {}
+            removeTrail = Graph.planRefund(nid)
+          else
+            removeTrail = {}
+            addTrail = Graph.planRoute(nid)
+          end
+          showNodeDialog(nid)
+          lastClicked = nid
+        end
+
+      -- For desktop OS, we don't need the double-click behavior
+      else
+        -- Gather nodes for addition or removal
+        if node.active then
+          print('refund node')
+          addTrail = {}
+          removeTrail = Graph.planRefund(nid)
+        else
+          removeTrail = {}
+          addTrail = Graph.planRoute(nid)
+        end
+
         for id,_ in pairs(addTrail) do
           if not nodes[id].active then
             activateNode(id)
@@ -514,20 +559,6 @@ function checkIfNodeClicked(x, y, button, isTouch)
         removeTrail = {}
         refillBatches()
         lastClicked = nil
-      else
-        -- On first click, we should give some preview information:
-        --  Dialog box diplaying information about the clicked node
-        --  Preview a route from closest active node
-        if node.active then
-          print('refund node')
-          addTrail = {}
-          removeTrail = Graph.planRefund(nid)
-        else
-          removeTrail = {}
-          addTrail = Graph.planRoute(nid)
-        end
-        showNodeDialog(nid)
-        lastClicked = nid
       end
       return true
     end
@@ -643,7 +674,6 @@ function dist(v1, v2)
   return math.sqrt((v2.x - v1.x)*(v2.x - v1.x) + (v2.y - v1.y)*(v2.y - v1.y))
 end
 
--- @TODO: Adjust size of stats panel based on device?
 function drawStatsPanel()
   -- love.graphics.setBackgroundColor(1, 1, 1, 240)
   love.graphics.setColor(1, 1, 1, 240)
