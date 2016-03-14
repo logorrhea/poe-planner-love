@@ -45,6 +45,13 @@ local elements = require('ui.layout')
 local layout = Layout(elements)
 local guiButtons = {}
 
+-- Keep track of character stats
+local character = {
+  str = 0,
+  int = 0,
+  agi = 0,
+}
+
 -- @TODO: Move dialog window away from UI library
 local dialog = Layout {
   type       = 'panel',
@@ -62,16 +69,21 @@ dialog:onPress(function(e)
     checkIfNodeClicked(e.x, e.y, e.button, e.hit)
 end)
 
+-- le Font
+local headerFont = love.graphics.newFont('fonts/fontin-bold-webfont.ttf', 20)
+local font       = love.graphics.newFont('fonts/fontin-bold-webfont.ttf', 12)
+
 -- @TODO: Move class picker away from UI library
 local classPickerShowing = false
 local classPickerOpts = require 'ui.classPicker'
 local classPicker = Layout(classPickerOpts)
+-- local charStrText = love.graphics.newText(headerFont)
+local charStatText = love.graphics.newText(headerFont, 'Str:\t0\nInt:\t0\nAgi:\t0')
 
 -- Stat window images
 local portrait = love.graphics.newImage('assets/'..Node.portraits[activeClass]..'-portrait.png')
 local divider  = love.graphics.newImage('assets/LineConnectorNormal.png')
 local leftIcon = love.graphics.newImage('assets/left.png')
-
 
 -- Adjust UI theme
 layout:setTheme(dark)
@@ -484,12 +496,12 @@ function checkIfNodeClicked(x, y, button, isTouch)
       if node.id == lastClicked then
         -- On second click, toggle all nodes in highlighted trail
         for id,_ in pairs(addTrail) do
-          nodes[id].active = true
+          activateNode(id)
         end
         addTrail = {}
         -- Remove all nodes in removeTrail
         for id,_ in pairs(removeTrail) do
-          nodes[id].active = false
+          deactivateNode(id)
         end
         removeTrail = {}
         refillBatches()
@@ -622,6 +634,9 @@ function drawStatsPanel()
   -- Draw portrait
   love.graphics.draw(portrait, 5, 5)
 
+  -- Character stats
+  love.graphics.draw(charStatText, 155, 18)
+
   -- Draw divider
   love.graphics.draw(divider, 5, 115, 0, 0.394, 1.0)
 
@@ -629,4 +644,52 @@ function drawStatsPanel()
   local w, h = leftIcon:getDimensions()
   love.graphics.setColor(255, 255, 255, 255)
   love.graphics.draw(leftIcon, 300-w, (winHeight-h)/2, 0)
+end
+
+function activateNode(nid)
+  nodes[nid].active = true
+
+  -- Add node stats to character stats
+  local node = nodes[nid]
+  parseDescriptions(node, add)
+  updateStatText()
+end
+
+function deactivateNode(nid)
+  nodes[nid].active = false
+
+  -- Remove node stats from character stats
+  local node = nodes[nid]
+  parseDescriptions(node, subtract)
+  updateStatText()
+end
+
+function parseDescriptions(node, op)
+  for _, desc in ipairs(node.descriptions) do
+    for n,s in desc:gmatch("(%d+) (%a[%s%a]*)") do
+      print('s: '..s, 'n: '..n)
+      if s == 'to Strength' then
+        character.str = op(character.str, tonumber(n))
+      elseif s == 'to Intelligence' then
+        character.int = op(character.int, tonumber(n))
+      elseif s == 'to Agility' then
+        character.agi = op(character.agi, tonumber(n))
+      end
+    end
+  end
+end
+
+-- Helper functions so that I can use + or - as arguments
+-- to other functions
+function add(n1, n2)
+  return n1+n2
+end
+
+function subtract(n1, n2)
+  return n1-n2
+end
+
+function updateStatText()
+  -- Update base stats
+  charStatText:set(string.format('Str:\t%i\nInt:\t%i\nAgi:\t%i', character.str, character.int, character.agi))
 end
