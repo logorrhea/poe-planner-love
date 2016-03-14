@@ -496,7 +496,9 @@ function checkIfNodeClicked(x, y, button, isTouch)
       if node.id == lastClicked then
         -- On second click, toggle all nodes in highlighted trail
         for id,_ in pairs(addTrail) do
-          activateNode(id)
+          if not nodes[id].active then
+            activateNode(id)
+          end
         end
         addTrail = {}
         -- Remove all nodes in removeTrail
