@@ -45,6 +45,7 @@ local elements = require('ui.layout')
 local layout = Layout(elements)
 local guiButtons = {}
 
+-- @TODO: Move dialog window away from UI library
 local dialog = Layout {
   type       = 'panel',
   text       = '',
@@ -56,32 +57,21 @@ local dialog = Layout {
   font       = 'fonts/fontin-bold-webfont.ttf',
   size       = 20,
 }
-
 dialog:onPress(function(e)
     dialog:hide()
     checkIfNodeClicked(e.x, e.y, e.button, e.hit)
 end)
 
+-- @TODO: Move class picker away from UI library
 local classPickerShowing = false
 local classPickerOpts = require 'ui.classPicker'
 local classPicker = Layout(classPickerOpts)
 
--- local statsShowing = true
--- local statOpts = require 'ui.stat'
--- local stats = Layout(statOpts)
--- stats.portrait:onPress(function(e)
---     classPicker:show()
---     classPickerShowing = true
--- end)
-
--- Set correct starter portrait
--- stats.portrait.icon = 'assets/'..Node.portraits[activeClass]..'-portrait.png'
-
+-- Stat window images
 local portrait = love.graphics.newImage('assets/'..Node.portraits[activeClass]..'-portrait.png')
 local divider  = love.graphics.newImage('assets/LineConnectorNormal.png')
 local leftIcon = love.graphics.newImage('assets/left.png')
 
--- @TODO: Adjust size of stats panel based on device?
 
 -- Adjust UI theme
 layout:setTheme(dark)
@@ -256,6 +246,7 @@ function love.load()
         -- Timer.tween(1, stats.root, {left = 0}, 'in-out-quad')
     end)
   }
+
 end
 
 function love.update(dt)
@@ -445,9 +436,18 @@ function checkIfGUIItemClicked(mx, my, button, isTouch)
       item.trigger()
       return true
     end
-
-    return false
   end
+
+  if statsShowing then
+    local w, h = leftIcon:getDimensions()
+    local x1, y1 = 300-w, (winHeight-h)/2
+    local x2, y2 = x1+w, y1+h
+    if mx >= x1 and mx <= x2 and my >= y1 and my <= y2 then
+      statsShowing = false
+      return true
+    end
+  end
+  return false
 end
 
 function checkIfNodeHovered(x, y)
@@ -608,6 +608,7 @@ function dist(v1, v2)
   return math.sqrt((v2.x - v1.x)*(v2.x - v1.x) + (v2.y - v1.y)*(v2.y - v1.y))
 end
 
+-- @TODO: Adjust size of stats panel based on device?
 function drawStatsPanel()
   -- love.graphics.setBackgroundColor(1, 1, 1, 240)
   love.graphics.setColor(1, 1, 1, 240)
@@ -626,11 +627,6 @@ function drawStatsPanel()
 
   -- Draw left icon (click to close stats drawer)
   local w, h = leftIcon:getDimensions()
-  local iconScale = 0.10
-  -- local blendmode =  love.graphics.getBlendMode()
-  -- love.graphics.setBlendMode('lighten', )
   love.graphics.setColor(255, 255, 255, 255)
-  love.graphics.draw(leftIcon, 305-(w*iconScale)-5, winHeight/2-(h*iconScale)/2, 0, iconScale, iconScale)
-  -- love.graphics.setBlendMode(blendmode)
-
+  love.graphics.draw(leftIcon, 300-w, (winHeight-h)/2, 0)
 end
