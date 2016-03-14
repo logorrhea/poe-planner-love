@@ -469,19 +469,36 @@ function checkIfGUIItemClicked(mx, my, button, isTouch)
 end
 
 function checkIfNodeHovered(x, y)
-  local hovered = false
+  local hovered = nil
   for nid, node in pairs(visibleNodes) do
-    local wx, wy = cameraCoords(node.position.x, node.position.y)
-    local dx, dy = wx - x, wy - y
-    local r = Node.Radii[node.type] * camera.scale
-    if dx * dx + dy * dy <= r * r then
-      hovered = true
-      showNodeDialog(nid)
+    if node.type ~= Node.NT_MASTERY and node.type ~= Node.NT_START then
+      local wx, wy = cameraCoords(node.position.x, node.position.y)
+      local dx, dy = wx - x, wy - y
+      local r = Node.Radii[node.type] * camera.scale
+      if dx * dx + dy * dy <= r * r then
+        hovered = nid
+        showNodeDialog(nid)
+      end
     end
   end
 
-  if not hovered then
+  -- Do route planning on hover, since desktop OS
+  -- doesn't use the two-click method of activating nodes
+  if hovered == nil then
+    lastClicked = nil
+    addTrail = {}
+    removeTrail = {}
     dialog:hide()
+  elseif hovered ~= lastClicked then
+    print(hovered..' hovered')
+    lastClicked = hovered
+    addTrail = {}
+    removeTrail = {}
+    if nodes[hovered].active then
+      removeTrail = Graph.planRefund(hovered)
+    else
+      addTrail = Graph.planRoute(hovered)
+    end
   end
 end
 
