@@ -226,15 +226,7 @@ function love.load()
   camera.y = startNode.position.y
 
   -- Create SpriteBatch for background image
-  local bgImage = love.graphics.newImage('assets/Background1.png')
-  local w, h = bgImage:getDimensions()
-  local tilesX, tilesY = math.ceil(winWidth/w), math.ceil(winHeight/h)
-  background = love.graphics.newSpriteBatch(bgImage, (tilesX+1)*(tilesY+1), "static")
-  for tx = 0, tilesX do
-    for ty=0, tilesY do
-      background:add(w*tx, h*ty)
-    end
-  end
+  tiledBackground()
 
   -- Fill up sprite batches
   refillBatches()
@@ -267,6 +259,17 @@ function love.update(dt)
   -- if statsShowing then
   --   stats:show()
   -- end
+end
+
+function love.resize(w, h)
+  winWidth, winHeight = w, h
+  scaledWidth, scaledHeight = winWidth/camera.scale, winHeight/camera.scale
+
+  -- Regenerate tiled background
+  tiledBackground()
+
+  -- Regenerate sprite batches
+  refillBatches()
 end
 
 function love.draw()
@@ -539,6 +542,21 @@ end
 
 function clearColor()
   love.graphics.setColor(orig_r, orig_g, orig_b, orig_a)
+end
+
+function tiledBackground()
+  if background then
+    background:clear()
+  end
+  local bgImage = love.graphics.newImage('assets/Background1.png')
+  local w, h = bgImage:getDimensions()
+  local tilesX, tilesY = math.ceil(winWidth/w), math.ceil(winHeight/h)
+  background = love.graphics.newSpriteBatch(bgImage, (tilesX+1)*(tilesY+1), "static")
+  for tx = 0, tilesX do
+    for ty=0, tilesY do
+      background:add(w*tx, h*ty)
+    end
+  end
 end
 
 function refillBatches()
