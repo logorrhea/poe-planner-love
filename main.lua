@@ -645,7 +645,7 @@ function drawStatsPanel()
   -- Draw left icon (click to close stats drawer)
   local w, h = leftIcon:getDimensions()
   love.graphics.setColor(255, 255, 255, 255)
-  love.graphics.draw(leftIcon, 300-w, (winHeight-h)/2, 0)
+  love.graphics.draw(leftIcon, 295-w, (winHeight-h)/2, 0)
 end
 
 function activateNode(nid)
