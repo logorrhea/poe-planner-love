@@ -77,8 +77,8 @@ local font       = love.graphics.newFont('fonts/fontin-bold-webfont.ttf', 12)
 local classPickerShowing = false
 local classPickerOpts = require 'ui.classPicker'
 local classPicker = Layout(classPickerOpts)
--- local charStrText = love.graphics.newText(headerFont)
 local charStatText = love.graphics.newText(headerFont, 'Str:\t0\nInt:\t0\nAgi:\t0')
+local classPanelLocation = {x = -300, y = 0}
 
 -- Stat window images
 local portrait = love.graphics.newImage('assets/'..Node.portraits[activeClass]..'-portrait.png')
@@ -255,7 +255,7 @@ function love.load()
 
         -- Slide in stats board
         statsShowing = true
-        -- Timer.tween(1, stats.root, {left = 0}, 'in-out-quad')
+        Timer.tween(0.5, classPanelLocation, {x = 0}, 'in-out-quad')
     end)
   }
 
@@ -455,7 +455,10 @@ function checkIfGUIItemClicked(mx, my, button, isTouch)
     local x1, y1 = 300-w, (winHeight-h)/2
     local x2, y2 = x1+w, y1+h
     if mx >= x1 and mx <= x2 and my >= y1 and my <= y2 then
-      statsShowing = false
+      Timer.tween(0.5, classPanelLocation, {x = -300}, 'in-out-quad')
+      Timer.after(0.5, function()
+                    statsShowing = false
+      end)
       return true
     end
   end
@@ -626,26 +629,25 @@ end
 function drawStatsPanel()
   -- love.graphics.setBackgroundColor(1, 1, 1, 240)
   love.graphics.setColor(1, 1, 1, 240)
-  love.graphics.rectangle('fill', 0, 0, 300, winHeight)
-
+  love.graphics.rectangle('fill', classPanelLocation.x, 0, 300, winHeight)
 
   -- Stat panel outline
   clearColor()
-  love.graphics.rectangle('line', 0, 0, 300, winHeight)
+  love.graphics.rectangle('line', classPanelLocation.x, 0, 300, winHeight)
 
   -- Draw portrait
-  love.graphics.draw(portrait, 5, 5)
+  love.graphics.draw(portrait, classPanelLocation.x+5, 5)
 
   -- Character stats
-  love.graphics.draw(charStatText, 155, 18)
+  love.graphics.draw(charStatText, classPanelLocation.x+155, 18)
 
   -- Draw divider
-  love.graphics.draw(divider, 5, 115, 0, 0.394, 1.0)
+  love.graphics.draw(divider, classPanelLocation.x+5, 115, 0, 0.394, 1.0)
 
   -- Draw left icon (click to close stats drawer)
   local w, h = leftIcon:getDimensions()
   love.graphics.setColor(255, 255, 255, 255)
-  love.graphics.draw(leftIcon, 295-w, (winHeight-h)/2, 0)
+  love.graphics.draw(leftIcon, classPanelLocation.x+295-w, (winHeight-h)/2, 0)
 end
 
 function activateNode(nid)
