@@ -53,7 +53,7 @@ function Graph.planRoute(tid)
   local lastBranch = nil
   local branchTaken = nil
 
-  print('Searching....')
+  -- print('Searching....')
   while node.id ~= tid do
     min, mid = nil, nil
     for _, oid in ipairs(node.neighbors) do
@@ -70,11 +70,11 @@ function Graph.planRoute(tid)
     if mid == nil then
       ignore[node.id] = true
       if #trail == 1 then
-        print('back to start')
+        -- print('back to start')
         trail = {}
         mid = start
       else
-        print('back up')
+        -- print('back up')
         mid = trail[#trail-1]
         trail[#trail] = nil
       end
@@ -82,7 +82,7 @@ function Graph.planRoute(tid)
       trail[#trail+1] = mid
     end
 
-    print(mid)
+    -- print(mid)
     node = nodes[mid]
   end
 
