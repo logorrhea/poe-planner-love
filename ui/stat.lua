@@ -26,14 +26,28 @@ return {
     {
       id         = 'baseStats',
       margin     = 5,
-      text       = 'B-B-B-B-Base attributes',
       width      = 170,
       height     = 115,
       -- background = {0, 255, 255},
       size       = 15,
+      flow = 'y',
       {
         id = 'baseStatsStr',
-        text = ''
+        text = 'STR\t0',
+        height = 38,
+        align = 'middle center',
+      },
+      {
+        id = 'baseStatsDex',
+        text = 'DEX\t0',
+        height = 38,
+        align = 'middle center',
+      },
+      {
+        id = 'baseStatsInt',
+        text = 'INT\t0',
+        height = 38,
+        align = 'middle center',
       }
     }
   },

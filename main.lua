@@ -66,16 +66,20 @@ local classPickerShowing = false
 local classPickerOpts = require 'ui.classPicker'
 local classPicker = Layout(classPickerOpts)
 
-local statsShowing = true
-local statOpts = require 'ui.stat'
-local stats = Layout(statOpts)
-stats.portrait:onPress(function(e)
-    print('portrait press event')
-    classPicker:show()
-end)
+-- local statsShowing = true
+-- local statOpts = require 'ui.stat'
+-- local stats = Layout(statOpts)
+-- stats.portrait:onPress(function(e)
+--     classPicker:show()
+--     classPickerShowing = true
+-- end)
 
 -- Set correct starter portrait
-stats.portrait.icon = 'assets/'..Node.portraits[activeClass]..'-portrait.png'
+-- stats.portrait.icon = 'assets/'..Node.portraits[activeClass]..'-portrait.png'
+
+local portrait = love.graphics.newImage('assets/'..Node.portraits[activeClass]..'-portrait.png')
+local divider  = love.graphics.newImage('assets/LineConnectorNormal.png')
+local leftIcon = love.graphics.newImage('assets/left.png')
 
 -- @TODO: Adjust size of stats panel based on device?
 
@@ -236,7 +240,7 @@ function love.load()
   -- Show GUI
   -- layout:show()
   dialog:hide()
-  stats:hide()
+  -- stats:hide()
   guiButtons.menuToggle = {
     x     = 10,
     y     = 10,
@@ -245,11 +249,11 @@ function love.load()
     image = love.graphics.newImage('assets/menu.png'),
     trigger = (function()
         -- Show stats board
-        stats:show()
+        -- stats:show()
 
         -- Slide in stats board
         statsShowing = true
-        Timer.tween(1, stats.root, {left = 0}, 'in-out-quad')
+        -- Timer.tween(1, stats.root, {left = 0}, 'in-out-quad')
     end)
   }
 end
@@ -257,9 +261,9 @@ end
 function love.update(dt)
   lurker.update(dt)
   Timer.update(dt)
-  if statsShowing then
-    stats:show()
-  end
+  -- if statsShowing then
+  --   stats:show()
+  -- end
 end
 
 function love.draw()
@@ -605,5 +609,28 @@ function dist(v1, v2)
 end
 
 function drawStatsPanel()
+  -- love.graphics.setBackgroundColor(1, 1, 1, 240)
+  love.graphics.setColor(1, 1, 1, 240)
+  love.graphics.rectangle('fill', 0, 0, 300, winHeight)
+
+
+  -- Stat panel outline
+  clearColor()
+  love.graphics.rectangle('line', 0, 0, 300, winHeight)
+
+  -- Draw portrait
+  love.graphics.draw(portrait, 5, 5)
+
+  -- Draw divider
+  love.graphics.draw(divider, 5, 115, 0, 0.394, 1.0)
+
+  -- Draw left icon (click to close stats drawer)
+  local w, h = leftIcon:getDimensions()
+  local iconScale = 0.10
+  -- local blendmode =  love.graphics.getBlendMode()
+  -- love.graphics.setBlendMode('lighten', )
+  love.graphics.setColor(255, 255, 255, 255)
+  love.graphics.draw(leftIcon, 305-(w*iconScale)-5, winHeight/2-(h*iconScale)/2, 0, iconScale, iconScale)
+  -- love.graphics.setBlendMode(blendmode)
 
 end
