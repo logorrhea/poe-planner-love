@@ -7,8 +7,8 @@ local dark   = require 'vendor.luigi.luigi.theme.dark'
 local Timer  = require 'vendor.hump.timer'
 local lume   = require 'vendor.lume.lume'
 
-local lurker = require 'vendor.lurker.lurker'
-lurker.protected = false
+-- local lurker = require 'vendor.lurker.lurker'
+-- lurker.protected = false
 
 require 'node'
 require 'group'
@@ -254,7 +254,7 @@ function love.load()
 end
 
 function love.update(dt)
-  lurker.update(dt)
+  -- lurker.update(dt)
   Timer.update(dt)
   -- if statsShowing then
   --   stats:show()
@@ -333,9 +333,9 @@ function love.draw()
   end
 
   -- print FPS counter in top-left
-  -- local fps, timePerFrame = love.timer.getFPS(), 1000 * love.timer.getAverageDelta()
-  -- love.graphics.setColor(255, 255, 255, 255)
-  -- love.graphics.print(string.format("Current FPS: %.2f | Average frame time: %.3f ms", fps, timePerFrame), 10, 10)
+  local fps, timePerFrame = love.timer.getFPS(), 1000 * love.timer.getAverageDelta()
+  love.graphics.setColor(255, 255, 255, 255)
+  love.graphics.print(string.format("Current FPS: %.2f | Average frame time: %.3f ms", fps, timePerFrame), winWidth - 400, 10)
   clearColor()
 
   -- Draw UI
