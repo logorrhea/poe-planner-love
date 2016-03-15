@@ -419,6 +419,9 @@ else
         classPicker:show();
         classPickerShowing = true
       end
+    elseif key == 'b' then
+      local buttons = {"Cancel", "OK", escapebutton=1, enterbutton=2}
+      local decision = love.window.showMessageBox('Change Class?', 'Are you sure you want to change class and reset the skill tree?', buttons, 'info', true)
     end
   end
 
@@ -564,6 +567,7 @@ function checkIfNodeClicked(x, y, button, isTouch)
       return true
     end
   end
+
   -- Not sure which behavior is better?
   -- Clear trail on empty click, or are they just trying to hide
   -- the dialog window? Maybe make it an option at some point?
