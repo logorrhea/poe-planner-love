@@ -42,7 +42,7 @@ orig_r, orig_g, orig_b, orig_a = love.graphics.getColor()
 
 -- Load GUI layout(s)
 local elements = require('ui.layout')
-local layout = Layout(elements)
+-- local layout = Layout(elements)
 local guiButtons = {}
 
 -- Keep track of character stats
@@ -52,26 +52,10 @@ local character = {
   agi = 0,
 }
 
--- @TODO: Move dialog window away from UI library
-local dialog = Layout {
-  type       = 'panel',
-  text       = '',
-  width      = 300,
-  height     = 150,
-  wrap       = true,
-  background = {1, 1, 1, 240},
-  outline    = {255, 255, 255, 255},
-  font       = 'fonts/fontin-bold-webfont.ttf',
-  size       = 20,
-}
-dialog:onPress(function(e)
-    dialog:hide()
-    checkIfNodeClicked(e.x, e.y, e.button, e.hit)
-end)
 
 -- le Font
 local headerFont = love.graphics.newFont('fonts/fontin-bold-webfont.ttf', 20)
-local font       = love.graphics.newFont('fonts/fontin-bold-webfont.ttf', 12)
+local font       = love.graphics.newFont('fonts/fontin-bold-webfont.ttf', 14)
 
 -- @TODO: Move class picker away from UI library
 local classPickerShowing = false
@@ -85,16 +69,20 @@ local portrait = love.graphics.newImage('assets/'..Node.portraits[activeClass]..
 local divider  = love.graphics.newImage('assets/LineConnectorNormal.png')
 local leftIcon = love.graphics.newImage('assets/left.png')
 
+-- Dialog Window stuff
+local dialogWindowVisible = false
+local dialogHeaderText    = love.graphics.newText(headerFont, '')
+local dialogContentText   = love.graphics.newText(font, '')
+local dialogPosition      = {x = 0, y = 0, w = 300, h = 150}
+
 -- Adjust UI theme
-layout:setTheme(dark)
-dialog:setTheme(dark)
+-- layout:setTheme(dark)
 
 -- Adjust style
 local style = {
   font = 'fonts/fontin-bold-webfont.ttf',
 }
-layout:setStyle(style)
-dialog:setStyle(style)
+-- layout:setStyle(style)
 
 local lastClicked = nil
 
@@ -233,8 +221,6 @@ function love.load()
 
   -- Show GUI
   -- layout:show()
-  dialog:hide()
-  -- stats:hide()
   guiButtons.menuToggle = {
     x     = 10,
     y     = 10,
@@ -242,9 +228,6 @@ function love.load()
     sy    = 0.1,
     image = love.graphics.newImage('assets/menu.png'),
     trigger = (function()
-        -- Show stats board
-        -- stats:show()
-
         -- Slide in stats board
         statsShowing = true
         Timer.tween(0.5, classPanelLocation, {x = 0}, 'in-out-quad')
@@ -256,9 +239,6 @@ end
 function love.update(dt)
   -- lurker.update(dt)
   Timer.update(dt)
-  -- if statsShowing then
-  --   stats:show()
-  -- end
 end
 
 function love.resize(w, h)
@@ -342,12 +322,16 @@ function love.draw()
   if statsShowing then
     drawStatsPanel()
   end
+
+  if dialogWindowVisible then
+    drawDialogWindow()
+  end
 end
 
 if OS == 'iOS' then
 
   function love.touchpressed(id, x, y, dx, dy, pressure)
-    dialog:hide()
+    dialogWindowVisible = false
   end
 
   function love.touchreleased(id, x, y, dx, dy, pressure)
@@ -355,7 +339,7 @@ if OS == 'iOS' then
   end
 
   function love.touchmoved(id, x, y, dx, dy, pressure)
-    dialog:hide()
+    dialogWindowVisible = false
     local touches = love.touch.getTouches()
     if #touches == 1 then
       camera.x = camera.x - (dx/camera.scale)
@@ -382,7 +366,7 @@ if OS == 'iOS' then
 else
 
   function love.mousepressed(x, y, button, isTouch)
-    dialog:hide()
+    dialogWindowVisible = false
     clickCoords.x, clickCoords.y = x, y
   end
 
@@ -488,7 +472,7 @@ function checkIfNodeHovered(x, y)
     lastClicked = nil
     addTrail = {}
     removeTrail = {}
-    dialog:hide()
+    dialogWindowVisible = false
   elseif hovered ~= lastClicked then
     print(hovered..' hovered')
     lastClicked = hovered
@@ -650,17 +634,34 @@ function showNodeDialog(nid)
   local node = nodes[nid]
 
   -- Update text and calculate dialog box position
-  local newText = node.name
-  for _, desc in ipairs(node.descriptions) do
-    newText = newText .. '\n\t' .. desc
-  end
-  dialog.root.text = newText
-  local x, y = cameraCoords(node.position.x, node.position.y)
-  x, y = adjustDialogPosition(x, y, dialog.root.width, dialog.root.height, 20)
+  local contentText = ''
+  dialogHeaderText:set(node.name)
 
-  -- Position has to be updated after displaying it
-  dialog:show()
-  dialog.root.position = {x = x, y = y}
+  -- Add all description texts to dialog
+  for _, desc in ipairs(node.descriptions) do
+    contentText = contentText .. '\n' .. desc
+  end
+  dialogContentText:set(contentText)
+
+  -- Update dialog window dimensions based on new text
+  local w1, h1 = dialogHeaderText:getDimensions()
+  local w2, h2 = dialogContentText:getDimensions()
+  if w1 > w2 then
+    dialogPosition.w = w1
+  else
+    dialogPosition.w = w2
+  end
+  dialogPosition.w = dialogPosition.w + 10
+  dialogPosition.h = 5*3 + h1 + h2
+
+  -- Get position of node in camera coords, and adjust it so that
+  -- the whole window will always fit on the screen
+  local x, y = cameraCoords(node.position.x, node.position.y)
+  x, y = adjustDialogPosition(x, y, dialogPosition.w, dialogPosition.h, 20)
+  dialogPosition.x, dialogPosition.y = x, y
+
+  -- Set window to visible
+  dialogWindowVisible = true
 end
 
 function screenToWorldCoords(x, y)
@@ -692,7 +693,6 @@ function dist(v1, v2)
 end
 
 function drawStatsPanel()
-  -- love.graphics.setBackgroundColor(1, 1, 1, 240)
   love.graphics.setColor(1, 1, 1, 240)
   love.graphics.rectangle('fill', classPanelLocation.x, 0, 300, winHeight)
 
@@ -713,6 +713,18 @@ function drawStatsPanel()
   local w, h = leftIcon:getDimensions()
   love.graphics.setColor(255, 255, 255, 255)
   love.graphics.draw(leftIcon, classPanelLocation.x+295-w, (winHeight-h)/2, 0)
+end
+
+function drawDialogWindow()
+  -- Inner and outer rectangles
+  love.graphics.setColor(1, 1, 1, 240)
+  love.graphics.rectangle('fill', dialogPosition.x, dialogPosition.y, dialogPosition.w, dialogPosition.h)
+  clearColor()
+  love.graphics.rectangle('line', dialogPosition.x, dialogPosition.y, dialogPosition.w, dialogPosition.h)
+
+  -- Draw text
+  love.graphics.draw(dialogHeaderText, dialogPosition.x + 5, dialogPosition.y + 5)
+  love.graphics.draw(dialogContentText, dialogPosition.x + 5, dialogPosition.y + 20)
 end
 
 function activateNode(nid)
