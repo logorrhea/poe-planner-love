@@ -1,3 +1,6 @@
+local basexx = require 'vendor.basexx.basexx'
+local to_base64, from_base64 = basexx.to_base64, basexx.from_base64
+
 Graph = {}
 Graph.__index = Graph
 
@@ -132,3 +135,53 @@ function findReachable(from, reachable, clicked)
     end
   end
 end
+
+function Graph.export(class, ascendancy, nodes)
+  local charString = getCharacterString(class-1, ascendancy)
+
+  for nid,node in pairs(nodes) do
+    if node.active and #node.startPositionClasses == 0 then
+      charString = charString..encodeNID(nid)
+    end
+  end
+
+  local encoded = string.gsub(string.gsub(to_base64(charString), '/', '_'), '+', '-')
+  print(encoded)
+end
+
+function getCharacterString(class, ascendancy)
+  local characterString = '0004'..class..ascendancy..'0';
+  local chars = ''
+
+  for i=1,string.len(characterString) do
+    chars = chars..string.char(characterString:sub(i, i))
+  end
+
+  return chars
+end
+
+function encodeNID(nid)
+  local bytes = getBytes(nid)
+  return string.char(bytes[3])..string.char(bytes[4])
+end
+
+function getBytes(n)
+  -- 256^3, 256^2, 256^1
+  local exp = {16777216, 65536, 256}
+  local bytes = {}
+  for i, m in ipairs(exp) do
+    bytes[i] = select(1, math.modf(n/m))
+    n = math.fmod(n, m)
+  end
+  bytes[#bytes+1] = n
+  return bytes
+end
+
+-- function getHex(byte)
+--   local hexChars = {[10]='A',[11]='B',[12]='C',[13]='D',[14]='E',[15]='F'}
+--   local a, b = math.floor(byte/16), byte % 16
+--   if a > 9 then
+--     a = hexChars[a]
+--   end
+--   return a..b
+-- end

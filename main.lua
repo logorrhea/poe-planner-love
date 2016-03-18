@@ -422,6 +422,8 @@ else
     elseif key == 'b' then
       local buttons = {"Cancel", "OK", escapebutton=1, enterbutton=2}
       local decision = love.window.showMessageBox('Change Class?', 'Are you sure you want to change class and reset the skill tree?', buttons, 'info', true)
+    elseif key == 'p' then
+      Graph.export(activeClass, 0, nodes)
     end
   end
 
