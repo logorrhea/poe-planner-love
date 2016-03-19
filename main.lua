@@ -55,8 +55,6 @@ removeTrail = {}
 orig_r, orig_g, orig_b, orig_a = love.graphics.getColor()
 
 -- Load GUI layout(s)
-local elements = require('ui.layout')
--- local layout = Layout(elements)
 local guiButtons = {}
 
 -- Keep track of character stats
@@ -71,15 +69,11 @@ local character = {
 local headerFont = love.graphics.newFont('fonts/fontin-bold-webfont.ttf', 20)
 local font       = love.graphics.newFont('fonts/fontin-bold-webfont.ttf', 14)
 
--- @TODO: Move class picker away from UI library
-local classPickerShowing = false
-local classPickerOpts = require 'ui.classPicker'
-local classPicker = Layout(classPickerOpts)
-local charStatText = love.graphics.newText(headerFont, 'Str:\t0\nInt:\t0\nAgi:\t0')
-local classPanelLocation = {x = -300, y = 0}
-
 -- Stat window images
-local portrait = love.graphics.newImage('assets/'..Node.portraits[activeClass]..'-portrait.png')
+local statsShowing = false
+local statsTransitioning = false
+local charStatText = love.graphics.newText(headerFont, 'Str:\t0\nInt:\t0\nAgi:\t0')
+local portrait = love.graphics.newImage('assets/'..Node.classes[activeClass]..'-portrait.png')
 local divider  = love.graphics.newImage('assets/LineConnectorNormal.png')
 local leftIcon = love.graphics.newImage('assets/left.png')
 
@@ -88,22 +82,21 @@ local dialogWindowVisible = false
 local dialogHeaderText    = love.graphics.newText(headerFont, '')
 local dialogContentText   = love.graphics.newText(font, '')
 local dialogPosition      = {x = 0, y = 0, w = 300, h = 150}
+local statPanelLocation = {x = -300, y = 0}
 
--- Adjust UI theme
--- layout:setTheme(dark)
+-- Class picker window stuff
+local portraits = {}
+local classPickerShowing = false
+for _, class in ipairs(Node.classes) do
+  portraits[#portraits+1] = love.graphics.newImage('assets/'..class..'-portrait.png')
+end
 
--- Adjust style
-local style = {
-  font = 'fonts/fontin-bold-webfont.ttf',
-}
--- layout:setStyle(style)
-
+-- Use to determine whether to plan route/refund or activate nodes
 local lastClicked = nil
 
 function love.load()
 
   -- Read data file
-  -- file, err = love.filesystem.newFile('data/json/skillTree.json')
   file, err = love.filesystem.newFile('dat.json')
   file:open('r')
   dataString = file:read()
@@ -222,8 +215,8 @@ function love.load()
   end
 
   -- Set better starting position
-  local startnid = startNodes[activeClass]
-  local startNode = nodes[startnid]
+  startnid = startNodes[activeClass]
+  startNode = nodes[startnid]
   camera.x = startNode.position.x
   camera.y = startNode.position.y
 
@@ -234,7 +227,6 @@ function love.load()
   refillBatches()
 
   -- Show GUI
-  -- layout:show()
   guiButtons.menuToggle = {
     x     = 10,
     y     = 10,
@@ -244,7 +236,7 @@ function love.load()
     trigger = (function()
         -- Slide in stats board
         statsShowing = true
-        Timer.tween(0.5, classPanelLocation, {x = 0}, 'in-out-quad')
+        Timer.tween(0.5, statPanelLocation, {x = 0}, 'in-out-quad')
     end)
   }
 
@@ -340,6 +332,10 @@ function love.draw()
   if dialogWindowVisible then
     drawDialogWindow()
   end
+
+  if classPickerShowing then
+    drawClassPickerWindow()
+  end
 end
 
 if OS == 'iOS' then
@@ -421,17 +417,6 @@ else
       camera.zoomIn()
     elseif key == 'down' then
       camera.zoomOut()
-    elseif key == 'a' then
-      if classPickerShowing then
-        classPicker:hide();
-        classPickerShowing = false
-      else
-        classPicker:show();
-        classPickerShowing = true
-      end
-    elseif key == 'b' then
-      local buttons = {"Cancel", "OK", escapebutton=1, enterbutton=2}
-      local decision = love.window.showMessageBox('Change Class?', 'Are you sure you want to change class and reset the skill tree?', buttons, 'info', true)
     elseif key == 'p' then
       print('pressed p')
       Graph.export(activeClass, 0, nodes)
@@ -454,17 +439,49 @@ function checkIfGUIItemClicked(mx, my, button, isTouch)
   end
 
   if statsShowing then
+
+    -- Check close button clicked
     local w, h = leftIcon:getDimensions()
     local x1, y1 = 300-w, (winHeight-h)/2
     local x2, y2 = x1+w, y1+h
     if mx >= x1 and mx <= x2 and my >= y1 and my <= y2 then
-      Timer.tween(0.5, classPanelLocation, {x = -300}, 'in-out-quad')
-      Timer.after(0.5, function()
-                    statsShowing = false
-      end)
+      closeStatPanel()
       return true
     end
+
+    -- Check class portrait clicked
+    if not statsTransitioning then
+      local w, h = portrait:getDimensions()
+      local x1, y1 = 5, 5
+      local x2, y2 = x1+w, y1+h
+      if mx >= x1 and mx <= x2 and my >= y1 and my <= y2 then
+        classPickerShowing = not classPickerShowing
+        return true
+      end
+    end
   end
+
+  -- Check if any of the other class icons are clicked
+  if classPickerShowing then
+    local w, h = 110, 105
+    local x1, y1 = statPanelLocation.x+w+5, 5
+    local x2, y2 = x1+w, y1+h
+    for i, class in ipairs(Node.classes) do
+      if i ~= activeClass then
+        if mx >= x1 and mx <= x2 and my >= y1 and my <= y2 then
+          local buttons = {"Cancel", "OK", escapebutton=1, enterbutton=2}
+          local decision = love.window.showMessageBox('Change Class?', 'Are you sure you want to change class and reset the skill tree?', buttons, 'info', true)
+          print(decision)
+          if decision == 2 then
+            changeActiveClass(i)
+            return true
+          end
+        end
+        x1, x2 = x2, x2 + w
+      end
+    end
+  end
+
   return false
 end
 
@@ -495,9 +512,9 @@ function checkIfNodeHovered(x, y)
     addTrail = {}
     removeTrail = {}
     if nodes[hovered].active then
-      removeTrail = Graph.planRefund(hovered)
+      removeTrail = Graph.planRefund(hovered) or {}
     else
-      addTrail = Graph.planRoute(hovered)
+      addTrail = Graph.planRoute(hovered) or {}
     end
   end
 end
@@ -711,25 +728,25 @@ end
 
 function drawStatsPanel()
   love.graphics.setColor(1, 1, 1, 240)
-  love.graphics.rectangle('fill', classPanelLocation.x, 0, 300, winHeight)
+  love.graphics.rectangle('fill', statPanelLocation.x, 0, 300, winHeight)
 
   -- Stat panel outline
   clearColor()
-  love.graphics.rectangle('line', classPanelLocation.x, 0, 300, winHeight)
+  love.graphics.rectangle('line', statPanelLocation.x, 0, 300, winHeight)
 
   -- Draw portrait
-  love.graphics.draw(portrait, classPanelLocation.x+5, 5)
+  love.graphics.draw(portrait, statPanelLocation.x+5, 5)
 
   -- Character stats
-  love.graphics.draw(charStatText, classPanelLocation.x+155, 18)
+  love.graphics.draw(charStatText, statPanelLocation.x+155, 18)
 
   -- Draw divider
-  love.graphics.draw(divider, classPanelLocation.x+5, 115, 0, 0.394, 1.0)
+  love.graphics.draw(divider, statPanelLocation.x+5, 115, 0, 0.394, 1.0)
 
   -- Draw left icon (click to close stats drawer)
   local w, h = leftIcon:getDimensions()
   love.graphics.setColor(255, 255, 255, 255)
-  love.graphics.draw(leftIcon, classPanelLocation.x+295-w, (winHeight-h)/2, 0)
+  love.graphics.draw(leftIcon, statPanelLocation.x+295-w, (winHeight-h)/2, 0)
 end
 
 function drawDialogWindow()
@@ -742,6 +759,17 @@ function drawDialogWindow()
   -- Draw text
   love.graphics.draw(dialogHeaderText, dialogPosition.x + 5, dialogPosition.y + 5)
   love.graphics.draw(dialogContentText, dialogPosition.x + 5, dialogPosition.y + 20)
+end
+
+function drawClassPickerWindow()
+  local w, h = 110, 105
+  local x, y = statPanelLocation.x+w+5, 5
+  for i, img in ipairs(portraits) do
+    if i ~= activeClass then
+      love.graphics.draw(img, x, y)
+      x = x + w
+    end
+  end
 end
 
 function activateNode(nid)
@@ -790,4 +818,32 @@ end
 function updateStatText()
   -- Update base stats
   charStatText:set(string.format('Str:\t%i\nInt:\t%i\nAgi:\t%i', character.str, character.int, character.agi))
+end
+
+function closeStatPanel()
+  classPickerShowing = false
+  statsTransitioning = true
+  Timer.tween(0.5, statPanelLocation, {x = -300}, 'in-out-quad')
+  Timer.after(0.5, function()
+                statsTransitioning = false
+                statsShowing = false
+  end)
+end
+
+function changeActiveClass(sel)
+  closeStatPanel()
+  activeClass = sel
+  addTrail    = {}
+  removeTrail = {}
+  startnid = startNodes[activeClass]
+  startNode = nodes[startnid]
+  portrait = love.graphics.newImage('assets/'..Node.classes[activeClass]..'-portrait.png')
+  for nid, node in pairs(nodes) do
+    if node.active then
+      deactivateNode(nid)
+    end
+  end
+  nodes[startnid].active = true
+  camera.x, camera.y = startNode.position.x, startNode.position.y
+  refillBatches()
 end

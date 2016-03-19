@@ -103,7 +103,7 @@ Node.classframes = {
 }
 
 -- Translate activeClass into portrait paths
-Node.portraits = {
+Node.classes = {
   'scion',
   'marauder',
   'ranger',
@@ -290,9 +290,9 @@ function Node:drawConnections()
     end
     local color = nil
 
-    if (addTrail[self.id] and addTrail[nid]) or (addTrail[self.id] and other.active) or (self.active and addTrail[nid]) then
+    if (addTrail ~= nil and addTrail[self.id] and addTrail[nid]) or (addTrail[self.id] and other.active) or (self.active and addTrail[nid]) then
       color = addConnector
-    elseif removeTrail[self.id] and removeTrail[nid] then
+    elseif removeTrail ~= nil and removeTrail[self.id] and removeTrail[nid] then
       color = removeConnector
     elseif self.active and other.active then
       color = activeConnector

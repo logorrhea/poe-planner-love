@@ -44,6 +44,11 @@ function Graph.planRoute(tid)
     end
   end
 
+  -- Make sure we found something I guess?
+  if mid == nil then
+    return
+  end
+
   -- From start node, travel to neighbor nearest target
   -- until we have reached the target
   local node = nodes[mid]
