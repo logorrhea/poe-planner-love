@@ -31,7 +31,7 @@ winWidth, winHeight = love.graphics.getDimensions()
 scaledWidth, scaledHeight = winWidth/camera.scale, winHeight/camera.scale
 
 maxActive = 123
-activeClass = 2
+activeClass = 1
 clickCoords = {x = 0, y = 0}
 visibleNodes = {}
 visibleGroups = {}
@@ -394,6 +394,28 @@ else
     end
   end
 
+  function love.wheelmoved(x, y)
+    if y > 0 then
+      -- up == in
+      camera.scale = camera.scale + camera.scaleStep
+      if camera.scale > camera.maxScale then
+        camera.scale = camera.maxScale
+      end
+      scaledHeight = winHeight/camera.scale
+      scaledWidth = winWidth/camera.scale
+      refillBatches()
+    elseif y < 0 then
+      -- down == out
+      camera.scale = camera.scale - camera.scaleStep
+      if camera.scale < camera.minScale then
+        camera.scale = camera.minScale
+      end
+      scaledHeight = winHeight/camera.scale
+      scaledWidth = winWidth/camera.scale
+      refillBatches()
+    end
+  end
+
   function love.keypressed(key, scancode, isRepeat)
     if key == 'up' then
       camera.scale = camera.scale + camera.scaleStep
@@ -423,6 +445,7 @@ else
       local buttons = {"Cancel", "OK", escapebutton=1, enterbutton=2}
       local decision = love.window.showMessageBox('Change Class?', 'Are you sure you want to change class and reset the skill tree?', buttons, 'info', true)
     elseif key == 'p' then
+      print('pressed p')
       Graph.export(activeClass, 0, nodes)
     end
   end

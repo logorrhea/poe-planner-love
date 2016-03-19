@@ -9,5 +9,5 @@ function love.conf(t)
   t.window.resizable = true
   -- t.window.highdpi = true
 
-  -- t.console = true -- Attach a console, windows only
+  t.console = true -- Attach a console, windows only
 end
