@@ -23,7 +23,21 @@ camera = {
   scale     = 0.5,
   maxScale  = 1.0,
   minScale  = 0.1,
-  scaleStep = 0.05
+  scaleStep = 0.05,
+  zoomIn = (function()
+      camera.scale = camera.scale + camera.scaleStep
+      camera.scale = lume.clamp(camera.scale, camera.minScale, camera.maxScale)
+      scaledHeight = winHeight/camera.scale
+      scaledWidth = winWidth/camera.scale
+      refillBatches()
+  end),
+  zoomOut = (function()
+      camera.scale = camera.scale - camera.scaleStep
+      camera.scale = lume.clamp(camera.scale, camera.minScale, camera.maxScale)
+      scaledHeight = winHeight/camera.scale
+      scaledWidth = winWidth/camera.scale
+      refillBatches()
+  end)
 }
 
 -- Use these for culling later
@@ -396,43 +410,17 @@ else
 
   function love.wheelmoved(x, y)
     if y > 0 then
-      -- up == in
-      camera.scale = camera.scale + camera.scaleStep
-      if camera.scale > camera.maxScale then
-        camera.scale = camera.maxScale
-      end
-      scaledHeight = winHeight/camera.scale
-      scaledWidth = winWidth/camera.scale
-      refillBatches()
+      camera.zoomIn()
     elseif y < 0 then
-      -- down == out
-      camera.scale = camera.scale - camera.scaleStep
-      if camera.scale < camera.minScale then
-        camera.scale = camera.minScale
-      end
-      scaledHeight = winHeight/camera.scale
-      scaledWidth = winWidth/camera.scale
-      refillBatches()
+      camera.zoomOut()
     end
   end
 
   function love.keypressed(key, scancode, isRepeat)
     if key == 'up' then
-      camera.scale = camera.scale + camera.scaleStep
-      if camera.scale > camera.maxScale then
-        camera.scale = camera.maxScale
-      end
-      scaledHeight = winHeight/camera.scale
-      scaledWidth = winWidth/camera.scale
-      refillBatches()
+      camera.zoomIn()
     elseif key == 'down' then
-      camera.scale = camera.scale - camera.scaleStep
-      if camera.scale < camera.minScale then
-        camera.scale = camera.minScale
-      end
-      scaledHeight = winHeight/camera.scale
-      scaledWidth = winWidth/camera.scale
-      refillBatches()
+      camera.zoomOut()
     elseif key == 'a' then
       if classPickerShowing then
         classPicker:hide();
