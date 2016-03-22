@@ -528,7 +528,9 @@ function checkIfNodeHovered(x, y)
     removeTrail = {}
     dialogWindowVisible = false
   elseif hovered ~= lastClicked then
-    print(hovered..' hovered')
+    if DEBUG then
+      print(hovered..' hovered')
+    end
     lastClicked = hovered
     addTrail = {}
     removeTrail = {}
@@ -547,12 +549,14 @@ function checkIfNodeClicked(x, y, button, isTouch)
     local r = Node.Radii[node.type] * camera.scale
     if dx * dx + dy * dy <= r * r then
       -- Debug
-      print('clicked: '..node.id)
-      -- local neighbors = ''
-      -- for _, nnid in ipairs(node.neighbors) do
-      --   neighbors = neighbors..' '..nnid
-      -- end
-      -- print('Neighbors:', neighbors)
+      if DEBUG then
+        print('clicked: '..node.id)
+        -- local neighbors = ''
+        -- for _, nnid in ipairs(node.neighbors) do
+        --   neighbors = neighbors..' '..nnid
+        -- end
+        -- print('Neighbors:', neighbors)
+      end
 
 
       -- For mobile, use two-tap node selection system
@@ -578,7 +582,6 @@ function checkIfNodeClicked(x, y, button, isTouch)
           --  Dialog box diplaying information about the clicked node
           --  Preview a route from closest active node
           if node.active then
-            print('refund node')
             addTrail = {}
             removeTrail = Graph.planRefund(nid)
           else
@@ -593,7 +596,6 @@ function checkIfNodeClicked(x, y, button, isTouch)
       else
         -- Gather nodes for addition or removal
         if node.active then
-          print('refund node')
           addTrail = {}
           removeTrail = Graph.planRefund(nid)
         else
@@ -730,17 +732,27 @@ function cameraCoords(x, y)
 end
 
 function adjustDialogPosition(x, y, w, h, offset)
-  if x >= winWidth - w then
-    x = x - w - offset
-  else
-    x = x + offset
+  local dx, dy = x, y
+  local hx, hy = winWidth/2, winHeight/2
+
+  if x < hx and y < hy then -- Upper-left quadrant
+    dx, dy = x + offset, y + offset
+  elseif x > hx and y < hy then -- Upper-right quadrant
+    dx, dy = x - w - offset, y + offset
+  elseif x < hx and y > hy then -- Lower-left quadrant
+    dx, dy = x + offset, y - h - offset
+  else -- Lower-right quadrant
+    dx, dy = x - w - offset, y - h - offset
   end
-  if y >= winHeight - h then
-    y = y - h - offset
-  else
-    y = y + offset
+
+  -- Some of the dialog boxes are super-wide
+  if dx + w > winWidth then
+    dx = winWidth - w - offset
+  elseif dx - w < 0 then
+    dx = offset
   end
-  return x, y
+
+  return dx, dy
 end
 
 function dist(v1, v2)
@@ -818,7 +830,9 @@ end
 function parseDescriptions(node, op)
   for _, desc in ipairs(node.descriptions) do
     for n,s in desc:gmatch("(%d+) (%a[%s%a]*)") do
-      print('s: '..s, 'n: '..n)
+      if DEBUG then
+        print('s: '..s, 'n: '..n)
+      end
       if s == 'to Strength' then
         character.str = op(character.str, tonumber(n))
       elseif s == 'to Intelligence' then
