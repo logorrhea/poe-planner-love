@@ -6,15 +6,14 @@ local Layout = require 'vendor.luigi.luigi.layout'
 local dark   = require 'vendor.luigi.luigi.theme.dark'
 local Timer  = require 'vendor.hump.timer'
 local lume   = require 'vendor.lume.lume'
-
--- local lurker = require 'vendor.lurker.lurker'
--- lurker.protected = false
+local ser    = require 'vendor.Ser.ser'
 
 require 'node'
 require 'group'
 require 'colors'
 require 'graph'
 
+DEBUG = false
 pinches = {nil, nil}
 
 camera = {
@@ -46,6 +45,7 @@ scaledWidth, scaledHeight = winWidth/camera.scale, winHeight/camera.scale
 
 maxActive = 123
 activeClass = 1
+ascendancyClass = 1
 clickCoords = {x = 0, y = 0}
 visibleNodes = {}
 visibleGroups = {}
@@ -63,6 +63,7 @@ local character = {
   int = 0,
   agi = 0,
 }
+local characterURL = ''
 
 
 -- le Font
@@ -101,6 +102,14 @@ function love.load()
   file:open('r')
   dataString = file:read()
   file:close()
+
+  -- Read save file
+  local savedNodes = {}
+  if love.filesystem.exists('builds.lua') then
+    local saveDataFunc = love.filesystem.load('builds.lua')
+    local saveData = saveDataFunc()
+    activeClass, ascendancyClass, savedNodes = Graph.import(saveData.nodes)
+  end
 
   -- Parse json data into table
   Tree, err = json.decode(dataString)
@@ -202,6 +211,11 @@ function love.load()
     end
 
     nodes[node.id] = node
+  end
+
+  -- Activate nodes saved in user data
+  for _, nid in ipairs(savedNodes) do
+    nodes[nid].active = true
   end
 
   -- Run through nodes a second time, so we can make links
@@ -318,11 +332,16 @@ function love.draw()
     love.graphics.draw(item.image, item.x, item.y, 0, item.sx, item.sy)
   end
 
-  -- print FPS counter in top-left
-  local fps, timePerFrame = love.timer.getFPS(), 1000 * love.timer.getAverageDelta()
-  love.graphics.setColor(255, 255, 255, 255)
-  love.graphics.print(string.format("Current FPS: %.2f | Average frame time: %.3f ms", fps, timePerFrame), winWidth - 400, 10)
-  clearColor()
+  if DEBUG then
+    -- print FPS counter in top-left
+    local fps, timePerFrame = love.timer.getFPS(), 1000 * love.timer.getAverageDelta()
+    love.graphics.setColor(255, 255, 255, 255)
+    love.graphics.print(string.format("Current FPS: %.2f | Average frame time: %.3f ms", fps, timePerFrame), winWidth - 400, 10)
+
+    -- Print character URL below
+    love.graphics.print(characterURL, winWidth-400, 30)
+    clearColor()
+  end
 
   -- Draw UI
   if statsShowing then
@@ -419,7 +438,9 @@ else
       camera.zoomOut()
     elseif key == 'p' then
       print('pressed p')
-      Graph.export(activeClass, 0, nodes)
+      Graph.export(activeClass, ascendancyClass, nodes)
+    elseif key == 'f1' then
+      DEBUG = not DEBUG
     end
   end
 
@@ -779,6 +800,8 @@ function activateNode(nid)
   local node = nodes[nid]
   parseDescriptions(node, add)
   updateStatText()
+
+  characterURL = Graph.export(activeClass, ascendancyClass, nodes)
 end
 
 function deactivateNode(nid)
@@ -788,6 +811,8 @@ function deactivateNode(nid)
   local node = nodes[nid]
   parseDescriptions(node, subtract)
   updateStatText()
+
+  characterURL = Graph.export(activeClass, ascendancyClass, nodes)
 end
 
 function parseDescriptions(node, op)

@@ -1,4 +1,6 @@
+local bit    = require 'bit'
 local basexx = require 'vendor.basexx.basexx'
+local ser    = require 'vendor.Ser.ser'
 local to_base64, from_base64 = basexx.to_base64, basexx.from_base64
 
 Graph = {}
@@ -141,21 +143,44 @@ function findReachable(from, reachable, clicked)
   end
 end
 
+function Graph.import(charString)
+  local b64 = string.gsub(string.gsub(charString, '_', '/'), '-', '+')
+  local decoded = from_base64(b64)
+
+  local class      = string.byte(decoded:sub(5, 5)) + 1
+  local ascendancy = string.byte(decoded:sub(6, 6)) + 1
+
+  local nids = {}
+  local i = 8
+  while i < string.len(decoded) do
+    local s1 = string.byte(decoded:sub(i, i))
+    local s2 = string.byte(decoded:sub(i+1, i+1))
+    local nid = decodeNID(s1, s2)
+    nids[#nids+1] = nid
+    i = i + 2
+  end
+
+  return class, ascendancy, nids
+end
+
 function Graph.export(class, ascendancy, nodes)
-  local charString = getCharacterString(class-1, ascendancy)
+  local charString = getCharacterString(class-1, ascendancy-1)
 
   for nid,node in pairs(nodes) do
-    if node.active and #node.startPositionClasses == 0 then
+    if node.active and #node.startPositionClasses == 0 and not node.isAscendancyStart then
       charString = charString..encodeNID(nid)
     end
   end
 
   local encoded = string.gsub(string.gsub(to_base64(charString), '/', '_'), '+', '-')
-  print(encoded)
+
+  local character = {name = 'test', nodes = encoded}
+  love.filesystem.write('builds.lua', ser(character))
+  return encoded
 end
 
 function getCharacterString(class, ascendancy)
-  local characterString = '0004'..class..ascendancy..'0';
+  local characterString = '0004'..class..ascendancy..'0'
   local chars = ''
 
   for i=1,string.len(characterString) do
@@ -167,18 +192,22 @@ end
 
 function encodeNID(nid)
   local bytes = getBytes(nid)
-  return string.char(bytes[3])..string.char(bytes[4])
+  local b1, b2 = string.char(bytes[3]), string.char(bytes[4])
+  return b1..b2
+end
+
+function decodeNID(b1, b2)
+  return b1*256 + b2
 end
 
 function getBytes(n)
-  -- 256^3, 256^2, 256^1
-  local exp = {16777216, 65536, 256}
   local bytes = {}
-  for i, m in ipairs(exp) do
-    bytes[i] = select(1, math.modf(n/m))
-    n = math.fmod(n, m)
+  local i = 4
+  while i > 0 do
+    bytes[i] = bit.band(n, 255)
+    n = bit.rshift(n, 8)
+    i = i - 1
   end
-  bytes[#bytes+1] = n
   return bytes
 end
 
