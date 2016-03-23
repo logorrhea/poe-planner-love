@@ -13,7 +13,7 @@ require 'group'
 require 'colors'
 require 'graph'
 
-DEBUG = false
+DEBUG = true
 pinches = {nil, nil}
 
 camera = {
@@ -61,7 +61,7 @@ local guiButtons = {}
 local character = {
   str = 0,
   int = 0,
-  agi = 0,
+  dex = 0,
 }
 local characterURL = ''
 
@@ -73,7 +73,7 @@ local font       = love.graphics.newFont('fonts/fontin-bold-webfont.ttf', 14)
 -- Stat window images
 local statsShowing = false
 local statsTransitioning = false
-local charStatText = love.graphics.newText(headerFont, 'Str:\t0\nInt:\t0\nAgi:\t0')
+local charStatText = love.graphics.newText(headerFont, 'Str:\t0\nInt:\t0\nDex:\t0')
 local portrait = love.graphics.newImage('assets/'..Node.classes[activeClass]..'-portrait.png')
 local divider  = love.graphics.newImage('assets/LineConnectorNormal.png')
 local leftIcon = love.graphics.newImage('assets/left.png')
@@ -109,6 +109,7 @@ function love.load()
     local saveDataFunc = love.filesystem.load('builds.lua')
     local saveData = saveDataFunc()
     activeClass, ascendancyClass, savedNodes = Graph.import(saveData.nodes)
+    portrait = love.graphics.newImage('assets/'..Node.classes[activeClass]..'-portrait.png')
   end
 
   -- Parse json data into table
@@ -215,7 +216,7 @@ function love.load()
 
   -- Activate nodes saved in user data
   for _, nid in ipairs(savedNodes) do
-    nodes[nid].active = true
+    activateNode(nid)
   end
 
   -- Run through nodes a second time, so we can make links
@@ -837,8 +838,17 @@ function parseDescriptions(node, op)
         character.str = op(character.str, tonumber(n))
       elseif s == 'to Intelligence' then
         character.int = op(character.int, tonumber(n))
-      elseif s == 'to Agility' then
-        character.agi = op(character.agi, tonumber(n))
+      elseif s == 'to Dexterity' then
+        character.dex = op(character.dex, tonumber(n))
+      elseif s == 'to Dexterity and Intelligence' or s == 'to Intelligence and Dexterity' then
+        character.dex = op(character.dex, tonumber(n))
+        character.int = op(character.int, tonumber(n))
+      elseif s == 'to Strength and Intelligence' or s == 'to Intelligence and Strength' then
+        character.str = op(character.str, tonumber(n))
+        character.int = op(character.int, tonumber(n))
+      elseif s == 'to Strength and Dexterity' or s == 'to Dexterity and Strength' then
+        character.str = op(character.str, tonumber(n))
+        character.dex = op(character.dex, tonumber(n))
       end
     end
   end
@@ -847,6 +857,9 @@ end
 -- Helper functions so that I can use + or - as arguments
 -- to other functions
 function add(n1, n2)
+  if DEBUG then
+    print('Adding '..n1..' to '..n2)
+  end
   return n1+n2
 end
 
@@ -856,7 +869,7 @@ end
 
 function updateStatText()
   -- Update base stats
-  charStatText:set(string.format('Str:\t%i\nInt:\t%i\nAgi:\t%i', character.str, character.int, character.agi))
+  charStatText:set(string.format('Str:\t%i\nInt:\t%i\nDex:\t%i', character.str, character.int, character.dex))
 end
 
 function closeStatPanel()
