@@ -59,9 +59,11 @@ local guiButtons = {}
 
 -- Keep track of character stats
 local character = {
-  str = 0,
-  int = 0,
-  dex = 0,
+  str       = 0,
+  int       = 0,
+  dex       = 0,
+  stats     = {},
+  keystones = {},
 }
 local characterURL = ''
 
@@ -74,6 +76,7 @@ local font       = love.graphics.newFont('fonts/fontin-bold-webfont.ttf', 14)
 local statsShowing = false
 local statsTransitioning = false
 local charStatText = love.graphics.newText(headerFont, 'Str:\t0\nInt:\t0\nDex:\t0')
+local generalStatText = love.graphics.newText(font, '')
 local portrait = love.graphics.newImage('assets/'..Node.classes[activeClass]..'-portrait.png')
 local divider  = love.graphics.newImage('assets/LineConnectorNormal.png')
 local leftIcon = love.graphics.newImage('assets/left.png')
@@ -777,6 +780,12 @@ function drawStatsPanel()
   -- Draw divider
   love.graphics.draw(divider, statPanelLocation.x+5, 115, 0, 0.394, 1.0)
 
+  -- Draw general stats
+  -- @TODO: Break this into two columns, for the pretties
+  love.graphics.draw(generalStatText, statPanelLocation.x+5, 125)
+
+  -- Draw keystone node text
+
   -- Draw left icon (click to close stats drawer)
   local w, h = leftIcon:getDimensions()
   love.graphics.setColor(255, 255, 255, 255)
@@ -829,27 +838,57 @@ function deactivateNode(nid)
 end
 
 function parseDescriptions(node, op)
-  for _, desc in ipairs(node.descriptions) do
-    for n,s in desc:gmatch("(%d+) (%a[%s%a]*)") do
-      if DEBUG then
-        print('s: '..s, 'n: '..n)
+  if node.type == Node.NT_KEYSTONE then
+    character.keystones[node.id] = node.descriptions
+  else
+    for _, desc in ipairs(node.descriptions) do
+      local found = 0
+      for n,s in desc:gmatch("(%d+) (%a[%s%a]*)") do
+        found = found + 1
+        if DEBUG then
+          print('s: '..s, 'n: '..n)
+        end
+        n = tonumber(n)
+        if s == 'to Strength' then
+          character.str = op(character.str, n)
+        elseif s == 'to Intelligence' then
+          character.int = op(character.int, n)
+        elseif s == 'to Dexterity' then
+          character.dex = op(character.dex, n)
+        elseif s == 'to Dexterity and Intelligence' or s == 'to Intelligence and Dexterity' then
+          character.dex = op(character.dex, n)
+          character.int = op(character.int, n)
+        elseif s == 'to Strength and Intelligence' or s == 'to Intelligence and Strength' then
+          character.str = op(character.str, n)
+          character.int = op(character.int, n)
+        elseif s == 'to Strength and Dexterity' or s == 'to Dexterity and Strength' then
+          character.str = op(character.str, n)
+          character.dex = op(character.dex, n)
+        else
+          if character.stats[s] == nil then
+            character.stats[s] = n
+          else
+            character.stats[s] = character.stats[s] + n
+          end
+        end
       end
-      if s == 'to Strength' then
-        character.str = op(character.str, tonumber(n))
-      elseif s == 'to Intelligence' then
-        character.int = op(character.int, tonumber(n))
-      elseif s == 'to Dexterity' then
-        character.dex = op(character.dex, tonumber(n))
-      elseif s == 'to Dexterity and Intelligence' or s == 'to Intelligence and Dexterity' then
-        character.dex = op(character.dex, tonumber(n))
-        character.int = op(character.int, tonumber(n))
-      elseif s == 'to Strength and Intelligence' or s == 'to Intelligence and Strength' then
-        character.str = op(character.str, tonumber(n))
-        character.int = op(character.int, tonumber(n))
-      elseif s == 'to Strength and Dexterity' or s == 'to Dexterity and Strength' then
-        character.str = op(character.str, tonumber(n))
-        character.dex = op(character.dex, tonumber(n))
+
+      if found == 0 then
+        for n,s in desc:gmatch("(%d+)(%%? %a[%s%a]*)") do
+          found = found + 1
+          if character.stats[s] == nil then
+            character.stats[s] = n
+          else
+            character.stats[s] = character.stats[s] + n
+          end
+        end
       end
+
+      if found == 0 then
+        print('Still not found :(')
+        print(desc)
+      end
+
     end
   end
 end
@@ -870,6 +909,13 @@ end
 function updateStatText()
   -- Update base stats
   charStatText:set(string.format('Str:\t%i\nInt:\t%i\nDex:\t%i', character.str, character.int, character.dex))
+
+  -- Update general stats
+  local _stats = {}
+  for desc, n in pairs(character.stats) do
+    _stats[#_stats+1] = n..'\t'..desc
+  end
+  generalStatText:set(table.concat(_stats, '\n'))
 end
 
 function closeStatPanel()
