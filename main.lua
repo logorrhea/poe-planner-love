@@ -838,13 +838,13 @@ function deactivateNode(nid)
 end
 
 function parseDescriptions(node, op)
+  local found = {}
   if node.type == Node.NT_KEYSTONE then
     character.keystones[node.id] = node.descriptions
   else
     for _, desc in ipairs(node.descriptions) do
-      local found = 0
       for n,s in desc:gmatch("(%d+) (%a[%s%a]*)") do
-        found = found + 1
+        found[#found+1] = s
         if DEBUG then
           print('s: '..s, 'n: '..n)
         end
@@ -865,26 +865,28 @@ function parseDescriptions(node, op)
           character.str = op(character.str, n)
           character.dex = op(character.dex, n)
         else
-          if character.stats[s] == nil then
-            character.stats[s] = n
-          else
-            character.stats[s] = character.stats[s] + n
+          local v = character.stats[s] or 0
+          v = op(v, n)
+          if v == 0 then
+            v = nil
           end
+          character.stats[s] = v
         end
       end
 
-      if found == 0 then
+      if #found == 0 then
         for n,s in desc:gmatch("(%d+)(%%? %a[%s%a]*)") do
-          found = found + 1
-          if character.stats[s] == nil then
-            character.stats[s] = n
-          else
-            character.stats[s] = character.stats[s] + n
+          found[#found+1] = s
+          local v = character.stats[s] or 0
+          v = op(v, n)
+          if v == 0 then
+            v = nil
           end
+          character.stats[s] = v
         end
       end
 
-      if found == 0 then
+      if #found == 0 then
         print('Still not found :(')
         print(desc)
       end
@@ -913,7 +915,9 @@ function updateStatText()
   -- Update general stats
   local _stats = {}
   for desc, n in pairs(character.stats) do
-    _stats[#_stats+1] = n..'\t'..desc
+    if n > 0 then
+      _stats[#_stats+1] = n..'\t'..desc
+    end
   end
   generalStatText:set(table.concat(_stats, '\n'))
 end
