@@ -9,5 +9,9 @@ function love.conf(t)
   t.window.resizable = true
   -- t.window.highdpi = true
 
+  -- Disable unused packages
+  t.modules.joystick = false
+  t.modules.physics = false
+
   t.console = true -- Attach a console, windows only
 end
