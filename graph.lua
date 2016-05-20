@@ -24,8 +24,17 @@ function table.contains(t, needle)
   return false
 end
 
--- BFS starting at the nearest leaf node,
--- picks candidate with shortest path to selected node
+function Graph.planShortestRoute(tid)
+  local t = love.thread.newThread('graph_search.lua')
+  local c = love.thread.getChannel('gsc')
+  -- c:push(nodes)
+  t:start()
+  return t
+end
+
+-- Cheaty mc-cheat algorithm: find the node graphically nearest
+-- to the current one and move to it. Does some correction to prevent
+-- failure if we reach a dead end. Not always the actual shortest route.
 function Graph.planRoute(tid)
 
   -- Find nearest leaf node

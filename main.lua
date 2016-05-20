@@ -98,6 +98,10 @@ end
 -- Use to determine whether to plan route/refund or activate nodes
 local lastClicked = nil
 
+-- Graph Search thread
+local graphSearchThread = nil
+local graphSearchChannel = love.thread.getChannel('gsc')
+
 function love.load()
 
   -- Read data file
@@ -263,6 +267,11 @@ end
 function love.update(dt)
   -- lurker.update(dt)
   Timer.update(dt)
+  local message = graphSearchChannel:peek()
+  if message == 'done' then
+    graphSearchChannel:pop()
+    print('thread done')
+  end
 end
 
 function love.resize(w, h)
@@ -328,6 +337,7 @@ function love.draw()
   for _, name in pairs(Node.classframes) do
     love.graphics.draw(batches[name])
   end
+
 
   love.graphics.pop()
 
@@ -440,9 +450,8 @@ else
       camera.zoomIn()
     elseif key == 'down' then
       camera.zoomOut()
-    -- elseif key == 'p' then
-    --   print('pressed p')
-    --   Graph.export(activeClass, ascendancyClass, nodes)
+    elseif key == 'p' then
+      graphSearchThread = Graph.planShortestRoute(activeClass)
     elseif key == 'f1' then
       DEBUG = not DEBUG
     elseif key == 'escape' then
@@ -741,13 +750,13 @@ function adjustDialogPosition(x, y, w, h, offset)
   local dx, dy = x, y
   local hx, hy = winWidth/2, winHeight/2
 
-  if x < hx and y < hy then -- Upper-left quadrant
+  if x < hx and y < hy then         -- Upper-left quadrant
     dx, dy = x + offset, y + offset
-  elseif x > hx and y < hy then -- Upper-right quadrant
+  elseif x > hx and y < hy then     -- Upper-right quadrant
     dx, dy = x - w - offset, y + offset
-  elseif x < hx and y > hy then -- Lower-left quadrant
+  elseif x < hx and y > hy then     -- Lower-left quadrant
     dx, dy = x + offset, y - h - offset
-  else -- Lower-right quadrant
+  else                              -- Lower-right quadrant
     dx, dy = x - w - offset, y - h - offset
   end
 
