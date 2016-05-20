@@ -535,8 +535,12 @@ mods.watcher = function() return {
 				local old = self.files
 				for k,v in pairs(data) do
 					if not old[k] or old[k] ~= v then
-						print(k .. " changed!", old[k], v)
-						changed = true
+            if k ~= 'builds.lua' and k:sub(1, 1) ~= '#' then
+              print(k .. " changed!", old[k], v)
+              changed = true
+            else
+              print('ignoring '..k)
+            end
 					end
 				end
 			end
