@@ -440,11 +440,13 @@ else
       camera.zoomIn()
     elseif key == 'down' then
       camera.zoomOut()
-    elseif key == 'p' then
-      print('pressed p')
-      Graph.export(activeClass, ascendancyClass, nodes)
+    -- elseif key == 'p' then
+    --   print('pressed p')
+    --   Graph.export(activeClass, ascendancyClass, nodes)
     elseif key == 'f1' then
       DEBUG = not DEBUG
+    elseif key == 'escape' then
+      love.event.quit()
     end
   end
 
