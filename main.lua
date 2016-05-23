@@ -8,6 +8,7 @@ local Timer  = require 'vendor.hump.timer'
 local lume   = require 'vendor.lume.lume'
 local ser    = require 'vendor.Ser.ser'
 
+require 'downloader'
 require 'node'
 require 'group'
 require 'colors'
@@ -54,6 +55,9 @@ addTrail = {}
 removeTrail = {}
 orig_r, orig_g, orig_b, orig_a = love.graphics.getColor()
 
+-- Store saveDir
+local saveDir = love.filesystem.getSaveDirectory()
+
 -- Load GUI layout(s)
 local guiButtons = {}
 
@@ -77,9 +81,9 @@ local statsShowing = false
 local statsTransitioning = false
 local charStatText = love.graphics.newText(headerFont, 'Str:\t0\nInt:\t0\nDex:\t0')
 local generalStatText = love.graphics.newText(font, '')
-local portrait = love.graphics.newImage('assets/'..Node.classes[activeClass]..'-portrait.png')
-local divider  = love.graphics.newImage('assets/LineConnectorNormal.png')
-local leftIcon = love.graphics.newImage('assets/left.png')
+local portrait = love.graphics.newImage('old-assets/'..Node.classes[activeClass]..'-portrait.png')
+local divider  = love.graphics.newImage('old-assets/LineConnectorNormal.png')
+local leftIcon = love.graphics.newImage('old-assets/left.png')
 
 -- Dialog Window stuff
 local dialogWindowVisible = false
@@ -92,7 +96,7 @@ local statPanelLocation = {x = -300, y = 0}
 local portraits = {}
 local classPickerShowing = false
 for _, class in ipairs(Node.classes) do
-  portraits[#portraits+1] = love.graphics.newImage('assets/'..class..'-portrait.png')
+  portraits[#portraits+1] = love.graphics.newImage('old-assets/'..class..'-portrait.png')
 end
 
 -- Use to determine whether to plan route/refund or activate nodes
@@ -104,11 +108,8 @@ local graphSearchChannel = love.thread.getChannel('gsc')
 
 function love.load()
 
-  -- Read data file
-  file, err = love.filesystem.newFile('dat.json')
-  file:open('r')
-  dataString = file:read()
-  file:close()
+  -- Get tree data. Will download new version if necessary
+  Tree = Downloader.getLuaTree()
 
   -- Read save file
   local savedNodes = {}
@@ -116,11 +117,8 @@ function love.load()
     local saveDataFunc = love.filesystem.load('builds.lua')
     local saveData = saveDataFunc()
     activeClass, ascendancyClass, savedNodes = Graph.import(saveData.nodes)
-    portrait = love.graphics.newImage('assets/'..Node.classes[activeClass]..'-portrait.png')
+    portrait = love.graphics.newImage('old-assets/'..Node.classes[activeClass]..'-portrait.png')
   end
-
-  -- Parse json data into table
-  Tree, err = json.decode(dataString)
 
   -- Cache node count
   local nodeCount = #Tree.nodes
@@ -150,7 +148,12 @@ function love.load()
       end
       fileName = fileName:gsub(".gif", ".png") -- this needs a better solution, probably
 
-      local image = love.graphics.newImage('assets/'..fileName)
+      local fileData = love.filesystem.newFileData('assets/'..fileName)
+      if not fileData then
+        print(fileName)
+      end
+      local imageData = love.image.newImageData(fileData)
+      local image = love.graphics.newImage(imageData)
       if tableContainsValue(Node.InactiveSkillFrames, name) then
         batches[name] = love.graphics.newSpriteBatch(image, nodeCount)
       elseif tableContainsValue(Node.ActiveSkillFrames, name) then
@@ -172,15 +175,15 @@ function love.load()
 
   -- Get connection images
   images.straight_connector = {
-    active       = love.graphics.newImage('assets/LineConnectorActive.png'),
-    intermediate = love.graphics.newImage('assets/LineConnectorIntermediate.png'),
-    inactive     = love.graphics.newImage('assets/LineConnectorNormal.png')
+    active       = love.graphics.newImage(saveDir..'/assets/LineConnectorActive.png'),
+    intermediate = love.graphics.newImage(saveDir..'/assets/LineConnectorIntermediate.png'),
+    inactive     = love.graphics.newImage(saveDir..'/assets/LineConnectorNormal.png')
   }
 
   spriteQuads = {}
   for name, sizes in pairs(Tree.skillSprites) do
     local spriteInfo = sizes[#sizes]
-    local image = love.graphics.newImage('assets/'..spriteInfo.filename)
+    local image = love.graphics.newImage(saveDir..'/assets/'..spriteInfo.filename)
     local slots = string.match(name, 'Active') ~= nil and maxActive or nodeCount
     batches[name] = love.graphics.newSpriteBatch(image, slots)
     spriteQuads[name] = {}
@@ -254,7 +257,7 @@ function love.load()
     y     = 10,
     sx    = 0.1,
     sy    = 0.1,
-    image = love.graphics.newImage('assets/menu.png'),
+    image = love.graphics.newImage('old-assets/menu.png'),
     trigger = (function()
         -- Slide in stats board
         statsShowing = true
@@ -652,7 +655,7 @@ function tiledBackground()
   if background then
     background:clear()
   end
-  local bgImage = love.graphics.newImage('assets/Background1.png')
+  local bgImage = love.graphics.newImage(saveDir..'/assets/Background1.png')
   local w, h = bgImage:getDimensions()
   local tilesX, tilesY = math.ceil(winWidth/w), math.ceil(winHeight/h)
   background = love.graphics.newSpriteBatch(bgImage, (tilesX+1)*(tilesY+1), "static")
@@ -950,7 +953,7 @@ function changeActiveClass(sel)
   removeTrail = {}
   startnid = startNodes[activeClass]
   startNode = nodes[startnid]
-  portrait = love.graphics.newImage('assets/'..Node.classes[activeClass]..'-portrait.png')
+  portrait = love.graphics.newImage(saveDir..'/assets/'..Node.classes[activeClass]..'-portrait.png')
   for nid, node in pairs(nodes) do
     if node.active then
       deactivateNode(nid)
