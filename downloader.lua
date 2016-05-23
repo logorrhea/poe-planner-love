@@ -49,6 +49,9 @@ function Downloader.getLuaTree()
     if not fs.exists('assets') then
       fs.createDirectory('assets')
     end
+    -- @TODO: For each of these functions, make sure
+    -- the image is png, and if not, encode is as png
+    -- using ImageData:encode (i hope =\)
     Downloader.downloadAssets(tree)
     Downloader.downloadSkillSprites(tree)
   end
