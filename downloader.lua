@@ -1,5 +1,6 @@
 local http = require 'socket.http'
 local json = require 'vendor.dkjson'
+local magick = require 'magick'
 local os = require 'os'
 local fs = love.filesystem
 
@@ -80,7 +81,8 @@ function Downloader.downloadAssets(tree)
       local pathParts = ssplit(url, '/')
       local filename = pathParts[#pathParts]
       local response = http.request(url)
-      fs.write('assets/'..filename, response)
+      local fdata = love.filesystem.newFileData(response, filename, 'file')
+      fs.write('assets/'..fdata:getFilename(), response)
     end
   end
 end
@@ -90,7 +92,25 @@ function Downloader.downloadSkillSprites(tree)
   for name, sprites in pairs(tree.skillSprites) do
     local spriteInfo = sprites[#sprites]
     local response = http.request(fullImageRoot..spriteInfo.filename)
-    fs.write('assets/'..spriteInfo.filename, response)
+    local fdata = love.filesystem.newFileData(response, spriteInfo.filename, 'file')
+    fs.write('assets/'..fdata:getFilename(), response)
+  end
+end
+
+-- Only works on desktops with imagemagick installed
+function Downloader.convertNonPng()
+  for k, file in ipairs(love.filesystem.getDirectoryItems('assets')) do
+    local fdata = love.filesystem.newFileData('assets/'..file)
+    if fdata:getExtension() ~= 'png' then
+      local newFileName = fdata:getFilename():gsub('.'..fdata:getExtension(), '.png')
+      local img = assert(magick.load_image_from_blob(fdata:getString()))
+      if img then
+        img:set_format('png')
+        local data = love.filesystem.newFileData(img:get_blob(), newFileName)
+        love.filesystem.write(newFileName, data)
+        img:destroy()
+      end
+    end
   end
 end
 
@@ -109,3 +129,4 @@ function ssplit(str, sep)
   end
   return t
 end
+

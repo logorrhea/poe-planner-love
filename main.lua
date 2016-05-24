@@ -149,25 +149,26 @@ function love.load()
       fileName = fileName:gsub(".gif", ".png") -- this needs a better solution, probably
 
       local fileData = love.filesystem.newFileData('assets/'..fileName)
-      if not fileData then
-        print(fileName)
-      end
-      local imageData = love.image.newImageData(fileData)
-      local image = love.graphics.newImage(imageData)
-      if tableContainsValue(Node.InactiveSkillFrames, name) then
-        batches[name] = love.graphics.newSpriteBatch(image, nodeCount)
-      elseif tableContainsValue(Node.ActiveSkillFrames, name) then
-        batches[name] = love.graphics.newSpriteBatch(image, maxActive)
-      elseif name == 'PSGroupBackground1' then
-        batches[name] = love.graphics.newSpriteBatch(image, groupCount)
-      elseif name == 'PSGroupBackground2' then
-        batches[name] = love.graphics.newSpriteBatch(image, groupCount)
-      elseif name == 'PSGroupBackground3' then
-        batches[name] = love.graphics.newSpriteBatch(image, (#Node.classframes + groupCount)*2)
-      elseif name == 'PSStartNodeBackgroundInactive' then
-        batches[name] = love.graphics.newSpriteBatch(image, #Node.classframes)
+      if fileData then
+        local imageData = love.image.newImageData(fileData)
+        local image = love.graphics.newImage(imageData)
+        if tableContainsValue(Node.InactiveSkillFrames, name) then
+          batches[name] = love.graphics.newSpriteBatch(image, nodeCount)
+        elseif tableContainsValue(Node.ActiveSkillFrames, name) then
+          batches[name] = love.graphics.newSpriteBatch(image, maxActive)
+        elseif name == 'PSGroupBackground1' then
+          batches[name] = love.graphics.newSpriteBatch(image, groupCount)
+        elseif name == 'PSGroupBackground2' then
+          batches[name] = love.graphics.newSpriteBatch(image, groupCount)
+        elseif name == 'PSGroupBackground3' then
+          batches[name] = love.graphics.newSpriteBatch(image, (#Node.classframes + groupCount)*2)
+        elseif name == 'PSStartNodeBackgroundInactive' then
+          batches[name] = love.graphics.newSpriteBatch(image, #Node.classframes)
+        else
+          batches[name] = love.graphics.newSpriteBatch(image, 10)
+        end
       else
-        batches[name] = love.graphics.newSpriteBatch(image, 10)
+        print(fileName)
       end
     end
 
@@ -175,15 +176,18 @@ function love.load()
 
   -- Get connection images
   images.straight_connector = {
-    active       = love.graphics.newImage(saveDir..'/assets/LineConnectorActive.png'),
-    intermediate = love.graphics.newImage(saveDir..'/assets/LineConnectorIntermediate.png'),
-    inactive     = love.graphics.newImage(saveDir..'/assets/LineConnectorNormal.png')
+    -- active       = love.graphics.newImage(saveDir..'/assets/LineConnectorActive.png'),
+    -- intermediate = love.graphics.newImage(saveDir..'/assets/LineConnectorIntermediate.png'),
+    -- inactive     = love.graphics.newImage(saveDir..'/assets/LineConnectorNormal.png')
+    active       = love.graphics.newImage('assets/LineConnectorActive.png'),
+    intermediate = love.graphics.newImage('assets/LineConnectorIntermediate.png'),
+    inactive     = love.graphics.newImage('assets/LineConnectorNormal.png')
   }
 
   spriteQuads = {}
   for name, sizes in pairs(Tree.skillSprites) do
     local spriteInfo = sizes[#sizes]
-    local image = love.graphics.newImage(saveDir..'/assets/'..spriteInfo.filename)
+    local image = love.graphics.newImage('assets/'..spriteInfo.filename)
     local slots = string.match(name, 'Active') ~= nil and maxActive or nodeCount
     batches[name] = love.graphics.newSpriteBatch(image, slots)
     spriteQuads[name] = {}
@@ -655,7 +659,7 @@ function tiledBackground()
   if background then
     background:clear()
   end
-  local bgImage = love.graphics.newImage(saveDir..'/assets/Background1.png')
+  local bgImage = love.graphics.newImage('assets/Background1.png')
   local w, h = bgImage:getDimensions()
   local tilesX, tilesY = math.ceil(winWidth/w), math.ceil(winHeight/h)
   background = love.graphics.newSpriteBatch(bgImage, (tilesX+1)*(tilesY+1), "static")
@@ -953,7 +957,7 @@ function changeActiveClass(sel)
   removeTrail = {}
   startnid = startNodes[activeClass]
   startNode = nodes[startnid]
-  portrait = love.graphics.newImage(saveDir..'/assets/'..Node.classes[activeClass]..'-portrait.png')
+  portrait = love.graphics.newImage('old-assets/'..Node.classes[activeClass]..'-portrait.png')
   for nid, node in pairs(nodes) do
     if node.active then
       deactivateNode(nid)
