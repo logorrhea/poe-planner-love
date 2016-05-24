@@ -1,3 +1,5 @@
+local scaleFix = 2.5
+
 Group = {}
 Group .__index = Group
 

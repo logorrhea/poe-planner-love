@@ -61,6 +61,60 @@ function Downloader.getLuaTree()
   return tree
 end
 
+function Downloader.processNodes(tree)
+  local nodes = {}
+  local groups = {}
+  local startNodes = {}
+
+  -- Create groups
+  for gid, group in pairs(Tree.groups) do
+    local id = tonumber(gid)
+    local group = Group.create(id, group)
+    groups[id] = group
+  end
+
+  -- Create nodes
+  for _, n in pairs(Tree.nodes) do
+    local node = Node.create(n, groups[n.g])
+    if groups[n.g].type == nil then
+      groups[n.g].type = node.orbit
+    end
+    if groups[n.g].orbit == nil and node.orbit ~= nil then
+      groups[n.g].orbit = node.orbit
+    end
+
+    -- Add to startNode table if it is one
+    if node.type == Node.NT_START then
+      local spc = node:startPositionClass()
+      startNodes[spc] = node.id
+    end
+
+    nodes[node.id] = node
+  end
+
+  -- Run through nodes a second time, so we can make links
+  -- go both directions
+  for nid, node in pairs(nodes) do
+    for _, lnid in ipairs(node.out) do
+      if lnid ~= nid and nodes[lnid].neighbors[nid] == nil then
+        table.insert(nodes[lnid].neighbors, nid)
+      end
+    end
+  end
+
+  local data = {
+    groups = groups,
+    nodes = nodes
+  }
+
+  -- Save serialized tree to file
+  local dataString = ser(data)
+  love.filesystem.write('processed-tree-data.lua', dataString)
+
+  -- Return processed data
+  return data
+end
+
 -- Download assets
 function Downloader.downloadAssets(tree)
   local fullImageRoot = tree.imageRoot..'build-gen/passive-skill-sprite'

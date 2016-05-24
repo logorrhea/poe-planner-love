@@ -1,4 +1,4 @@
-scaleFix = 2.5
+local scaleFix = 2.5
 
 local OS = love.system.getOS()
 local json   = require 'vendor.dkjson'
@@ -50,6 +50,7 @@ clickCoords = {x = 0, y = 0}
 visibleNodes = {}
 visibleGroups = {}
 startNodes = {}
+activeNodes = {}
 addTrail = {}
 removeTrail = {}
 orig_r, orig_g, orig_b, orig_a = love.graphics.getColor()
@@ -103,12 +104,13 @@ local lastClicked = nil
 
 -- Graph Search thread
 local graphSearchThread = nil
-local graphSearchChannel = love.thread.getChannel('gsc')
+local graphSearchChannel = love.thread.getChannel('routeChannel')
 
 function love.load()
 
   -- Get tree data. Will download new version if necessary
   Tree = Downloader.getLuaTree()
+  -- Downloader.processNodes(Tree)
 
   -- Read save file
   local savedNodes = {}
@@ -204,6 +206,9 @@ function love.load()
   nodes = {}
   for _, n in pairs(Tree.nodes) do
     local node = Node.create(n, groups[n.g])
+    if groups[n.g].type == nil then
+      groups[n.g].type = node.orbit
+    end
     if groups[n.g].orbit == nil and node.orbit ~= nil then
       groups[n.g].orbit = node.orbit
     end
@@ -271,9 +276,12 @@ function love.update(dt)
   -- lurker.update(dt)
   Timer.update(dt)
   local message = graphSearchChannel:peek()
-  if message == 'done' then
-    graphSearchChannel:pop()
-    print(message)
+  if type(message) == 'table' then
+    message = graphSearchChannel:pop()
+    print('path:', table.concat(message, ', '))
+  end
+  if graphSearchThread ~= nil and graphSearchThread:getError() then
+    print(graphSearchThread:getError())
   end
 end
 
@@ -454,7 +462,10 @@ else
     elseif key == 'down' then
       camera.zoomOut()
     elseif key == 'p' then
-      graphSearchThread = Graph.planShortestRoute(activeClass)
+      print(lastClicked)
+      if lastClicked then
+        graphSearchThread = Graph.planShortestRoute(lastClicked)
+      end
     elseif key == 'f1' then
       DEBUG = not DEBUG
     elseif key == 'escape' then
@@ -837,6 +848,8 @@ function activateNode(nid)
   parseDescriptions(node, add)
   updateStatText()
 
+  -- @TODO: Send to threads that node became active
+
   characterURL = Graph.export(activeClass, ascendancyClass, nodes)
 end
 
@@ -847,6 +860,8 @@ function deactivateNode(nid)
   local node = nodes[nid]
   parseDescriptions(node, subtract)
   updateStatText()
+
+  -- @TODO: Send to threads that node became inactive
 
   characterURL = Graph.export(activeClass, ascendancyClass, nodes)
 end

@@ -1,4 +1,5 @@
 require 'colors'
+local scaleFix = 2.5
 
 
 Node = {}
@@ -195,11 +196,6 @@ function Node.create(data, group)
   -- by 6 will make it the corresponding ascendancy type
   if node.ascendancyName ~= nil then
     node.type = node.type+6
-  end
-
-  -- Set group's type if not already set
-  if group.type == nil then
-    groups[group.id].type = node.orbit
   end
 
   -- Set radius based on node type

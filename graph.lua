@@ -26,8 +26,8 @@ end
 
 function Graph.planShortestRoute(tid)
   local t = love.thread.newThread('graph_search.lua')
-  local c = love.thread.getChannel('gsc')
-  -- c:push(nodes)
+  local c = love.thread.getChannel('targetChannel')
+  c:push(tid)
   t:start()
   return t
 end
@@ -63,6 +63,9 @@ function Graph.planRoute(tid)
   -- From start node, travel to neighbor nearest target
   -- until we have reached the target
   local node = nodes[mid]
+  if node == nil then
+    print('node is nil?', mid)
+  end
   local start = mid -- save start node id
 
   local trail = {}
@@ -89,11 +92,9 @@ function Graph.planRoute(tid)
     if mid == nil then
       ignore[node.id] = true
       if #trail == 1 then
-        -- print('back to start')
         trail = {}
         mid = start
       else
-        -- print('back up')
         mid = trail[#trail-1]
         trail[#trail] = nil
       end
@@ -101,7 +102,9 @@ function Graph.planRoute(tid)
       trail[#trail+1] = mid
     end
 
-    -- print(mid)
+    if mid == nil then
+      return {}
+    end
     node = nodes[mid]
   end
 
