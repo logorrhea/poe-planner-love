@@ -6,7 +6,6 @@ local Layout = require 'vendor.luigi.luigi.layout'
 local dark   = require 'vendor.luigi.luigi.theme.dark'
 local Timer  = require 'vendor.hump.timer'
 local lume   = require 'vendor.lume.lume'
-local ser    = require 'vendor.Ser.ser'
 
 require 'downloader'
 require 'node'
@@ -176,9 +175,6 @@ function love.load()
 
   -- Get connection images
   images.straight_connector = {
-    -- active       = love.graphics.newImage(saveDir..'/assets/LineConnectorActive.png'),
-    -- intermediate = love.graphics.newImage(saveDir..'/assets/LineConnectorIntermediate.png'),
-    -- inactive     = love.graphics.newImage(saveDir..'/assets/LineConnectorNormal.png')
     active       = love.graphics.newImage('assets/LineConnectorActive.png'),
     intermediate = love.graphics.newImage('assets/LineConnectorIntermediate.png'),
     inactive     = love.graphics.newImage('assets/LineConnectorNormal.png')
@@ -277,7 +273,7 @@ function love.update(dt)
   local message = graphSearchChannel:peek()
   if message == 'done' then
     graphSearchChannel:pop()
-    print('thread done')
+    print(message)
   end
 end
 

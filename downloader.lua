@@ -1,5 +1,6 @@
 local http = require 'socket.http'
 local json = require 'vendor.dkjson'
+local ser = require 'vendor.ser.Ser'
 local magick = require 'magick'
 local os = require 'os'
 local fs = love.filesystem
@@ -11,12 +12,12 @@ Downloader.skillTreeURL = 'http://www.pathofexile.com/passive-skill-tree/'
 Downloader.cacheLimit = 60*60*24 -- one day
 
 function Downloader.getLuaTree()
-  local jsonString
+  local tree, err
 
   -- Check for cached file first
   local needNewVersion = true
-  if fs.exists('passive-skill-tree.json') then
-    local lastModified = fs.getLastModified('passive-skill-tree.json')
+  if fs.exists('passive-skill-tree.lua') then
+    local lastModified = fs.getLastModified('passive-skill-tree.lua')
     local systemTime = os.time()
     if systemTime - lastModified < Downloader.cacheLimit then
       needNewVersion = false
@@ -30,18 +31,20 @@ function Downloader.getLuaTree()
       print('oh fuck, errors:', status)
       print(body)
     end
+
+    -- Decode json data into lua
     local json = extractTreeData(body)
-    fs.write('passive-skill-tree.json', json)
-    jsonString = json
+    tree, err = json.decode(json)
+    if err then
+      print(err)
+    end
+
+    -- Serialize tree into lua file
+    fs.write('passive-skill-tree.lua', ser(tree))
   else
     -- Otherwise read existing cached version
     jsonString, _ = fs.read('passive-skill-tree.json')
-  end
-
-  -- Transform json string into lua data
-  local tree, err = json.decode(jsonString)
-  if err then
-    print(err)
+    tree = require 'passive-skill-tree'
   end
 
   -- Download new versions of the assets
@@ -50,11 +53,9 @@ function Downloader.getLuaTree()
     if not fs.exists('assets') then
       fs.createDirectory('assets')
     end
-    -- @TODO: For each of these functions, make sure
-    -- the image is png, and if not, encode is as png
-    -- using ImageData:encode (i hope =\)
     Downloader.downloadAssets(tree)
     Downloader.downloadSkillSprites(tree)
+    Downloader.convertNonPng()
   end
 
   return tree
