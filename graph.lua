@@ -25,11 +25,9 @@ function table.contains(t, needle)
 end
 
 function Graph.planShortestRoute(tid)
-  local t = love.thread.newThread('graph_search.lua')
-  local c = love.thread.getChannel('targetChannel')
-  c:push(tid)
-  t:start()
-  return t
+  local found, tiers, visited = searchNearest({[1]=tid}, 1, {}, {})
+  local route = getRouteFromTiers(found, tiers, tid)
+  return route
 end
 
 -- Cheaty mc-cheat algorithm: find the node graphically nearest
@@ -221,6 +219,53 @@ function getBytes(n)
     i = i - 1
   end
   return bytes
+end
+
+function searchNearest(startNodes, level, tiers, visited)
+  print("searching tier "..level)
+  local tier = {}
+
+  -- Loop through startNodes, adding neighbors to tier if not visited
+  for _,i in ipairs(startNodes) do
+    for _,j in ipairs(nodes[i].neighbors) do
+      if not visited[j] then
+        if nodes[j].active then
+          found = j
+          return j, tiers, visited
+        else
+          visited[j] = true
+          tier[#tier+1] = j
+        end
+      end
+    end
+  end
+
+  tiers[level] = tier
+  return searchNearest(tier, level+1, tiers, visited)
+end
+
+function getRouteFromTiers(found, tiers, tid)
+  local current = nodes[found]
+  local route = {[tid]=true}
+
+  for i=#tiers,1,-1 do
+    local n = nil
+    for _,nid in ipairs(tiers[i]) do
+      if n == nil then
+        if table.icontains(current.neighbors, nid) then
+          n = nid
+        end
+      end
+    end
+    if n == nil then
+      print('Something went wrong...')
+      return route
+    else
+      route[n] = true
+      current = nodes[n]
+    end
+  end
+  return route
 end
 
 -- function getHex(byte)

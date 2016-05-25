@@ -13,7 +13,7 @@ require 'group'
 require 'colors'
 require 'graph'
 
-DEBUG = true
+DEBUG = false
 pinches = {nil, nil}
 
 camera = {
@@ -150,26 +150,22 @@ function love.load()
       fileName = fileName:gsub(".gif", ".png") -- this needs a better solution, probably
 
       local fileData = love.filesystem.newFileData('assets/'..fileName)
-      if fileData then
-        local imageData = love.image.newImageData(fileData)
-        local image = love.graphics.newImage(imageData)
-        if tableContainsValue(Node.InactiveSkillFrames, name) then
-          batches[name] = love.graphics.newSpriteBatch(image, nodeCount)
-        elseif tableContainsValue(Node.ActiveSkillFrames, name) then
-          batches[name] = love.graphics.newSpriteBatch(image, maxActive)
-        elseif name == 'PSGroupBackground1' then
-          batches[name] = love.graphics.newSpriteBatch(image, groupCount)
-        elseif name == 'PSGroupBackground2' then
-          batches[name] = love.graphics.newSpriteBatch(image, groupCount)
-        elseif name == 'PSGroupBackground3' then
-          batches[name] = love.graphics.newSpriteBatch(image, (#Node.classframes + groupCount)*2)
-        elseif name == 'PSStartNodeBackgroundInactive' then
-          batches[name] = love.graphics.newSpriteBatch(image, #Node.classframes)
-        else
-          batches[name] = love.graphics.newSpriteBatch(image, 10)
-        end
+      local imageData = love.image.newImageData(fileData)
+      local image = love.graphics.newImage(imageData)
+      if tableContainsValue(Node.InactiveSkillFrames, name) then
+        batches[name] = love.graphics.newSpriteBatch(image, nodeCount)
+      elseif tableContainsValue(Node.ActiveSkillFrames, name) then
+        batches[name] = love.graphics.newSpriteBatch(image, maxActive)
+      elseif name == 'PSGroupBackground1' then
+        batches[name] = love.graphics.newSpriteBatch(image, groupCount)
+      elseif name == 'PSGroupBackground2' then
+        batches[name] = love.graphics.newSpriteBatch(image, groupCount)
+      elseif name == 'PSGroupBackground3' then
+        batches[name] = love.graphics.newSpriteBatch(image, (#Node.classframes + groupCount)*2)
+      elseif name == 'PSStartNodeBackgroundInactive' then
+        batches[name] = love.graphics.newSpriteBatch(image, #Node.classframes)
       else
-        print(fileName)
+        batches[name] = love.graphics.newSpriteBatch(image, 10)
       end
     end
 
@@ -566,7 +562,7 @@ function checkIfNodeHovered(x, y)
     if nodes[hovered].active then
       removeTrail = Graph.planRefund(hovered) or {}
     else
-      addTrail = Graph.planRoute(hovered) or {}
+      addTrail = Graph.planShortestRoute(hovered) or {}
     end
   end
 end
@@ -615,7 +611,7 @@ function checkIfNodeClicked(x, y, button, isTouch)
             removeTrail = Graph.planRefund(nid)
           else
             removeTrail = {}
-            addTrail = Graph.planRoute(nid)
+            addTrail = Graph.planShortestRoute(nid)
           end
           showNodeDialog(nid)
           lastClicked = nid
@@ -629,7 +625,7 @@ function checkIfNodeClicked(x, y, button, isTouch)
           removeTrail = Graph.planRefund(nid)
         else
           removeTrail = {}
-          addTrail = Graph.planRoute(nid)
+          addTrail = Graph.planShortestRoute(nid)
         end
 
         for id,_ in pairs(addTrail) do

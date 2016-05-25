@@ -1,7 +1,7 @@
 local http = require 'socket.http'
 local json = require 'vendor.dkjson'
 local ser = require 'vendor.ser.Ser'
-local magick = require 'magick'
+-- local magick = require 'magick'
 local os = require 'os'
 local fs = love.filesystem
 
@@ -33,8 +33,8 @@ function Downloader.getLuaTree()
     end
 
     -- Decode json data into lua
-    local json = extractTreeData(body)
-    tree, err = json.decode(json)
+    local jsonString = extractTreeData(body)
+    tree, err = json.decode(jsonString)
     if err then
       print(err)
     end
@@ -55,7 +55,7 @@ function Downloader.getLuaTree()
     end
     Downloader.downloadAssets(tree)
     Downloader.downloadSkillSprites(tree)
-    Downloader.convertNonPng()
+    -- Downloader.convertNonPng()
   end
 
   return tree
