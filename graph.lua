@@ -220,14 +220,14 @@ function getBytes(n)
   return bytes
 end
 
-function searchNearest(startNodes, level, tiers, visited)
+function searchNearest(currentNodes, level, tiers, visited)
   local tier = {}
 
-  -- Loop through startNodes, adding neighbors to tier if not visited
-  for _,i in ipairs(startNodes) do
+  -- Loop through currentNodes, adding neighbors to tier if not visited
+  for _,i in ipairs(currentNodes) do
     for _,j in ipairs(nodes[i].neighbors) do
       if not visited[j] then
-        if nodes[j].active then
+        if nodes[j].active and not nodes[j]:isStartNode() then
           found = j
           return j, tiers, visited
         else
@@ -265,12 +265,3 @@ function getRouteFromTiers(found, tiers, tid)
   end
   return route
 end
-
--- function getHex(byte)
---   local hexChars = {[10]='A',[11]='B',[12]='C',[13]='D',[14]='E',[15]='F'}
---   local a, b = math.floor(byte/16), byte % 16
---   if a > 9 then
---     a = hexChars[a]
---   end
---   return a..b
--- end
