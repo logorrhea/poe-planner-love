@@ -73,7 +73,6 @@ function Graph.planRoute(tid)
   local lastBranch = nil
   local branchTaken = nil
 
-  -- print('Searching....')
   while node.id ~= tid do
     min, mid = nil, nil
     for _, oid in ipairs(node.neighbors) do
@@ -222,7 +221,6 @@ function getBytes(n)
 end
 
 function searchNearest(startNodes, level, tiers, visited)
-  print("searching tier "..level)
   local tier = {}
 
   -- Loop through startNodes, adding neighbors to tier if not visited

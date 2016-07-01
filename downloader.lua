@@ -55,7 +55,7 @@ function Downloader.getLuaTree()
     end
     Downloader.downloadAssets(tree)
     Downloader.downloadSkillSprites(tree)
-    -- Downloader.convertNonPng()
+    Downloader.convertNonPng()
   end
 
   return tree

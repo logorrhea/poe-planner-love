@@ -81,9 +81,9 @@ local statsShowing = false
 local statsTransitioning = false
 local charStatText = love.graphics.newText(headerFont, 'Str:\t0\nInt:\t0\nDex:\t0')
 local generalStatText = love.graphics.newText(font, '')
-local portrait = love.graphics.newImage('old-assets/'..Node.classes[activeClass]..'-portrait.png')
-local divider  = love.graphics.newImage('old-assets/LineConnectorNormal.png')
-local leftIcon = love.graphics.newImage('old-assets/left.png')
+local portrait = love.graphics.newImage('assets/'..Node.classes[activeClass]..'-portrait.png')
+local divider  = love.graphics.newImage('assets/LineConnectorNormal.png')
+local leftIcon = love.graphics.newImage('assets/left.png')
 
 -- Dialog Window stuff
 local dialogWindowVisible = false
@@ -96,7 +96,7 @@ local statPanelLocation = {x = -300, y = 0}
 local portraits = {}
 local classPickerShowing = false
 for _, class in ipairs(Node.classes) do
-  portraits[#portraits+1] = love.graphics.newImage('old-assets/'..class..'-portrait.png')
+  portraits[#portraits+1] = love.graphics.newImage('assets/'..class..'-portrait.png')
 end
 
 -- Use to determine whether to plan route/refund or activate nodes
@@ -110,7 +110,7 @@ function love.load()
 
   -- Get tree data. Will download new version if necessary
   Tree = Downloader.getLuaTree()
-  -- Downloader.processNodes(Tree)
+  -- local data = Downloader.processNodes(Tree)
 
   -- Read save file
   local savedNodes = {}
@@ -118,7 +118,7 @@ function love.load()
     local saveDataFunc = love.filesystem.load('builds.lua')
     local saveData = saveDataFunc()
     activeClass, ascendancyClass, savedNodes = Graph.import(saveData.nodes)
-    portrait = love.graphics.newImage('old-assets/'..Node.classes[activeClass]..'-portrait.png')
+    portrait = love.graphics.newImage('assets/'..Node.classes[activeClass]..'-portrait.png')
   end
 
   -- Cache node count
@@ -181,14 +181,21 @@ function love.load()
   spriteQuads = {}
   for name, sizes in pairs(Tree.skillSprites) do
     local spriteInfo = sizes[#sizes]
+    print(spriteInfo.filename)
     local image = love.graphics.newImage('assets/'..spriteInfo.filename)
+    print('local image')
     local slots = string.match(name, 'Active') ~= nil and maxActive or nodeCount
+    print('local slots')
     batches[name] = love.graphics.newSpriteBatch(image, slots)
+    print('set up batch')
     spriteQuads[name] = {}
+    print('about to loop')
     for title, coords in pairs(spriteInfo.coords) do
       spriteQuads[name][title] = love.graphics.newQuad(coords.x, coords.y, coords.w, coords.h, image:getDimensions())
     end
+    print('done looping')
   end
+  print('made sprite quads')
 
   -- Create groups
   groups = {}
@@ -197,10 +204,12 @@ function love.load()
     local group = Group.create(id, group)
     groups[id] = group
   end
+  print('made groups')
 
   -- Create nodes
   nodes = {}
-  for _, n in pairs(Tree.nodes) do
+  print(#Tree.nodes)
+  for _, n in ipairs(Tree.nodes) do
     local node = Node.create(n, groups[n.g])
     if groups[n.g].type == nil then
       groups[n.g].type = node.orbit
@@ -224,6 +233,7 @@ function love.load()
 
     nodes[node.id] = node
   end
+  print('made nodes')
 
   -- Activate nodes saved in user data
   for _, nid in ipairs(savedNodes) do
@@ -258,7 +268,7 @@ function love.load()
     y     = 10,
     sx    = 0.1,
     sy    = 0.1,
-    image = love.graphics.newImage('old-assets/menu.png'),
+    image = love.graphics.newImage('assets/menu.png'),
     trigger = (function()
         -- Slide in stats board
         statsShowing = true
@@ -964,7 +974,7 @@ function changeActiveClass(sel)
   removeTrail = {}
   startnid = startNodes[activeClass]
   startNode = nodes[startnid]
-  portrait = love.graphics.newImage('old-assets/'..Node.classes[activeClass]..'-portrait.png')
+  portrait = love.graphics.newImage('assets/'..Node.classes[activeClass]..'-portrait.png')
   for nid, node in pairs(nodes) do
     if node.active then
       deactivateNode(nid)
