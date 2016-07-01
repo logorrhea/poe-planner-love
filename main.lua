@@ -109,8 +109,9 @@ local graphSearchChannel = love.thread.getChannel('routeChannel')
 function love.load()
 
   -- Get tree data. Will download new version if necessary
-  Tree = Downloader.getLuaTree()
+  -- Tree = Downloader.getLuaTree()
   -- local data = Downloader.processNodes(Tree)
+  Tree = require 'passive-skill-tree'
 
   -- Read save file
   local savedNodes = {}
@@ -181,21 +182,14 @@ function love.load()
   spriteQuads = {}
   for name, sizes in pairs(Tree.skillSprites) do
     local spriteInfo = sizes[#sizes]
-    print(spriteInfo.filename)
     local image = love.graphics.newImage('assets/'..spriteInfo.filename)
-    print('local image')
     local slots = string.match(name, 'Active') ~= nil and maxActive or nodeCount
-    print('local slots')
     batches[name] = love.graphics.newSpriteBatch(image, slots)
-    print('set up batch')
     spriteQuads[name] = {}
-    print('about to loop')
     for title, coords in pairs(spriteInfo.coords) do
       spriteQuads[name][title] = love.graphics.newQuad(coords.x, coords.y, coords.w, coords.h, image:getDimensions())
     end
-    print('done looping')
   end
-  print('made sprite quads')
 
   -- Create groups
   groups = {}
@@ -204,11 +198,9 @@ function love.load()
     local group = Group.create(id, group)
     groups[id] = group
   end
-  print('made groups')
 
   -- Create nodes
   nodes = {}
-  print(#Tree.nodes)
   for _, n in ipairs(Tree.nodes) do
     local node = Node.create(n, groups[n.g])
     if groups[n.g].type == nil then
@@ -233,7 +225,6 @@ function love.load()
 
     nodes[node.id] = node
   end
-  print('made nodes')
 
   -- Activate nodes saved in user data
   for _, nid in ipairs(savedNodes) do

@@ -41,14 +41,8 @@ function Downloader.getLuaTree()
 
     -- Serialize tree into lua file
     fs.write('passive-skill-tree.lua', ser(tree))
-  else
-    -- Otherwise read existing cached version
-    jsonString, _ = fs.read('passive-skill-tree.json')
-    tree = require 'passive-skill-tree'
-  end
 
-  -- Download new versions of the assets
-  if needNewVersion then
+    -- Download new versions of the assets
     -- Make sure assets directory exists
     if not fs.exists('assets') then
       fs.createDirectory('assets')
@@ -56,6 +50,9 @@ function Downloader.getLuaTree()
     Downloader.downloadAssets(tree)
     Downloader.downloadSkillSprites(tree)
     Downloader.convertNonPng()
+  else
+    -- Otherwise read existing cached version
+    tree = require 'passive-skill-tree'
   end
 
   return tree
