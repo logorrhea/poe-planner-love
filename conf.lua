@@ -1,4 +1,4 @@
-require 'vendor.cupid.cupid'
+-- require 'vendor.cupid.cupid'
 
 function love.conf(t)
   t.identity = 'poe-planner-love'
@@ -15,5 +15,5 @@ function love.conf(t)
   t.modules.joystick = false
   t.modules.physics = false
 
-  t.console = true -- Attach a console, windows only
+  t.console = false -- Attach a console, windows only
 end

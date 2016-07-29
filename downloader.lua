@@ -1,6 +1,6 @@
 local http = require 'socket.http'
 local json = require 'vendor.dkjson'
-local ser = require 'vendor.ser.Ser'
+local ser = require 'vendor.Ser.ser'
 -- local magick = require 'magick'
 local os = require 'os'
 local fs = love.filesystem
