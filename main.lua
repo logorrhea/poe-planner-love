@@ -535,7 +535,9 @@ end
 function checkIfNodeHovered(x, y)
   local hovered = nil
   for nid, node in pairs(visibleNodes) do
-    if node.type ~= Node.NT_MASTERY and node.type ~= Node.NT_START then
+    if not node:isMastery() and not node:isStart() then
+    -- end
+    -- if node.type ~= Node.NT_MASTERY and node.type ~= Node.NT_START then
       local wx, wy = cameraCoords(node.position.x, node.position.y)
       local dx, dy = wx - x, wy - y
       local r = Node.Radii[node.type] * camera.scale
