@@ -79,7 +79,9 @@ local font       = love.graphics.newFont('fonts/fontin-bold-webfont.ttf', 14)
 -- Stat window images
 local statsShowing = false
 local statsTransitioning = false
-local charStatText = love.graphics.newText(headerFont, 'Str:\t0\nInt:\t0\nDex:\t0')
+local charStatLabels = love.graphics.newText(headerFont, 'Str:\nInt:\nDex:')
+local charStatText = love.graphics.newText(headerFont, '0\n0\n0')
+local generalStatLabels = love.graphics.newText(font, '')
 local generalStatText = love.graphics.newText(font, '')
 local portrait = love.graphics.newImage('assets/'..Node.classes[activeClass]..'-portrait.png')
 local divider  = love.graphics.newImage('assets/LineConnectorNormal.png')
@@ -799,14 +801,15 @@ function drawStatsPanel()
   love.graphics.draw(portrait, statPanelLocation.x+5, 5)
 
   -- Character stats
-  love.graphics.draw(charStatText, statPanelLocation.x+155, 18)
+  love.graphics.draw(charStatLabels, statPanelLocation.x+155, 18)
+  love.graphics.draw(charStatText, statPanelLocation.x+155+charStatLabels:getWidth()*2, 18)
 
   -- Draw divider
   love.graphics.draw(divider, statPanelLocation.x+5, 115, 0, 0.394, 1.0)
 
   -- Draw general stats
-  -- @TODO: Break this into two columns, for the pretties
-  love.graphics.draw(generalStatText, statPanelLocation.x+5, 125)
+  love.graphics.draw(generalStatLabels, statPanelLocation.x+5, 125)
+  love.graphics.draw(generalStatText, statPanelLocation.x+5+generalStatLabels:getWidth()*1.5, 125)
 
   -- Draw keystone node text
 
@@ -938,15 +941,26 @@ end
 
 function updateStatText()
   -- Update base stats
-  charStatText:set(string.format('Str:\t%i\nInt:\t%i\nDex:\t%i', character.str, character.int, character.dex))
+  charStatText:set(string.format('%i\n%i\n%i', character.str, character.int, character.dex))
 
   -- Update general stats
+  local _labels = {}
   local _stats = {}
+  local text
   for desc, n in pairs(character.stats) do
     if n > 0 then
-      _stats[#_stats+1] = n..'\t'..desc
+      width, wrapped = font:getWrap(desc, 250)
+      for i, text in ipairs(wrapped) do
+        if i == 1 then
+          _labels[#_labels+1] = n
+        else
+          _labels[#_labels+1] = ' '
+        end
+        _stats[#_stats+1] = text
+      end
     end
   end
+  generalStatLabels:set(table.concat(_labels, '\n'))
   generalStatText:set(table.concat(_stats, '\n'))
 end
 

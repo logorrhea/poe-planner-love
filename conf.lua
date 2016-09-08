@@ -15,5 +15,5 @@ function love.conf(t)
   t.modules.joystick = false
   t.modules.physics = false
 
-  t.console = false -- Attach a console, windows only
+  t.console = true -- Attach a console, windows only
 end
