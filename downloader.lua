@@ -9,7 +9,7 @@ local fs = love.filesystem
 Downloader = {}
 Downloader.__index = Downloader
 Downloader.skillTreeURL = 'http://www.pathofexile.com/passive-skill-tree/'
-Downloader.cacheLimit = 60*60*24 -- one day
+Downloader.cacheLimit = 60*60*24*7 -- one day
 
 function Downloader.getLuaTree()
   local tree, err
