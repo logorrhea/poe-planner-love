@@ -352,8 +352,6 @@ function Node:drawArcedConnection(other)
 end
 
 function Node:hasActiveNeighbors()
-  -- @TODO: This will likely need refactored once we work once
-  -- allowing for proper node deactivation
   for _, nid in ipairs(self.neighbors) do
     if nodes[nid].active then
       return true
@@ -364,6 +362,19 @@ end
 
 function Node:startPositionClass()
   return self.startPositionClasses[1]
+end
+
+function Node:isStart()
+  return self.type == Node.NT_START or self.type == Node.NT_ASC_START
+end
+
+function Node:isMastery()
+  return self.type == Node.NT_MASTERY or self.type == Node.NT_ASC_MASTERY
+end
+
+function Node:isPathOf()
+  return self.name:match('Path of the') ~= nil
+  -- return self.id == 7618
 end
 
 return Node

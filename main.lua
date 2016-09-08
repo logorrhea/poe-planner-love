@@ -81,9 +81,9 @@ local statsShowing = false
 local statsTransitioning = false
 local charStatText = love.graphics.newText(headerFont, 'Str:\t0\nInt:\t0\nDex:\t0')
 local generalStatText = love.graphics.newText(font, '')
-local portrait = love.graphics.newImage('old-assets/'..Node.classes[activeClass]..'-portrait.png')
-local divider  = love.graphics.newImage('old-assets/LineConnectorNormal.png')
-local leftIcon = love.graphics.newImage('old-assets/left.png')
+local portrait = love.graphics.newImage('assets/'..Node.classes[activeClass]..'-portrait.png')
+local divider  = love.graphics.newImage('assets/LineConnectorNormal.png')
+local leftIcon = love.graphics.newImage('assets/left.png')
 
 -- Dialog Window stuff
 local dialogWindowVisible = false
@@ -96,7 +96,7 @@ local statPanelLocation = {x = -300, y = 0}
 local portraits = {}
 local classPickerShowing = false
 for _, class in ipairs(Node.classes) do
-  portraits[#portraits+1] = love.graphics.newImage('old-assets/'..class..'-portrait.png')
+  portraits[#portraits+1] = love.graphics.newImage('assets/'..class..'-portrait.png')
 end
 
 -- Use to determine whether to plan route/refund or activate nodes
@@ -109,8 +109,9 @@ local graphSearchChannel = love.thread.getChannel('routeChannel')
 function love.load()
 
   -- Get tree data. Will download new version if necessary
-  Tree = Downloader.getLuaTree()
-  -- Downloader.processNodes(Tree)
+  -- Tree = Downloader.getLuaTree()
+  -- local data = Downloader.processNodes(Tree)
+  Tree = require 'passive-skill-tree'
 
   -- Read save file
   local savedNodes = {}
@@ -118,7 +119,7 @@ function love.load()
     local saveDataFunc = love.filesystem.load('builds.lua')
     local saveData = saveDataFunc()
     activeClass, ascendancyClass, savedNodes = Graph.import(saveData.nodes)
-    portrait = love.graphics.newImage('old-assets/'..Node.classes[activeClass]..'-portrait.png')
+    portrait = love.graphics.newImage('assets/'..Node.classes[activeClass]..'-portrait.png')
   end
 
   -- Cache node count
@@ -200,7 +201,7 @@ function love.load()
 
   -- Create nodes
   nodes = {}
-  for _, n in pairs(Tree.nodes) do
+  for _, n in ipairs(Tree.nodes) do
     local node = Node.create(n, groups[n.g])
     if groups[n.g].type == nil then
       groups[n.g].type = node.orbit
@@ -258,7 +259,7 @@ function love.load()
     y     = 10,
     sx    = 0.1,
     sy    = 0.1,
-    image = love.graphics.newImage('old-assets/menu.png'),
+    image = love.graphics.newImage('assets/menu.png'),
     trigger = (function()
         -- Slide in stats board
         statsShowing = true
@@ -534,7 +535,9 @@ end
 function checkIfNodeHovered(x, y)
   local hovered = nil
   for nid, node in pairs(visibleNodes) do
-    if node.type ~= Node.NT_MASTERY and node.type ~= Node.NT_START then
+    if not node:isMastery() and not node:isStart() then
+    -- end
+    -- if node.type ~= Node.NT_MASTERY and node.type ~= Node.NT_START then
       local wx, wy = cameraCoords(node.position.x, node.position.y)
       local dx, dy = wx - x, wy - y
       local r = Node.Radii[node.type] * camera.scale
@@ -964,7 +967,7 @@ function changeActiveClass(sel)
   removeTrail = {}
   startnid = startNodes[activeClass]
   startNode = nodes[startnid]
-  portrait = love.graphics.newImage('old-assets/'..Node.classes[activeClass]..'-portrait.png')
+  portrait = love.graphics.newImage('assets/'..Node.classes[activeClass]..'-portrait.png')
   for nid, node in pairs(nodes) do
     if node.active then
       deactivateNode(nid)
