@@ -27,7 +27,7 @@ end
 function Graph.planShortestRoute(tid)
   local found, tiers, visited = searchNearest({[1]=tid}, 1, {}, {})
   local route = getRouteFromTiers(found, tiers, tid)
-  print('----------------------------------------------------------------')
+  -- print('----------------------------------------------------------------')
   return route
 end
 
@@ -228,7 +228,8 @@ function searchNearest(currentNodes, level, tiers, visited)
   for _,i in ipairs(currentNodes) do
     for _,j in ipairs(nodes[i].neighbors) do
       local node = nodes[j]
-      if not visited[j] and not node:isStart() and not node:isMastery() then
+      -- if not visited[j] and not node:isStart() and not node:isMastery() then
+      if not visited[j] and (node.id == startnid or not node:isStart()) then
         if nodes[j].active then
           found = j
           return j, tiers, visited
@@ -255,7 +256,7 @@ function getRouteFromTiers(found, tiers, tid)
     for _,nid in ipairs(tiers[i]) do
       if n == nil then
         if table.icontains(current.neighbors, nid) then
-          print(nodes[nid].name, nid, nodes[nid].type)
+          -- print(nodes[nid].name, nid, nodes[nid].type)
           n = nid
         end
       end
