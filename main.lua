@@ -7,6 +7,8 @@ local dark   = require 'vendor.luigi.luigi.theme.dark'
 local Timer  = require 'vendor.hump.timer'
 local lume   = require 'vendor.lume.lume'
 
+local imgui = require 'imgui'
+
 require 'downloader'
 require 'node'
 require 'group'
@@ -467,6 +469,12 @@ else
       end
     elseif key == 'f1' then
       DEBUG = not DEBUG
+    elseif scancode == '[' then
+      if statsShowing then
+        closeStatPanel()
+      else
+        guiButtons.menuToggle.trigger()
+      end
     elseif key == 'escape' then
       love.event.quit()
     end
