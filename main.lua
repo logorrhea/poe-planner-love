@@ -83,10 +83,6 @@ end
 -- Use to determine whether to plan route/refund or activate nodes
 local lastClicked = nil
 
--- Graph Search thread
-local graphSearchThread = nil
-local graphSearchChannel = love.thread.getChannel('routeChannel')
-
 function love.load()
 
   -- Get tree data. Will download new version if necessary
@@ -154,7 +150,7 @@ function love.load()
   end
 
   -- Get connection images
-  -- @NOTE: unused
+  -- @NOTE: unused; not sure if we should just keep lines or not
   images.straight_connector = {
     active       = love.graphics.newImage('assets/LineConnectorActive.png'),
     intermediate = love.graphics.newImage('assets/LineConnectorIntermediate.png'),
@@ -254,14 +250,6 @@ end
 function love.update(dt)
   -- lurker.update(dt)
   Timer.update(dt)
-  local message = graphSearchChannel:peek()
-  if type(message) == 'table' then
-    message = graphSearchChannel:pop()
-    print('path:', table.concat(message, ', '))
-  end
-  if graphSearchThread ~= nil and graphSearchThread:getError() then
-    print(graphSearchThread:getError())
-  end
 end
 
 function love.resize(w, h)
