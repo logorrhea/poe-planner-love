@@ -47,7 +47,7 @@ scaledWidth, scaledHeight = winWidth/camera.scale, winHeight/camera.scale
 maxActive = 123
 activeClass = 1
 ascendancyClass = 1
-clickCoords = {x = 0, y = 0}
+clickCoords = {x = 0, y = 0, onGUI = false}
 visibleNodes = {}
 visibleGroups = {}
 startNodes = {}
@@ -355,7 +355,7 @@ function love.draw()
 
   love.graphics.pop()
 
-  -- Draw menuToggle button in top-left
+  -- Draw menuToggle.image button in top-left
   for _, item in pairs(guiButtons) do
     love.graphics.draw(item.image, item.x, item.y, 0, item.sx, item.sy)
   end
@@ -426,6 +426,7 @@ else
   function love.mousepressed(x, y, button, isTouch)
     dialogWindowVisible = false
     clickCoords.x, clickCoords.y = x, y
+    clickCoords.onGUI = isMouseInGUI(x, y)
   end
 
   function love.mousereleased(x, y, button, isTouch)
@@ -435,7 +436,7 @@ else
 
       if math.abs(dx) <= 3 and math.abs(dy) <= 3 then
         local guiItemClicked = checkIfGUIItemClicked(x, y, button, isTouch)
-        if not guiItemClicked then
+        if not guiItemClicked and not clickCoords.onGUI then
           checkIfNodeClicked(x, y, button, isTouch)
         end
       end
@@ -443,12 +444,14 @@ else
   end
 
   function love.mousemoved(x, y, dx, dy)
-    if love.mouse.isDown(1) then
-      camera.x = camera.x - (dx/camera.scale)
-      camera.y = camera.y - (dy/camera.scale)
-      refillBatches()
-    else
-      checkIfNodeHovered(x, y)
+    if not clickCoords.onGUI then
+      if love.mouse.isDown(1) then
+        camera.x = camera.x - (dx/camera.scale)
+        camera.y = camera.y - (dy/camera.scale)
+        refillBatches()
+      else
+        checkIfNodeHovered(x, y)
+      end
     end
   end
 
@@ -485,7 +488,7 @@ else
       if statsShowing then
         closeStatPanel()
       else
-        guiButtons.menuToggle.trigger()
+        guiButtons.menuToggle.image.trigger()
       end
     elseif key == 'escape' then
       love.event.quit()
@@ -1033,4 +1036,24 @@ end
 function isMouseInStatSection()
   local x, y = love.mouse.getPosition()
   return x < 300 and y > 125
+end
+
+function isMouseInGUI(x, y)
+  if x == nil or y == nil then
+    x, y = love.mouse.getPosition()
+  end
+
+  -- Oversimplified, but should do the job for now
+  if statsShowing then
+    return x < 300
+  else
+    if guiButtons.menuToggle then
+      local w,h = guiButtons.menuToggle.image:getDimensions()
+      w = w*guiButtons.menuToggle.sx
+      h = h*guiButtons.menuToggle.sy
+      return x > 10 and x < (10+w) and y > 10 and y < (10+h)
+    else
+      return false
+    end
+  end
 end
