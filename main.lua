@@ -17,28 +17,7 @@ require 'graph'
 DEBUG = false
 pinches = {nil, nil}
 
-camera = {
-  x         = 0,
-  y         = 0,
-  scale     = 0.5,
-  maxScale  = 1.0,
-  minScale  = 0.1,
-  scaleStep = 0.05,
-  zoomIn = (function()
-      camera.scale = camera.scale + camera.scaleStep
-      camera.scale = lume.clamp(camera.scale, camera.minScale, camera.maxScale)
-      scaledHeight = winHeight/camera.scale
-      scaledWidth = winWidth/camera.scale
-      refillBatches()
-  end),
-  zoomOut = (function()
-      camera.scale = camera.scale - camera.scaleStep
-      camera.scale = lume.clamp(camera.scale, camera.minScale, camera.maxScale)
-      scaledHeight = winHeight/camera.scale
-      scaledWidth = winWidth/camera.scale
-      refillBatches()
-  end)
-}
+local camera = require 'camera'
 
 -- Use these for culling later
 winWidth, winHeight = love.graphics.getDimensions()
@@ -55,9 +34,6 @@ activeNodes = {}
 addTrail = {}
 removeTrail = {}
 orig_r, orig_g, orig_b, orig_a = love.graphics.getColor()
-
--- Store saveDir
-local saveDir = love.filesystem.getSaveDirectory()
 
 -- Load GUI layout(s)
 local guiButtons = {}
@@ -178,6 +154,7 @@ function love.load()
   end
 
   -- Get connection images
+  -- @NOTE: unused
   images.straight_connector = {
     active       = love.graphics.newImage('assets/LineConnectorActive.png'),
     intermediate = love.graphics.newImage('assets/LineConnectorIntermediate.png'),
@@ -465,18 +442,18 @@ else
     else
       -- otherwise, scroll camera
       if y > 0 then
-        camera.zoomIn()
+        camera:zoomIn()
       elseif y < 0 then
-        camera.zoomOut()
+        camera:zoomOut()
       end
     end
   end
 
   function love.keypressed(key, scancode, isRepeat)
     if key == 'up' then
-      camera.zoomIn()
+      camera:zoomIn()
     elseif key == 'down' then
-      camera.zoomOut()
+      camera:zoomOut()
     elseif key == 'p' then
       print(lastClicked)
       if lastClicked then
