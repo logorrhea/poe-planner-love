@@ -134,9 +134,9 @@ function love.load()
       local fileData = love.filesystem.newFileData('assets/'..fileName)
       local imageData = love.image.newImageData(fileData)
       local image = love.graphics.newImage(imageData)
-      if tableContainsValue(Node.InactiveSkillFrames, name) then
+      if lume.find(Node.InactiveSkillFrames, name) then
         batches[name] = love.graphics.newSpriteBatch(image, nodeCount)
-      elseif tableContainsValue(Node.ActiveSkillFrames, name) then
+      elseif lume.find(Node.ActiveSkillFrames, name) then
         batches[name] = love.graphics.newSpriteBatch(image, maxActive)
       elseif name == 'PSGroupBackground1' then
         batches[name] = love.graphics.newSpriteBatch(image, groupCount)
@@ -710,15 +710,6 @@ function refillBatches()
   for gid, group in pairs(visibleGroups) do
     group:draw()
   end
-end
-
-function tableContainsValue(t, v)
-  for _, n in pairs(t) do
-    if n == v then
-      return true
-    end
-  end
-  return false
 end
 
 function showNodeDialog(nid)
