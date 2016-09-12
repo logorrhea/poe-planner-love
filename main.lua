@@ -94,7 +94,7 @@ local dialogHeaderText  = love.graphics.newText(headerFont, '')
 local dialogContentText = love.graphics.newText(font, '')
 local dialogPosition    = {x = 0, y    = 0, w = 300, h = 150}
 local statPanelLocation = {x = -300, y = 0}
-local statTextLocation  = {x = 0, y    = 125}
+local statTextLocation  = {maxY = 125, minY = 125, y = 125}
 local statPanelCanvas   = love.graphics.newCanvas()
 
 -- Class picker window stuff
@@ -453,10 +453,19 @@ else
   end
 
   function love.wheelmoved(x, y)
-    if y > 0 then
-      camera.zoomIn()
-    elseif y < 0 then
-      camera.zoomOut()
+    -- if stat panel showing
+    if statsShowing then
+      -- and mouse over stat text section, scroll stat text
+      if isMouseInStatSection() then
+        statTextLocation.y = lume.clamp(statTextLocation.y + y*5, statTextLocation.minY, statTextLocation.maxY)
+      end
+    else
+      -- otherwise, scroll camera
+      if y > 0 then
+        camera.zoomIn()
+      elseif y < 0 then
+        camera.zoomOut()
+      end
     end
   end
 
@@ -481,9 +490,9 @@ else
     elseif key == 'escape' then
       love.event.quit()
     elseif scancode == 'pagedown' then
-      statTextLocation.y = statTextLocation.y - 125
+      statTextLocation.y = lume.clamp(statTextLocation.y - 125, statTextLocation.minY, statTextLocation.maxY)
     elseif scancode == 'pageup' then
-      statTextLocation.y = statTextLocation.y + 125
+      statTextLocation.y = lume.clamp(statTextLocation.y + 125, statTextLocation.minY, statTextLocation.maxY)
     end
   end
 
@@ -823,7 +832,7 @@ function drawStatsPanel()
   love.graphics.draw(divider, statPanelLocation.x+5, 115, 0, 0.394, 1.0)
 
   -- Set stat panel scissor
-  love.graphics.setScissor(statPanelLocation.x+5, 125, 250, winHeight-125)
+  love.graphics.setScissor(statPanelLocation.x+5, 125, 285, winHeight-125)
   -- love.graphics.setColor(255, 0, 0, 255)
   -- love.graphics.rectangle('fill', statPanelLocation.x+5, 125, statPanelLocation.x+300-10, winHeight-125)
 
@@ -985,6 +994,12 @@ function updateStatText()
   end
   generalStatLabels:set(table.concat(_labels, '\n'))
   generalStatText:set(table.concat(_stats, '\n'))
+
+  local height = generalStatText:getHeight()
+  local diff = (winHeight - 125) - height
+  if diff < 0 then
+    statTextLocation.minY = diff
+  end
 end
 
 function closeStatPanel()
@@ -1013,4 +1028,9 @@ function changeActiveClass(sel)
   nodes[startnid].active = true
   camera.x, camera.y = startNode.position.x, startNode.position.y
   refillBatches()
+end
+
+function isMouseInStatSection()
+  local x, y = love.mouse.getPosition()
+  return x < 300 and y > 125
 end
