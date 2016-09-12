@@ -90,10 +90,12 @@ local leftIcon = love.graphics.newImage('assets/left.png')
 
 -- Dialog Window stuff
 local dialogWindowVisible = false
-local dialogHeaderText    = love.graphics.newText(headerFont, '')
-local dialogContentText   = love.graphics.newText(font, '')
-local dialogPosition      = {x = 0, y = 0, w = 300, h = 150}
+local dialogHeaderText  = love.graphics.newText(headerFont, '')
+local dialogContentText = love.graphics.newText(font, '')
+local dialogPosition    = {x = 0, y    = 0, w = 300, h = 150}
 local statPanelLocation = {x = -300, y = 0}
+local statTextLocation  = {x = 0, y    = 125}
+local statPanelCanvas   = love.graphics.newCanvas()
 
 -- Class picker window stuff
 local portraits = {}
@@ -478,6 +480,10 @@ else
       end
     elseif key == 'escape' then
       love.event.quit()
+    elseif scancode == 'pagedown' then
+      statTextLocation.y = statTextLocation.y + 125
+    elseif scancode == 'pageup' then
+      statTextLocation.y = statTextLocation.y - 125
     end
   end
 
@@ -816,11 +822,19 @@ function drawStatsPanel()
   -- Draw divider
   love.graphics.draw(divider, statPanelLocation.x+5, 115, 0, 0.394, 1.0)
 
+  -- Set stat panel scissor
+  love.graphics.setScissor(statPanelLocation.x+5, 125, 250, winHeight-125)
+  -- love.graphics.setColor(255, 0, 0, 255)
+  -- love.graphics.rectangle('fill', statPanelLocation.x+5, 125, statPanelLocation.x+300-10, winHeight-125)
+
   -- Draw general stats
-  love.graphics.draw(generalStatLabels, statPanelLocation.x+5, 125)
-  love.graphics.draw(generalStatText, statPanelLocation.x+5+generalStatLabels:getWidth()*1.5, 125)
+  love.graphics.draw(generalStatLabels, statPanelLocation.x+5, statTextLocation.y)
+  love.graphics.draw(generalStatText, statPanelLocation.x+5+generalStatLabels:getWidth()*1.5, statTextLocation.y)
 
   -- Draw keystone node text
+
+  -- Reset scissor
+  love.graphics.setScissor()
 
   -- Draw left icon (click to close stats drawer)
   local w, h = leftIcon:getDimensions()
