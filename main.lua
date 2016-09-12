@@ -481,9 +481,9 @@ else
     elseif key == 'escape' then
       love.event.quit()
     elseif scancode == 'pagedown' then
-      statTextLocation.y = statTextLocation.y + 125
-    elseif scancode == 'pageup' then
       statTextLocation.y = statTextLocation.y - 125
+    elseif scancode == 'pageup' then
+      statTextLocation.y = statTextLocation.y + 125
     end
   end
 
