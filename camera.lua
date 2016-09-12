@@ -1,3 +1,5 @@
+local lume = require 'vendor.lume.lume'
+
 local camera = {
   x         = 0,
   y         = 0,
