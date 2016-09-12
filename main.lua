@@ -7,7 +7,6 @@ local dark   = require 'vendor.luigi.luigi.theme.dark'
 local Timer  = require 'vendor.hump.timer'
 local lume   = require 'vendor.lume.lume'
 
-local imgui = require 'imgui'
 
 require 'downloader'
 require 'node'
@@ -298,6 +297,7 @@ function love.resize(w, h)
 end
 
 function love.draw()
+
   love.graphics.clear(255, 255, 255, 255)
   love.graphics.setColor(255, 255, 255, 230)
 
@@ -381,6 +381,7 @@ function love.draw()
   if classPickerShowing then
     drawClassPickerWindow()
   end
+
 end
 
 if OS == 'iOS' then
