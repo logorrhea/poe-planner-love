@@ -45,6 +45,7 @@ local character = {
   dex       = 0,
   stats     = {},
   keystones = {},
+  keystoneCount = 0,
 }
 local characterURL = ''
 
@@ -63,6 +64,8 @@ local generalStatText = love.graphics.newText(font, '')
 local portrait = love.graphics.newImage('assets/'..Node.classes[activeClass]..'-portrait.png')
 local divider  = love.graphics.newImage('assets/LineConnectorNormal.png')
 local leftIcon = love.graphics.newImage('assets/left.png')
+local keystoneLabels = {}
+local keystoneDescriptions = {}
 
 -- Dialog Window stuff
 local dialogWindowVisible = false
@@ -348,7 +351,6 @@ function love.draw()
   if classPickerShowing then
     drawClassPickerWindow()
   end
-
 end
 
 if OS == 'iOS' then
@@ -453,7 +455,7 @@ else
       if statsShowing then
         closeStatPanel()
       else
-        guiButtons.menuToggle.image.trigger()
+        guiButtons.menuToggle.trigger()
       end
     elseif key == 'escape' then
       love.event.quit()
@@ -800,6 +802,9 @@ function drawStatsPanel()
   love.graphics.draw(generalStatText, statPanelLocation.x+5+generalStatLabels:getWidth()*1.5, statTextLocation.y)
 
   -- Draw keystone node text
+  for i=1,character.keystoneCount do
+    -- @TODO: draw the text objects
+  end
 
   -- Reset scissor
   love.graphics.setScissor()
@@ -862,7 +867,11 @@ end
 function parseDescriptions(node, op)
   local found = {}
   if node.type == Node.NT_KEYSTONE then
-    character.keystones[node.id] = node.descriptions
+    if op == subtract then
+      character.keystones[node.id] = nil
+    else
+      character.keystones[node.id] = node.descriptions
+    end
   else
     for _, desc in ipairs(node.descriptions) do
       for n,s in desc:gmatch("(%d+) (%a[%s%a]*)") do
@@ -959,6 +968,19 @@ function updateStatText()
   if diff < 0 then
     statTextLocation.minY = diff
   end
+
+  -- Update Keystone Text
+  local i = 1
+  for nid, descriptions in pairs(character.keystones) do
+    -- Recycle labels if possible
+    local label = keystoneLabels[i] or love.graphics.newText(headerFont, '')
+    local desc = keystoneDescriptions[i] or love.graphics.newText(font, '')
+    label:set(nodes[nid].name)
+    desc:set(table.concat(descriptions, '\n'))
+    i = i + 1
+  end
+
+  character.keystoneCount = i-1
 end
 
 function closeStatPanel()
