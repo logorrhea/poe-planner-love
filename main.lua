@@ -26,7 +26,7 @@ scaledWidth, scaledHeight = winWidth/camera.scale, winHeight/camera.scale
 maxActive = 123
 activeClass = 1
 ascendancyClass = 1
-clickCoords = {x = 0, y = 0, onGUI = false}
+clickCoords = {x = 0, y = 0, onGUI = false, onStats = false}
 visibleNodes = {}
 visibleGroups = {}
 startNodes = {}
@@ -50,9 +50,11 @@ local character = {
 local characterURL = ''
 
 
--- le Font
+-- le Fonts
 local headerFont = love.graphics.newFont('fonts/fontin-bold-webfont.ttf', 20)
-local font       = love.graphics.newFont('fonts/fontin-bold-webfont.ttf', 14)
+headerFont:setFilter('nearest', 'nearest')
+local font = love.graphics.newFont('fonts/fontin-bold-webfont.ttf', 14)
+font:setFilter('nearest', 'nearest')
 
 -- Stat window images
 local statsShowing = false
@@ -394,31 +396,40 @@ else
     dialogWindowVisible = false
     clickCoords.x, clickCoords.y = x, y
     clickCoords.onGUI = isMouseInGUI(x, y)
+    clickCoords.onStats = isMouseInStatSection()
   end
 
   function love.mousereleased(x, y, button, isTouch)
     if not isTouch then
-      local dx = x - clickCoords.x
-      local dy = y - clickCoords.y
+      if not clickCoords.onGUI then
+        local dx = x - clickCoords.x
+        local dy = y - clickCoords.y
 
-      if math.abs(dx) <= 3 and math.abs(dy) <= 3 then
-        local guiItemClicked = checkIfGUIItemClicked(x, y, button, isTouch)
-        if not guiItemClicked and not clickCoords.onGUI then
-          checkIfNodeClicked(x, y, button, isTouch)
+        if math.abs(dx) <= 3 and math.abs(dy) <= 3 then
+          local guiItemClicked = checkIfGUIItemClicked(x, y, button, isTouch)
+          if not guiItemClicked and not clickCoords.onGUI then
+            checkIfNodeClicked(x, y, button, isTouch)
+          end
         end
       end
     end
+    clickCoords.onGUI = false
+    clickCoords.onStats = false
   end
 
   function love.mousemoved(x, y, dx, dy)
-    if not clickCoords.onGUI then
-      if love.mouse.isDown(1) then
+    if love.mouse.isDown(1) then
+      if isMouseInGUI(clickCoords.x, clickCoords.y) then
+        if isMouseInStatSection(clickCoords.x, clickCoords.y) then
+          statTextLocation.y = lume.clamp(statTextLocation.y + dy, statTextLocation.minY, statTextLocation.maxY)
+        end
+      else
         camera.x = camera.x - (dx/camera.scale)
         camera.y = camera.y - (dy/camera.scale)
         refillBatches()
-      else
-        checkIfNodeHovered(x, y)
       end
+    else
+      checkIfNodeHovered(x, y)
     end
   end
 
@@ -795,19 +806,22 @@ function drawStatsPanel()
   -- Set stat panel scissor
   love.graphics.setScissor(statPanelLocation.x+5, 125, 285, winHeight-125)
 
-  -- Draw general stats
-  -- love.graphics.draw(generalStatLabels, statPanelLocation.x+5, statTextLocation.y)
-  -- love.graphics.draw(generalStatText, statPanelLocation.x+5+generalStatLabels:getWidth()*1.5, statTextLocation.y)
-
   -- Draw keystone node text
-  local y = 125
+  local y = statTextLocation.y
   for i=1,character.keystoneCount do
-    -- @TODO: draw the text objects
     love.graphics.draw(keystoneLabels[i], statPanelLocation.x+5, y)
     y = y + keystoneLabels[i]:getHeight()
     love.graphics.draw(keystoneDescriptions[i], statPanelLocation.x+5, y)
     y = y + keystoneDescriptions[i]:getHeight()
   end
+
+  if character.keystoneCount > 0 then
+    y = y + headerFont:getHeight()
+  end
+
+  -- Draw general stats
+  love.graphics.draw(generalStatLabels, statPanelLocation.x+5, y)
+  love.graphics.draw(generalStatText, statPanelLocation.x+5+generalStatLabels:getWidth()*1.5, y)
 
   -- Reset scissor
   love.graphics.setScissor()
@@ -952,7 +966,7 @@ function updateStatText()
   local text
   for desc, n in pairs(character.stats) do
     if n > 0 then
-      width, wrapped = font:getWrap(desc, 250)
+      width, wrapped = font:getWrap(desc, 270)
       for i, text in ipairs(wrapped) do
         if i == 1 then
           _labels[#_labels+1] = n
@@ -965,12 +979,7 @@ function updateStatText()
   end
   generalStatLabels:set(table.concat(_labels, '\n'))
   generalStatText:set(table.concat(_stats, '\n'))
-
   local height = generalStatText:getHeight()
-  local diff = (winHeight - 125) - height
-  if diff < 0 then
-    statTextLocation.minY = diff
-  end
 
   -- Update Keystone Text
   local i = 1
@@ -982,10 +991,19 @@ function updateStatText()
     desc:set(table.concat(descriptions, '\n'))
     keystoneLabels[i] = label
     keystoneDescriptions[i] = desc
+    height = height + label:getHeight() + desc:getHeight()
     i = i + 1
   end
 
   character.keystoneCount = i-1
+  if i ~= 0 then
+    height = height + headerFont:getHeight()
+  end
+
+  local diff = (winHeight - 125) - height
+  if diff < 0 then
+    statTextLocation.minY = diff
+  end
 end
 
 function closeStatPanel()
@@ -1016,8 +1034,10 @@ function changeActiveClass(sel)
   refillBatches()
 end
 
-function isMouseInStatSection()
-  local x, y = love.mouse.getPosition()
+function isMouseInStatSection(x, y)
+  if x == nil or y == nil then
+    x, y = love.mouse.getPosition()
+  end
   return x < 300 and y > 125
 end
 
