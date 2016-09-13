@@ -17,7 +17,7 @@ require 'graph'
 DEBUG = false
 pinches = {nil, nil}
 
-local camera = require 'camera'
+camera = require 'camera'
 
 -- Use these for culling later
 winWidth, winHeight = love.graphics.getDimensions()
@@ -250,6 +250,10 @@ function love.load()
     end)
   }
 
+  -- Create ascendancy button
+  ascendancyButton = require 'ui.ascendancybutton'
+  ascendancyButton:init(Tree, startnid)
+
 end
 
 function love.update(dt)
@@ -322,7 +326,12 @@ function love.draw()
     love.graphics.draw(batches[name])
   end
 
+  -- Ascendancy bubble
 
+  -- Ascendancy bubble toggler
+  ascendancyButton:draw()
+
+  -- Pop graphics state to draw UI
   love.graphics.pop()
 
   -- Draw menuToggle.image button in top-left
@@ -406,9 +415,12 @@ else
         local dy = y - clickCoords.y
 
         if math.abs(dx) <= 3 and math.abs(dy) <= 3 then
-          local guiItemClicked = checkIfGUIItemClicked(x, y, button, isTouch)
-          if not guiItemClicked and not clickCoords.onGUI then
-            checkIfNodeClicked(x, y, button, isTouch)
+          if ascendancyButton:click(x, y) then
+          else
+            local guiItemClicked = checkIfGUIItemClicked(x, y, button, isTouch)
+            if not guiItemClicked and not clickCoords.onGUI then
+              checkIfNodeClicked(x, y, button, isTouch)
+            end
           end
         end
       end
