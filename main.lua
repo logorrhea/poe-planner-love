@@ -794,16 +794,19 @@ function drawStatsPanel()
 
   -- Set stat panel scissor
   love.graphics.setScissor(statPanelLocation.x+5, 125, 285, winHeight-125)
-  -- love.graphics.setColor(255, 0, 0, 255)
-  -- love.graphics.rectangle('fill', statPanelLocation.x+5, 125, statPanelLocation.x+300-10, winHeight-125)
 
   -- Draw general stats
-  love.graphics.draw(generalStatLabels, statPanelLocation.x+5, statTextLocation.y)
-  love.graphics.draw(generalStatText, statPanelLocation.x+5+generalStatLabels:getWidth()*1.5, statTextLocation.y)
+  -- love.graphics.draw(generalStatLabels, statPanelLocation.x+5, statTextLocation.y)
+  -- love.graphics.draw(generalStatText, statPanelLocation.x+5+generalStatLabels:getWidth()*1.5, statTextLocation.y)
 
   -- Draw keystone node text
+  local y = 125
   for i=1,character.keystoneCount do
     -- @TODO: draw the text objects
+    love.graphics.draw(keystoneLabels[i], statPanelLocation.x+5, y)
+    y = y + keystoneLabels[i]:getHeight()
+    love.graphics.draw(keystoneDescriptions[i], statPanelLocation.x+5, y)
+    y = y + keystoneDescriptions[i]:getHeight()
   end
 
   -- Reset scissor
@@ -977,6 +980,8 @@ function updateStatText()
     local desc = keystoneDescriptions[i] or love.graphics.newText(font, '')
     label:set(nodes[nid].name)
     desc:set(table.concat(descriptions, '\n'))
+    keystoneLabels[i] = label
+    keystoneDescriptions[i] = desc
     i = i + 1
   end
 
