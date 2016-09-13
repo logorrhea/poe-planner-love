@@ -424,7 +424,7 @@ else
 
   function love.wheelmoved(x, y)
     -- if stat panel showing
-    if statsShowing then
+    if statsShowing and isMouseInGUI() then
       -- and mouse over stat text section, scroll stat text
       if isMouseInStatSection() then
         statTextLocation.y = lume.clamp(statTextLocation.y + y*5, statTextLocation.minY, statTextLocation.maxY)
