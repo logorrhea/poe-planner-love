@@ -410,17 +410,15 @@ else
 
   function love.mousereleased(x, y, button, isTouch)
     if not isTouch then
-      if not clickCoords.onGUI then
-        local dx = x - clickCoords.x
-        local dy = y - clickCoords.y
+      local dx = x - clickCoords.x
+      local dy = y - clickCoords.y
 
-        if math.abs(dx) <= 3 and math.abs(dy) <= 3 then
-          if ascendancyButton:click(x, y) then
-          else
-            local guiItemClicked = checkIfGUIItemClicked(x, y, button, isTouch)
-            if not guiItemClicked and not clickCoords.onGUI then
-              checkIfNodeClicked(x, y, button, isTouch)
-            end
+      if math.abs(dx) <= 3 and math.abs(dy) <= 3 then
+        if ascendancyButton:click(x, y) then
+        else
+          local guiItemClicked = checkIfGUIItemClicked(x, y, button, isTouch)
+          if not guiItemClicked and not clickCoords.onGUI then
+            checkIfNodeClicked(x, y, button, isTouch)
           end
         end
       end
@@ -1043,6 +1041,7 @@ function changeActiveClass(sel)
   end
   nodes[startnid].active = true
   camera.x, camera.y = startNode.position.x, startNode.position.y
+  ascendancyButton:changeStart(startnid)
   refillBatches()
 end
 
