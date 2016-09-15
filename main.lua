@@ -368,16 +368,39 @@ if OS == 'iOS' then
 
   function love.touchpressed(id, x, y, dx, dy, pressure)
     dialogWindowVisible = false
+    clickCoords.x, clickCoords.y = x, y
+    clickCoords.onGUI = isMouseInGUI(x, y)
+    clickCoords.onStats = isMouseInStatSection()
   end
 
   function love.touchreleased(id, x, y, dx, dy, pressure)
-    checkIfNodeClicked(x, y, id, true)
+    if not isTouch then
+      local dx = x - clickCoords.x
+      local dy = y - clickCoords.y
+
+      if math.abs(dx) <= 3 and math.abs(dy) <= 3 then
+        if ascendancyButton:click(x, y) then
+        else
+          local guiItemClicked = checkIfGUIItemClicked(x, y, button, isTouch)
+          if not guiItemClicked and not clickCoords.onGUI then
+            checkIfNodeClicked(x, y, button, isTouch)
+          end
+        end
+      end
+    end
+    clickCoords.onGUI = false
+    clickCoords.onStats = false
   end
 
   function love.touchmoved(id, x, y, dx, dy, pressure)
     dialogWindowVisible = false
     local touches = love.touch.getTouches()
     if #touches == 1 then
+      if isMouseInGUI(clickCoords.x, clickCoords.y) then
+        if isMouseInStatSection(clickCoords.x, clickCoords.y) then
+          statTextLocation.y = lume.clamp(statTextLocation.y+dy, statTextLocation.minY)
+        end
+      end
       camera.x = camera.x - (dx/camera.scale)
       camera.y = camera.y - (dy/camera.scale)
       refillBatches()
@@ -392,13 +415,17 @@ if OS == 'iOS' then
       local d1 = dist({x=ox, y=oy}, {x=x, y=y})
       local d2 = dist({x=ox, y=oy}, {x=x+dx, y=y+dy})
 
-      camera.scale = camera.scale + (d2-d1)/100 -- should handle both zoom in and out
-      camera.scale = lume.clamp(camera.scale, camera.minScale, camera.maxScale)
+      -- camera.scale =  -- should handle both zoom in and out
+      camera.scale = lume.clamp(camera.scale + (d2-d1)/100, camera.minScale, camera.maxScale)
     elseif #touches == 5 then
-      love.event.quit()
+      local buttons = {"Cancel", "OK", escapebutton=1, enterbutton=2}
+      if love.window.showMessageBox('Close PoE Planner?', '', buttons, 'info', true) == 2 then
+        love.event.quit()
+      end
     end
   end
 
+  -- Non-iOS even listeners
 else
 
   function love.mousepressed(x, y, button, isTouch)
@@ -479,7 +506,10 @@ else
         guiButtons.menuToggle.trigger()
       end
     elseif key == 'escape' then
-      love.event.quit()
+      local buttons = {"Cancel", "OK", escapebutton=1, enterbutton=2}
+      if love.window.showMessageBox('Close PoE Planner?', '', buttons, 'info', true) == 2 then
+        love.event.quit()
+      end
     elseif scancode == 'pagedown' then
       statTextLocation.y = lume.clamp(statTextLocation.y - 125, statTextLocation.minY, statTextLocation.maxY)
     elseif scancode == 'pageup' then
@@ -534,9 +564,7 @@ function checkIfGUIItemClicked(mx, my, button, isTouch)
       if i ~= activeClass then
         if mx >= x1 and mx <= x2 and my >= y1 and my <= y2 then
           local buttons = {"Cancel", "OK", escapebutton=1, enterbutton=2}
-          local decision = love.window.showMessageBox('Change Class?', 'Are you sure you want to change class and reset the skill tree?', buttons, 'info', true)
-          print(decision)
-          if decision == 2 then
+          if love.window.showMessageBox('Change Class?', 'Are you sure you want to change class and reset the skill tree?', buttons, 'info', true) == 2 then
             changeActiveClass(i)
             return true
           end
@@ -737,8 +765,9 @@ function showNodeDialog(nid)
   dialogContentText:set(contentText)
 
   -- Update dialog window dimensions based on new text
-  local w1, h1 = dialogHeaderText:getDimensions()
-  local w2, h2 = dialogContentText:getDimensions()
+  -- don't use Text:getDimensions for 10.0 compat
+  local w1, h1 = dialogHeaderText:getWidth(), dialogHeaderText:getHeight()
+  local w2, h2 = dialogContentText:getWidth(), dialogContentText:getHeight()
   if w1 > w2 then
     dialogPosition.w = w1
   else
