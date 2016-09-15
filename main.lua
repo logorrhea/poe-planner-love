@@ -19,18 +19,22 @@ pinches = {nil, nil}
 
 camera = require 'camera'
 
--- Use these for culling later
-winWidth, winHeight = love.graphics.getDimensions()
+-- Store window width and height. Set highdpi
+winWidth, winHeight, flags = love.window.getMode()
+flags.highdpi = true
+love.window.setMode(winWidth, winHeight, flags)
+winWidth = love.window.toPixels(winWidth)
+winHeight = love.window.toPixels(winHeight)
 scaledWidth, scaledHeight = winWidth/camera.scale, winHeight/camera.scale
 
 maxActive = 123
+activeNodes = 0
 activeClass = 1
 ascendancyClass = 1
 clickCoords = {x = 0, y = 0, onGUI = false, onStats = false}
 visibleNodes = {}
 visibleGroups = {}
 startNodes = {}
-activeNodes = {}
 addTrail = {}
 removeTrail = {}
 orig_r, orig_g, orig_b, orig_a = love.graphics.getColor()
@@ -51,9 +55,9 @@ local characterURL = ''
 
 
 -- le Fonts
-local headerFont = love.graphics.newFont('fonts/fontin-bold-webfont.ttf', 20)
+local headerFont = love.graphics.newFont('fonts/fontin-bold-webfont.ttf', 20*love.window.getPixelScale())
 headerFont:setFilter('nearest', 'nearest')
-local font = love.graphics.newFont('fonts/fontin-bold-webfont.ttf', 14)
+local font = love.graphics.newFont('fonts/fontin-bold-webfont.ttf', 14*love.window.getPixelScale())
 font:setFilter('nearest', 'nearest')
 
 -- Stat window images
@@ -73,10 +77,16 @@ local keystoneDescriptions = {}
 local dialogWindowVisible = false
 local dialogHeaderText  = love.graphics.newText(headerFont, '')
 local dialogContentText = love.graphics.newText(font, '')
-local dialogPosition    = {x = 0, y    = 0, w = 300, h = 150}
-local statPanelLocation = {x = -300, y = 0}
-local statTextLocation  = {maxY = 125, minY = 125, y = 125}
-local statPanelCanvas   = love.graphics.newCanvas()
+local dialogPosition    = {x = 0, y    = 0, w = love.window.toPixels(300), h = love.window.toPixels(150)}
+local statPanelLocation = {x = -love.window.toPixels(300), y = 0}
+local statTextLocation  = {
+  maxY = love.window.toPixels(125),
+  minY = love.window.toPixels(125),
+  y    = love.window.toPixels(125),
+  yadj = function(self, dy)
+    self.y = lume.clamp(self.y+dy, self.minY, self.maxY)
+  end
+}
 
 -- Class picker window stuff
 local portraits = {}
@@ -89,6 +99,7 @@ end
 local lastClicked = nil
 
 function love.load()
+  
 
   -- Get tree data. Will download new version if necessary
   -- Tree = Downloader.getLuaTree()
@@ -238,10 +249,10 @@ function love.load()
 
   -- Show GUI
   guiButtons.menuToggle = {
-    x     = 10,
-    y     = 10,
-    sx    = 0.1,
-    sy    = 0.1,
+    x     = love.window.toPixels(10),
+    y     = love.window.toPixels(10),
+    sx    = 0.1*love.window.getPixelScale(),
+    sy    = 0.1*love.window.getPixelScale(),
     image = love.graphics.newImage('assets/menu.png'),
     trigger = (function()
         -- Slide in stats board
@@ -343,10 +354,10 @@ function love.draw()
     -- print FPS counter in top-left
     local fps, timePerFrame = love.timer.getFPS(), 1000 * love.timer.getAverageDelta()
     love.graphics.setColor(255, 255, 255, 255)
-    love.graphics.print(string.format("Current FPS: %.2f | Average frame time: %.3f ms", fps, timePerFrame), winWidth - 400, 10)
+    love.graphics.print(string.format("Current FPS: %.2f | Average frame time: %.3f ms", fps, timePerFrame), winWidth - love.window.toPixels(400), love.window.toPixels(10))
 
     -- Print character URL below
-    love.graphics.print(characterURL, winWidth-400, 30)
+    love.graphics.print(characterURL, winWidth-love.window.toPixels(400), love.window.toPixels(30))
     clearColor()
   end
 
@@ -398,12 +409,13 @@ if OS == 'iOS' then
     if #touches == 1 then
       if isMouseInGUI(clickCoords.x, clickCoords.y) then
         if isMouseInStatSection(clickCoords.x, clickCoords.y) then
-          statTextLocation.y = lume.clamp(statTextLocation.y+dy, statTextLocation.minY)
+          statTextLocation:yadj(dy)
         end
+      else
+        camera.x = camera.x - (dx/camera.scale)
+        camera.y = camera.y - (dy/camera.scale)
+        refillBatches()
       end
-      camera.x = camera.x - (dx/camera.scale)
-      camera.y = camera.y - (dy/camera.scale)
-      refillBatches()
     elseif #touches == 2 then
       -- @TODO: handle zooming in and out with multitouch
       local ox, oy = nil, nil
@@ -414,9 +426,7 @@ if OS == 'iOS' then
       end
       local d1 = dist({x=ox, y=oy}, {x=x, y=y})
       local d2 = dist({x=ox, y=oy}, {x=x+dx, y=y+dy})
-
-      -- camera.scale =  -- should handle both zoom in and out
-      camera.scale = lume.clamp(camera.scale + (d2-d1)/100, camera.minScale, camera.maxScale)
+      camera:pinch(d2-d1)
     elseif #touches == 5 then
       local buttons = {"Cancel", "OK", escapebutton=1, enterbutton=2}
       if love.window.showMessageBox('Close PoE Planner?', '', buttons, 'info', true) == 2 then
@@ -425,7 +435,7 @@ if OS == 'iOS' then
     end
   end
 
-  -- Non-iOS even listeners
+  -- Non-iOS event listeners
 else
 
   function love.mousepressed(x, y, button, isTouch)
@@ -440,7 +450,8 @@ else
       local dx = x - clickCoords.x
       local dy = y - clickCoords.y
 
-      if math.abs(dx) <= 3 and math.abs(dy) <= 3 then
+      local three = love.window.toPixels(3)
+      if math.abs(dx) <= three and math.abs(dy) <= three then
         if ascendancyButton:click(x, y) then
         else
           local guiItemClicked = checkIfGUIItemClicked(x, y, button, isTouch)
@@ -458,7 +469,7 @@ else
     if love.mouse.isDown(1) then
       if isMouseInGUI(clickCoords.x, clickCoords.y) then
         if isMouseInStatSection(clickCoords.x, clickCoords.y) then
-          statTextLocation.y = lume.clamp(statTextLocation.y + dy, statTextLocation.minY, statTextLocation.maxY)
+          statTextLocation:yadj(dy)
         end
       else
         camera.x = camera.x - (dx/camera.scale)
@@ -475,7 +486,7 @@ else
     if statsShowing and isMouseInGUI() then
       -- and mouse over stat text section, scroll stat text
       if isMouseInStatSection() then
-        statTextLocation.y = lume.clamp(statTextLocation.y + y*5, statTextLocation.minY, statTextLocation.maxY)
+        statTextLocation:yadj(y*love.window.toPixels(5))
       end
     else
       -- otherwise, scroll camera
@@ -506,14 +517,14 @@ else
         guiButtons.menuToggle.trigger()
       end
     elseif key == 'escape' then
-      local buttons = {"Cancel", "OK", escapebutton=1, enterbutton=2}
-      if love.window.showMessageBox('Close PoE Planner?', '', buttons, 'info', true) == 2 then
+      -- local buttons = {"Cancel", "OK", escapebutton=1, enterbutton=2}
+      -- if love.window.showMessageBox('Close PoE Planner?', '', buttons, 'info', true) == 2 then
         love.event.quit()
-      end
+      -- end
     elseif scancode == 'pagedown' then
-      statTextLocation.y = lume.clamp(statTextLocation.y - 125, statTextLocation.minY, statTextLocation.maxY)
+      statTextLocation:yadj(-love.window.toPixels(125))
     elseif scancode == 'pageup' then
-      statTextLocation.y = lume.clamp(statTextLocation.y + 125, statTextLocation.minY, statTextLocation.maxY)
+      statTextLocation:yadj(love.window.toPixels(125))
     end
   end
 
@@ -536,8 +547,8 @@ function checkIfGUIItemClicked(mx, my, button, isTouch)
 
     -- Check close button clicked
     local w, h = leftIcon:getDimensions()
-    local x1, y1 = 300-w, (winHeight-h)/2
-    local x2, y2 = x1+w, y1+h
+    local x1, y1 = love.window.toPixels(300)-love.window.toPixels(w), (winHeight-love.window.toPixels(h))/2
+    local x2, y2 = x1+love.window.toPixels(w), y1+love.window.toPixels(h)
     if mx >= x1 and mx <= x2 and my >= y1 and my <= y2 then
       closeStatPanel()
       return true
@@ -546,8 +557,8 @@ function checkIfGUIItemClicked(mx, my, button, isTouch)
     -- Check class portrait clicked
     if not statsTransitioning then
       local w, h = portrait:getDimensions()
-      local x1, y1 = 5, 5
-      local x2, y2 = x1+w, y1+h
+      local x1, y1 = love.window.toPixels(5), love.window.toPixels(5)
+      local x2, y2 = x1+love.window.toPixels(w), y1+love.window.toPixels(h)
       if mx >= x1 and mx <= x2 and my >= y1 and my <= y2 then
         classPickerShowing = not classPickerShowing
         return true
@@ -557,8 +568,9 @@ function checkIfGUIItemClicked(mx, my, button, isTouch)
 
   -- Check if any of the other class icons are clicked
   if classPickerShowing then
-    local w, h = 110, 105
-    local x1, y1 = statPanelLocation.x+w+5, 5
+    local five = love.window.toPixels(5)
+    local w, h = love.window.toPixels(110), love.window.toPixels(105)
+    local x1, y1 = statPanelLocation.x+w+five, five
     local x2, y2 = x1+w, y1+h
     for i, class in ipairs(Node.classes) do
       if i ~= activeClass then
@@ -676,12 +688,14 @@ function checkIfNodeClicked(x, y, button, isTouch)
           addTrail = Graph.planShortestRoute(nid)
         end
 
+        -- Check that addTrail doesn't take us over maxActive
         for id,_ in pairs(addTrail) do
           if not nodes[id].active then
             activateNode(id)
           end
         end
         addTrail = {}
+
         -- Remove all nodes in removeTrail
         for id,_ in pairs(removeTrail) do
           deactivateNode(id)
@@ -765,9 +779,8 @@ function showNodeDialog(nid)
   dialogContentText:set(contentText)
 
   -- Update dialog window dimensions based on new text
-  -- don't use Text:getDimensions for 10.0 compat
-  local w1, h1 = dialogHeaderText:getWidth(), dialogHeaderText:getHeight()
-  local w2, h2 = dialogContentText:getWidth(), dialogContentText:getHeight()
+  local w1, h1 = dialogHeaderText:getDimensions()
+  local w2, h2 = dialogContentText:getDimensions()
   if w1 > w2 then
     dialogPosition.w = w1
   else
@@ -825,32 +838,34 @@ function dist(v1, v2)
 end
 
 function drawStatsPanel()
+  local five = love.window.toPixels(5)
+
   love.graphics.setColor(1, 1, 1, 240)
-  love.graphics.rectangle('fill', statPanelLocation.x, 0, 300, winHeight)
+  love.graphics.rectangle('fill', statPanelLocation.x, 0, love.window.toPixels(300), winHeight)
 
   -- Stat panel outline
   clearColor()
-  love.graphics.rectangle('line', statPanelLocation.x, 0, 300, winHeight)
+  love.graphics.rectangle('line', statPanelLocation.x, 0, love.window.toPixels(300), winHeight)
 
   -- Draw portrait
-  love.graphics.draw(portrait, statPanelLocation.x+5, 5)
+  love.graphics.draw(portrait, statPanelLocation.x+five, five, 0, love.window.getPixelScale(), love.window.getPixelScale())
 
   -- Character stats
-  love.graphics.draw(charStatLabels, statPanelLocation.x+155, 18)
-  love.graphics.draw(charStatText, statPanelLocation.x+155+charStatLabels:getWidth()*2, 18)
+  love.graphics.draw(charStatLabels, statPanelLocation.x+love.window.toPixels(155), love.window.toPixels(18))
+  love.graphics.draw(charStatText, statPanelLocation.x+love.window.toPixels(155)+charStatLabels:getWidth()*2, love.window.toPixels(18))
 
   -- Draw divider
-  love.graphics.draw(divider, statPanelLocation.x+5, 115, 0, 0.394, 1.0)
+  love.graphics.draw(divider, statPanelLocation.x+5, love.window.toPixels(115), 0, love.window.toPixels(0.394), 1.0)
 
   -- Set stat panel scissor
-  love.graphics.setScissor(statPanelLocation.x+5, 125, 285, winHeight-125)
+  love.graphics.setScissor(statPanelLocation.x+5, love.window.toPixels(125), love.window.toPixels(285), winHeight-love.window.toPixels(125))
 
   -- Draw keystone node text
   local y = statTextLocation.y
   for i=1,character.keystoneCount do
-    love.graphics.draw(keystoneLabels[i], statPanelLocation.x+5, y)
+    love.graphics.draw(keystoneLabels[i], statPanelLocation.x+five, y)
     y = y + keystoneLabels[i]:getHeight()
-    love.graphics.draw(keystoneDescriptions[i], statPanelLocation.x+5, y)
+    love.graphics.draw(keystoneDescriptions[i], statPanelLocation.x+five, y)
     y = y + keystoneDescriptions[i]:getHeight()
   end
 
@@ -859,8 +874,8 @@ function drawStatsPanel()
   end
 
   -- Draw general stats
-  love.graphics.draw(generalStatLabels, statPanelLocation.x+5, y)
-  love.graphics.draw(generalStatText, statPanelLocation.x+5+generalStatLabels:getWidth()*1.5, y)
+  love.graphics.draw(generalStatLabels, statPanelLocation.x+five, y)
+  love.graphics.draw(generalStatText, statPanelLocation.x+five+generalStatLabels:getWidth()*1.5, y)
 
   -- Reset scissor
   love.graphics.setScissor()
@@ -868,10 +883,12 @@ function drawStatsPanel()
   -- Draw left icon (click to close stats drawer)
   local w, h = leftIcon:getDimensions()
   love.graphics.setColor(255, 255, 255, 255)
-  love.graphics.draw(leftIcon, statPanelLocation.x+295-w, (winHeight-h)/2, 0)
+  love.graphics.draw(leftIcon, statPanelLocation.x+love.window.toPixels(295)-love.window.toPixels(w), (winHeight-love.window.toPixels(h))/2, 0, love.window.getPixelScale(), love.window.getPixelScale())
 end
 
 function drawDialogWindow()
+  local five = love.window.toPixels(5)
+
   -- Inner and outer rectangles
   love.graphics.setColor(1, 1, 1, 240)
   love.graphics.rectangle('fill', dialogPosition.x, dialogPosition.y, dialogPosition.w, dialogPosition.h)
@@ -879,16 +896,17 @@ function drawDialogWindow()
   love.graphics.rectangle('line', dialogPosition.x, dialogPosition.y, dialogPosition.w, dialogPosition.h)
 
   -- Draw text
-  love.graphics.draw(dialogHeaderText, dialogPosition.x + 5, dialogPosition.y + 5)
-  love.graphics.draw(dialogContentText, dialogPosition.x + 5, dialogPosition.y + 20)
+  love.graphics.draw(dialogHeaderText, dialogPosition.x + five, dialogPosition.y + five)
+  love.graphics.draw(dialogContentText, dialogPosition.x + five, dialogPosition.y + five*4)
 end
 
 function drawClassPickerWindow()
-  local w, h = 110, 105
-  local x, y = statPanelLocation.x+w+5, 5
+  local five = love.window.toPixels(5)
+  local w, h = love.window.toPixels(110), love.window.toPixels(105)
+  local x, y = statPanelLocation.x+w+five, five
   for i, img in ipairs(portraits) do
     if i ~= activeClass then
-      love.graphics.draw(img, x, y)
+      love.graphics.draw(img, x, y, 0, love.window.getPixelScale(), love.window.getPixelScale())
       x = x + w
     end
   end
@@ -901,6 +919,7 @@ function activateNode(nid)
   local node = nodes[nid]
   parseDescriptions(node, add)
   updateStatText()
+  activeNodes = activeNodes + 1
 
   -- @TODO: Send to threads that node became active
 
@@ -914,6 +933,7 @@ function deactivateNode(nid)
   local node = nodes[nid]
   parseDescriptions(node, subtract)
   updateStatText()
+  activeNodes = activeNodes - 1
 
   -- @TODO: Send to threads that node became inactive
 
@@ -1005,7 +1025,7 @@ function updateStatText()
   local text
   for desc, n in pairs(character.stats) do
     if n > 0 then
-      width, wrapped = font:getWrap(desc, 270)
+      width, wrapped = font:getWrap(desc, love.window.toPixels(270))
       for i, text in ipairs(wrapped) do
         if i == 1 then
           _labels[#_labels+1] = n
@@ -1039,7 +1059,7 @@ function updateStatText()
     height = height + headerFont:getHeight()
   end
 
-  local diff = (winHeight - 125) - height
+  local diff = (winHeight - love.window.toPixels(125)) - height
   if diff < 0 then
     statTextLocation.minY = diff
   end
@@ -1048,7 +1068,7 @@ end
 function closeStatPanel()
   classPickerShowing = false
   statsTransitioning = true
-  Timer.tween(0.5, statPanelLocation, {x = -300}, 'in-out-quad')
+  Timer.tween(0.5, statPanelLocation, {x = -love.window.toPixels(300)}, 'in-out-quad')
   Timer.after(0.5, function()
                 statsTransitioning = false
                 statsShowing = false
@@ -1078,7 +1098,7 @@ function isMouseInStatSection(x, y)
   if x == nil or y == nil then
     x, y = love.mouse.getPosition()
   end
-  return x < 300 and y > 125
+  return x < love.window.toPixels(300) and y > love.window.toPixels(125)
 end
 
 function isMouseInGUI(x, y)
@@ -1088,13 +1108,14 @@ function isMouseInGUI(x, y)
 
   -- Oversimplified, but should do the job for now
   if statsShowing then
-    return x < 300
+    return x < love.window.toPixels(300)
   else
     if guiButtons.menuToggle then
+      local ten = love.window.toPixels(10)
       local w,h = guiButtons.menuToggle.image:getDimensions()
       w = w*guiButtons.menuToggle.sx
       h = h*guiButtons.menuToggle.sy
-      return x > 10 and x < (10+w) and y > 10 and y < (10+h)
+      return x > ten and x < (ten+w) and y > ten and y < (ten+h)
     else
       return false
     end
