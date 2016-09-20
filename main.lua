@@ -266,6 +266,8 @@ function love.load()
   ascendancyButton:init(Tree, startnid)
   ascendancyPanel = require 'ui.ascendancypanel'
   ascendancyPanel:init(ascendancyButton, batches)
+
+
 end
 
 function love.update(dt)
@@ -508,7 +510,6 @@ else
     elseif key == 'down' then
       camera:zoomOut()
     elseif key == 'p' then
-      print(lastClicked)
       if lastClicked then
         graphSearchThread = Graph.planShortestRoute(lastClicked)
       end

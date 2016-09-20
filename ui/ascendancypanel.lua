@@ -8,7 +8,6 @@ function panel:init(button, batches)
   for _,class in ipairs(Node.AscendancyClasses) do
     local imageName = 'Classes'..string.upper(class:sub(1,1))..class:sub(2,-1)
     images[class] = batches[imageName]:getTexture()
-    print(class, imageName, images[class]:getDimensions())
   end
 end
 

@@ -196,7 +196,7 @@ function Node.create(data, group)
   node.startPositionClasses = data.spc
 
   -- Ascendancy stuff
-  node.ascendancyName         = data.ascendancyName
+  node.ascendancyName         = data.ascendancyName and data.ascendancyName:lower()
   node.isAscendancyStart      = data.isAscendancyStart
   node.isJewelSocket          = data.isJewelSocket
   node.isMultipleChoice       = data.isMultipleChoice
@@ -209,7 +209,7 @@ function Node.create(data, group)
 
   -- Set nodes to active for now, until we get further along. it's too hard
   -- to see everything otherwise
-  node.active = false
+  -- node.active = false
 
   -- Set node type
   if #node.startPositionClasses ~= 0 then
@@ -240,9 +240,9 @@ function Node.create(data, group)
 
   -- Compute position now, rather than on-the-fly later
   -- since the nodes aren't moving anywhere
-  if not node.ascendancyName then
+  -- if not node.ascendancyName then
     node.position = Node.nodePosition(node)
-  end
+  -- end
 
   return node
 end
@@ -272,11 +272,8 @@ end
 function Node:isVisible(tx, ty)
   -- @TODO: Draw ascendancy stuff
   -- return self.type < 7 and
-  if self.type < 7 then
-    print(self.name)
-    print(self.group.name)
-  end
-    return
+  -- return (self.type < 7 or self.ascendancyTreeVisible()) and
+  return
          (self.visibleQuad.top + ty) < scaledHeight and
          (self.visibleQuad.bottom + ty) > 0 and
          (self.visibleQuad.left + tx) < scaledWidth and
@@ -418,7 +415,6 @@ end
 
 function Node:isPathOf()
   return self.name:match('Path of the') ~= nil
-  -- return self.id == 7618
 end
 
 return Node
