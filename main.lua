@@ -265,7 +265,7 @@ function love.load()
   ascendancyButton = require 'ui.ascendancybutton'
   ascendancyButton:init(Tree, startnid)
   ascendancyPanel = require 'ui.ascendancypanel'
-  ascendancyPanel:init(batches)
+  ascendancyPanel:init(ascendancyButton, batches)
 end
 
 function love.update(dt)
@@ -340,7 +340,7 @@ function love.draw()
 
   -- Ascendancy graph
   if ascendancyButton:isActive() then
-    ascendancyPanel:draw(ascendancyButton)
+    ascendancyPanel:draw()
   end
 
   -- Ascendancy bubble toggler

@@ -154,16 +154,18 @@ function Node.arc(node)
   return 2 * math.pi * node.orbitIndex / Node.SkillsPerOrbit[node.orbit]
 end
 
-function Node.nodePosition(node)
+function Node.nodePosition(node, center)
   local x = 0
   local y = 0
+
+  local position = center or node.group.position
 
   if node.group ~= nil then
     local r = Node.OrbitRadii[node.orbit]
     local a = Node.arc(node)
 
-    x = node.group.position.x - r * math.sin(-a)
-    y = node.group.position.y - r * math.cos(-a)
+    x = position.x - r * math.sin(-a)
+    y = position.y - r * math.cos(-a)
   end
 
   return {x = x, y = y}
@@ -238,7 +240,9 @@ function Node.create(data, group)
 
   -- Compute position now, rather than on-the-fly later
   -- since the nodes aren't moving anywhere
-  node.position = Node.nodePosition(node)
+  if not node.ascendancyName then
+    node.position = Node.nodePosition(node)
+  end
 
   return node
 end
@@ -267,7 +271,12 @@ end
 
 function Node:isVisible(tx, ty)
   -- @TODO: Draw ascendancy stuff
-  return self.type < 7 and
+  -- return self.type < 7 and
+  if self.type < 7 then
+    print(self.name)
+    print(self.group.name)
+  end
+    return
          (self.visibleQuad.top + ty) < scaledHeight and
          (self.visibleQuad.bottom + ty) > 0 and
          (self.visibleQuad.left + tx) < scaledWidth and
