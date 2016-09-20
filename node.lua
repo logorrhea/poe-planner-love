@@ -114,6 +114,41 @@ Node.classes = {
   'shadow',
 }
 
+Node.AscendancyClasses = {
+  -- Scion
+  'ascendant',
+
+  -- Shadow
+  'assassin',
+  'saboteur',
+  'trickster',
+
+  -- Marauder
+  'berserker',
+  'juggernaut',
+  'chieftain',
+
+  -- Ranger
+  'deadeye',
+  'pathfinder',
+  'raider',
+
+  -- Witch
+  'elementalist',
+  'necromancer',
+  'occultist',
+
+  -- Templar
+  'guardian',
+  'hierophant',
+  'inquisitor',
+
+  -- Duelist
+  'champion',
+  'gladiator',
+  'slayer',
+}
+
 
 function Node.arc(node)
   return 2 * math.pi * node.orbitIndex / Node.SkillsPerOrbit[node.orbit]

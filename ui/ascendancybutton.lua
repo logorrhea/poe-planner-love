@@ -63,6 +63,14 @@ function button:changeState()
   end
 end
 
+function button:isActive()
+  return self.state == 'active'
+end
+
+function button:getPosition()
+  return self.position.x, self.position.y
+end
+
 function calculatePosition(nid)
   local position = nodes[nid].position
   local radius = Node.Radii[Node.NT_START]
