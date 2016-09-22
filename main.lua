@@ -954,7 +954,7 @@ function parseDescriptions(node, op)
       character.keystones[node.id] = node.descriptions
     end
   else
-    for _, desc in ipairs(node.descriptions) do
+    for i, desc in ipairs(node.descriptions) do
       for n,s in desc:gmatch("(%d+) (%a[%s%a]*)") do
         found[#found+1] = s
         if DEBUG then
@@ -986,7 +986,7 @@ function parseDescriptions(node, op)
         end
       end
 
-      if #found == 0 then
+      if #found ~= i then
         for n,s in desc:gmatch("(%d+)(%%? %a[%s%a]*)") do
           found[#found+1] = s
           local v = character.stats[s] or 0
@@ -998,7 +998,7 @@ function parseDescriptions(node, op)
         end
       end
 
-      if #found == 0 then
+      if #found ~= i then
         print('Still not found :(')
         print(desc)
       end
