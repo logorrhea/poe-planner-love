@@ -287,10 +287,15 @@ end
 function Node:draw()
 
   -- Only draw node if node is not start node
-  -- if self.type > 6 then
   --   -- @TODO: Draw ascendancy stuff
-  -- elseif self.type ~= Node.NT_START then
-  if self.type ~= Node.NT_START then
+  if self.type > 6 and ascendancyButton:isActive() then
+    local sheet = self.active and self.activeSheet or self.inactiveSheet
+    local pos = {}
+    pos.x, pos.y = ascendancyPanel:getCenter()
+    pos = Node.nodePosition(self, pos)
+    local _,_,w,h = self.imageQuad:getViewport()
+    batches[sheet]:add(self.imageQuad, pos.x-w/2, pos.y-h/2)
+  elseif self.type ~= Node.NT_START then
     local sheet = self.active and self.activeSheet or self.inactiveSheet
     batches[sheet]:add(self.imageQuad, self.visibleQuad.left, self.visibleQuad.top)
   end
