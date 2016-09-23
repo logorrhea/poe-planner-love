@@ -25,7 +25,7 @@ local config = {
 	enable_watcher = true,
 	watcher_interval = 1.0,
 	watcher_onchanged = "reload()",
-	watcher_patterns = {"lua$"},
+	watcher_patterns = {"^[^.]*lua$"},
 	enable_physics = false,
 	physics_show = false,
 	enable_temporal = true,
@@ -535,7 +535,7 @@ mods.watcher = function() return {
 				local old = self.files
 				for k,v in pairs(data) do
 					if not old[k] or old[k] ~= v then
-            if k ~= 'builds.lua' and k:sub(1, 1) ~= '#' then
+            if k ~= 'builds.lua' then
               print(k .. " changed!", old[k], v)
               changed = true
             else

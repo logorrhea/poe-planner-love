@@ -1,4 +1,4 @@
--- require 'vendor.cupid.cupid'
+require 'vendor.cupid.cupid'
 
 function love.conf(t)
   t.identity = 'poe-planner-love'

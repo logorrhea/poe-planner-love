@@ -30,7 +30,7 @@ scaledWidth, scaledHeight = winWidth/camera.scale, winHeight/camera.scale
 maxActive = 123
 activeNodes = 0
 activeClass = 1
-ascendancyClass = 1
+ascendancyClass = 'trickster'
 clickCoords = {x = 0, y = 0, onGUI = false, onStats = false}
 visibleNodes = {}
 visibleGroups = {}
@@ -99,7 +99,7 @@ end
 local lastClicked = nil
 
 function love.load()
-  
+  circleRadius = 10
 
   -- Get tree data. Will download new version if necessary
   -- Tree = Downloader.getLuaTree()
@@ -111,7 +111,7 @@ function love.load()
   if love.filesystem.exists('builds.lua') then
     local saveDataFunc = love.filesystem.load('builds.lua')
     local saveData = saveDataFunc()
-    activeClass, ascendancyClass, savedNodes = Graph.import(saveData.nodes)
+    activeClass, _, savedNodes = Graph.import(saveData.nodes)
     portrait = love.graphics.newImage('assets/'..Node.classes[activeClass]..'-portrait.png')
   end
 
@@ -347,6 +347,21 @@ function love.draw()
 
   -- Ascendancy bubble toggler
   ascendancyButton:draw()
+
+  -- Draw ascendancy nodes
+  -- @TODO: Looks like 'ascendant' is going to be a special case :(
+  if ascendancyButton:isActive() then
+    local center = {x=0,y=0}
+    for nid,node in pairs(nodes) do
+      if node.type > 6 then
+        if node.ascendancyName == ascendancyClass then
+          center.x, center.y = ascendancyPanel:getCenter()
+          local pos = Node.nodePosition(node, center)
+          love.graphics.circle('fill', pos.x, pos.y, circleRadius)
+        end
+      end
+    end
+  end
 
   -- Pop graphics state to draw UI
   love.graphics.pop()
@@ -928,7 +943,7 @@ function activateNode(nid)
 
   -- @TODO: Send to threads that node became active
 
-  characterURL = Graph.export(activeClass, ascendancyClass, nodes)
+  characterURL = Graph.export(activeClass, 1, nodes)
 end
 
 function deactivateNode(nid)
@@ -942,7 +957,7 @@ function deactivateNode(nid)
 
   -- @TODO: Send to threads that node became inactive
 
-  characterURL = Graph.export(activeClass, ascendancyClass, nodes)
+  characterURL = Graph.export(activeClass, 1, nodes)
 end
 
 function parseDescriptions(node, op)
