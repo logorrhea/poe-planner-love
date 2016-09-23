@@ -105,13 +105,70 @@ Node.classframes = {
 
 -- Translate activeClass into portrait paths
 Node.classes = {
-  'scion',
-  'marauder',
-  'ranger',
-  'witch',
-  'duelist',
-  'templar',
-  'shadow',
+  [1] = 'scion',
+  [2] = 'marauder',
+  [3] = 'ranger',
+  [4] = 'witch',
+  [5] = 'duelist',
+  [6] = 'templar',
+  [7] = 'shadow',
+}
+
+Node.Classes = {
+  [1] = {
+    name = 'scion',
+    ascendancies = {
+      'ascendant',
+    }
+  },
+  [2] = {
+    name = 'marauder',
+    ascendancies = {
+      'juggernaut',
+      'berserker',
+      'chieftain',
+    }
+  },
+  [3] = {
+    name = 'ranger',
+    ascendancies = {
+      'raider',
+      'deadeye',
+      'pathfinder',
+    }
+  },
+  [4] = {
+    name = 'witch',
+    ascendancies = {
+      'occultist',
+      'elementalist',
+      'necromancer',
+    }
+  },
+  [5] = {
+    name = 'duelist',
+    ascendancies = {
+      'slayer',
+      'gladiator',
+      'champion',
+    }
+  },
+  [6] = {
+    name = 'templar',
+    ascendancies = {
+      'inquisitor',
+      'hierophant',
+      'guardian',
+    }
+  },
+  [7] = {
+    name = 'shadow',
+    ascendancies = {
+      'assassin',
+      'trickster',
+      'saboteur',
+    }
+  },
 }
 
 Node.AscendancyClasses = {
