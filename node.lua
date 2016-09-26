@@ -92,37 +92,19 @@ Node.ActiveSkillFrames = {
   "JewelFrameAllocated",
 }
 
--- Translate start classes
-Node.classframes = {
-  'centerscion',
-  'centermarauder',
-  'centerranger',
-  'centerwitch',
-  'centerduelist',
-  'centertemplar',
-  'centershadow',
-}
 
 -- Translate activeClass into portrait paths
-Node.classes = {
-  [1] = 'scion',
-  [2] = 'marauder',
-  [3] = 'ranger',
-  [4] = 'witch',
-  [5] = 'duelist',
-  [6] = 'templar',
-  [7] = 'shadow',
-}
-
 Node.Classes = {
   [1] = {
     name = 'scion',
+    frame = 'centerscion',
     ascendancies = {
       'ascendant',
     }
   },
   [2] = {
     name = 'marauder',
+    frame = 'centermarauder',
     ascendancies = {
       'juggernaut',
       'berserker',
@@ -131,6 +113,7 @@ Node.Classes = {
   },
   [3] = {
     name = 'ranger',
+    frame = 'centerranger',
     ascendancies = {
       'raider',
       'deadeye',
@@ -139,6 +122,7 @@ Node.Classes = {
   },
   [4] = {
     name = 'witch',
+    frame = 'centerwitch',
     ascendancies = {
       'occultist',
       'elementalist',
@@ -147,6 +131,7 @@ Node.Classes = {
   },
   [5] = {
     name = 'duelist',
+    frame = 'centerduelist',
     ascendancies = {
       'slayer',
       'gladiator',
@@ -155,6 +140,7 @@ Node.Classes = {
   },
   [6] = {
     name = 'templar',
+    frame = 'centertemplar',
     ascendancies = {
       'inquisitor',
       'hierophant',
@@ -163,6 +149,7 @@ Node.Classes = {
   },
   [7] = {
     name = 'shadow',
+    frame = 'centershadow',
     ascendancies = {
       'assassin',
       'trickster',
@@ -171,40 +158,6 @@ Node.Classes = {
   },
 }
 
-Node.AscendancyClasses = {
-  -- Scion
-  'ascendant',
-
-  -- Shadow
-  'assassin',
-  'saboteur',
-  'trickster',
-
-  -- Marauder
-  'berserker',
-  'juggernaut',
-  'chieftain',
-
-  -- Ranger
-  'deadeye',
-  'pathfinder',
-  'raider',
-
-  -- Witch
-  'elementalist',
-  'necromancer',
-  'occultist',
-
-  -- Templar
-  'guardian',
-  'hierophant',
-  'inquisitor',
-
-  -- Duelist
-  'champion',
-  'gladiator',
-  'slayer',
-}
 
 
 function Node.arc(node)
@@ -365,7 +318,7 @@ function Node:drawFrame()
   if self.type == Node.NT_START then
     local spc = self.startPositionClasses[1] -- there is only ever one
     if spc == activeClass then
-      local name = Node.classframes[spc]
+      local name = Node.Classes[spc].frame
       w, h = batches[name]:getTexture():getDimensions()
       batches[name]:add(self.position.x - w/2, self.position.y - h/2)
     else

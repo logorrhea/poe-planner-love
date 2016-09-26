@@ -65,7 +65,7 @@ local charStatLabels = love.graphics.newText(headerFont, 'Str:\nInt:\nDex:')
 local charStatText = love.graphics.newText(headerFont, '0\n0\n0')
 local generalStatLabels = love.graphics.newText(font, '')
 local generalStatText = love.graphics.newText(font, '')
-local portrait = love.graphics.newImage('assets/'..Node.classes[activeClass]..'-portrait.png')
+local portrait = love.graphics.newImage('assets/'..Node.Classes[activeClass].name..'-portrait.png')
 local divider  = love.graphics.newImage('assets/LineConnectorNormal.png')
 local leftIcon = love.graphics.newImage('assets/left.png')
 local keystoneLabels = {}
@@ -89,8 +89,8 @@ local statTextLocation  = {
 -- Class picker window stuff
 local portraits = {}
 local classPickerShowing = false
-for _, class in ipairs(Node.classes) do
-  portraits[#portraits+1] = love.graphics.newImage('assets/'..class..'-portrait.png')
+for _, class in ipairs(Node.Classes) do
+  portraits[#portraits+1] = love.graphics.newImage('assets/'..class.name..'-portrait.png')
 end
 
 -- Use to determine whether to plan route/refund or activate nodes
@@ -110,7 +110,7 @@ function love.load()
     local saveDataFunc = love.filesystem.load('builds.lua')
     local saveData = saveDataFunc()
     activeClass, _, savedNodes = Graph.import(saveData.nodes)
-    portrait = love.graphics.newImage('assets/'..Node.classes[activeClass]..'-portrait.png')
+    portrait = love.graphics.newImage('assets/'..Node.Classes[activeClass].name..'-portrait.png')
   end
 
   -- Cache node count
@@ -153,9 +153,9 @@ function love.load()
       elseif name == 'PSGroupBackground2' then
         batches[name] = love.graphics.newSpriteBatch(image, groupCount)
       elseif name == 'PSGroupBackground3' then
-        batches[name] = love.graphics.newSpriteBatch(image, (#Node.classframes + groupCount)*2)
+        batches[name] = love.graphics.newSpriteBatch(image, (#Node.Classes + groupCount)*2)
       elseif name == 'PSStartNodeBackgroundInactive' then
-        batches[name] = love.graphics.newSpriteBatch(image, #Node.classframes)
+        batches[name] = love.graphics.newSpriteBatch(image, #Node.Classes)
       else
         batches[name] = love.graphics.newSpriteBatch(image, 10)
       end
@@ -334,8 +334,8 @@ function love.draw()
   end
 
   -- Draw active class frames
-  for _, name in pairs(Node.classframes) do
-    love.graphics.draw(batches[name])
+  for _, class in pairs(Node.Classes) do
+    love.graphics.draw(batches[class.frame])
   end
 
   -- Ascendancy graph
@@ -590,7 +590,7 @@ function checkIfGUIItemClicked(mx, my, button, isTouch)
     local w, h = love.window.toPixels(110), love.window.toPixels(105)
     local x1, y1 = statPanelLocation.x+w+five, five
     local x2, y2 = x1+w, y1+h
-    for i, class in ipairs(Node.classes) do
+    for i, class in ipairs(Node.Classes) do
       if i ~= activeClass then
         if mx >= x1 and mx <= x2 and my >= y1 and my <= y2 then
           local buttons = {"Cancel", "OK", escapebutton=1, enterbutton=2}
@@ -1100,7 +1100,7 @@ function changeActiveClass(sel)
   removeTrail = {}
   startnid = startNodes[activeClass]
   startNode = nodes[startnid]
-  portrait = love.graphics.newImage('assets/'..Node.classes[activeClass]..'-portrait.png')
+  portrait = love.graphics.newImage('assets/'..Node.Classes[activeClass].name..'-portrait.png')
   for nid, node in pairs(nodes) do
     if node.active then
       deactivateNode(nid)

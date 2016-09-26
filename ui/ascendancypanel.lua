@@ -5,15 +5,18 @@ local images = {}
 
 function panel:init(button, batches)
   self.button = button
-  for _,class in ipairs(Node.AscendancyClasses) do
-    local imageName = 'Classes'..string.upper(class:sub(1,1))..class:sub(2,-1)
-    images[class] = batches[imageName]:getTexture()
+  for _,class in ipairs(Node.Classes) do
+    for _,aclass in ipairs(class.ascendancies) do
+      local imageName = 'Classes'..string.upper(aclass:sub(1,1))..aclass:sub(2,-1)
+      images[aclass] = batches[imageName]:getTexture()
+    end
   end
 end
 
 -- Draw panel according to ascendancy button location
 function panel:draw()
-  local img = images['ascendant']
+  local class = Node.Classes[activeClass].ascendancies[ascendancyClass]
+  local img = images[class]
   local x, y = self.button:getPosition()
   local w, h = img:getDimensions()
 
