@@ -260,7 +260,8 @@ function love.load()
     trigger = (function()
         -- Slide in stats board
         statsShowing = true
-        Timer.tween(0.5, statPanelLocation, {x = 0}, 'in-out-quad')
+        -- Timer.tween(0.5, statPanelLocation, {x = 0}, 'in-out-quad')
+        Timer.tween(0.5, statPanelLocation, {x = 0}, 'out-back')
     end)
   }
 
@@ -1200,7 +1201,8 @@ end
 function closeStatPanel()
   classPickerShowing = false
   statsTransitioning = true
-  Timer.tween(0.5, statPanelLocation, {x = -love.window.toPixels(300)}, 'in-out-quad')
+  -- Timer.tween(0.5, statPanelLocation, {x = -love.window.toPixels(300)}, 'in-out-quad')
+  Timer.tween(0.5, statPanelLocation, {x = -love.window.toPixels(300)}, 'in-back')
   Timer.after(0.5, function()
                 statsTransitioning = false
                 statsShowing = false
