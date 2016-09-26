@@ -68,8 +68,8 @@ Node.InactiveSkillFrames = {
   nil,
   "JewelFrameUnallocated",
 
-  "PSSkillFrame",
-  "NotableFrameUnallocated",
+  "PassiveSkillScreenAscendancyFrameSmallNormal",
+  "PassiveSkillScreenAscendancyFrameLargeNormal",
   nil,
   "KeystoneFrameUnallocated",
   nil,
@@ -84,8 +84,8 @@ Node.ActiveSkillFrames = {
   nil,
   "JewelFrameAllocated",
 
-  "PSSkillFrameActive",
-  "NotableFrameAllocated",
+  "PassiveSkillScreenAscendancyFrameSmallAllocated",
+  "PassiveSkillScreenAscendancyFrameLargeAllocated",
   nil,
   "KeystoneFrameAllocated",
   nil,
