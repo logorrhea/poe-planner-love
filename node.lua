@@ -239,6 +239,8 @@ function Node.create(data, group)
     node.type = Node.NT_KEYSTONE
   elseif data.isJewelSocket then
     node.type = Node.NT_JEWEL
+  elseif data.isAscendancyStart then
+    node.type = Node.NT_ASC_START
   else
     node.type = Node.NT_COMMON
   end
@@ -380,7 +382,7 @@ function Node:drawConnections(center)
         color = addConnector
       elseif removeTrail ~= nil and removeTrail[self.id] and removeTrail[nid] then
         color = removeConnector
-      elseif self.active and other.active then
+      elseif (self.active or self.isAscendancyStart) and (other.active or other.isAscendancyStart) then
         color = activeConnector
       else
         color = inactiveConnector

@@ -206,9 +206,11 @@ function love.load()
     -- Determine sprite sheet to use
     local activeName = Node.ActiveSkillsheets[node.type]
     local inactiveName = Node.InactiveSkillsheets[node.type]
-    node.activeSheet = activeName
-    node.inactiveSheet = inactiveName
-    node:setQuad(spriteQuads[activeName][node.icon])
+    if activeName and inactiveName then
+      node.activeSheet = activeName
+      node.inactiveSheet = inactiveName
+      node:setQuad(spriteQuads[activeName][node.icon])
+    end
 
     -- Add to startNode table if it is one
     if node.type == Node.NT_START then
@@ -668,17 +670,19 @@ end
 
 function checkIfAscendancyNodeHovered(x, y, button, isTouch)
   local hovered = nil
+  local center = {}
+  center.x, center.y = ascendancyPanel:getCenter()
   for nid, node in pairs(ascendancyNodes) do
-    local center = {}
-    center.x, center.y = ascendancyPanel:getCenter()
-    local pos = Node.nodePosition(node, center)
-    local wx, wy = cameraCoords(pos.x, pos.y)
-    local dx, dy = wx - x, wy - y
-    local r = Node.Radii[node.type] * camera.scale
-    if dx * dx + dy * dy <= r * r then
-      if not node.isAscendancyStart then
-        hovered = nid
-        showNodeDialog(nid, wx, wy)
+    if not node.isAscendancyStart then
+      local pos = Node.nodePosition(node, center)
+      local wx, wy = cameraCoords(pos.x, pos.y)
+      local dx, dy = wx - x, wy - y
+      local r = Node.Radii[node.type] * camera.scale
+      if dx * dx + dy * dy <= r * r then
+        if not node.isAscendancyStart then
+          hovered = nid
+          showNodeDialog(nid, wx, wy)
+        end
       end
     end
   end
@@ -712,15 +716,17 @@ function checkIfNodeClicked(x, y, button, isTouch)
     local center = {}
     center.x, center.y = ascendancyPanel:getCenter()
     for nid, node in pairs(ascendancyNodes) do
-      local pos = Node.nodePosition(node, center)
-      local wx, wy = cameraCoords(pos.x, pos.y)
-      local dx, dy = wx - x, wy - y
-      local r = Node.Radii[node.type] * camera.scale
-      if dx * dx + dy * dy <= r * r then
-        if not node.isAscendancyStart then
-          clicked = node
-          if DEBUG then
-            print('clicked: '..clicked.id)
+      if not node.isAscendancyStart then
+        local pos = Node.nodePosition(node, center)
+        local wx, wy = cameraCoords(pos.x, pos.y)
+        local dx, dy = wx - x, wy - y
+        local r = Node.Radii[node.type] * camera.scale
+        if dx * dx + dy * dy <= r * r then
+          if not node.isAscendancyStart then
+            clicked = node
+            if DEBUG then
+              print('clicked: '..clicked.id)
+            end
           end
         end
       end
