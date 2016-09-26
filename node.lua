@@ -286,7 +286,6 @@ function Node:setQuad(quad)
 end
 
 function Node:isVisible(tx, ty)
-  -- @TODO: Draw ascendancy stuff
   return self.type < 7 and
          (self.visibleQuad.top + ty) < scaledHeight and
          (self.visibleQuad.bottom + ty) > 0 and
@@ -295,16 +294,6 @@ function Node:isVisible(tx, ty)
 end
 
 function Node:draw()
-  --   -- @TODO: Draw ascendancy stuff
-  -- if self.type > 6 and ascendancyButton:isActive() then
-  --   local sheet = self:getSheet()
-  --   local pos = {}
-  --   pos.x, pos.y = ascendancyPanel:getCenter()
-  --   pos = Node.nodePosition(self, pos)
-  --   local _,_,w,h = self.imageQuad:getViewport()
-  --   batches[sheet]:add(self.imageQuad, pos.x-w/2, pos.y-h/2)
-  -- Only draw node if node is not start node
-  -- elseif self.type ~= Node.NT_START then
   if self.type ~= Node.NT_START then
     local sheet = self:getSheet()
     batches[sheet]:add(self.imageQuad, self.visibleQuad.left, self.visibleQuad.top)
@@ -316,7 +305,7 @@ end
 
 -- Currently only used for ascendancy nodes
 function Node:immediateDraw(center)
-  local pos = Node.nodePosition(self, center)
+  local pos = center and Node.nodePosition(self, center) or self.position
 
   if self.isAscendancyStart then
   -- end
@@ -367,16 +356,13 @@ function Node:drawFrame()
   end
 end
 
-function Node:drawConnections(center)
-  local p1 = center and Node.nodePosition(self, center) or self.position
-
+function Node:drawConnections()
   for _, nid in pairs(self.out) do
     local other = nodes[nid]
     if other.type > 6 and self.type < 7 or self.type > 6 and other.type < 7 then
       -- don't draw connections between regular and ascendancy nodes
     else
       local color = nil
-      local p2 = center and Node.nodePosition(other, center) or other.position
 
       if (addTrail ~= nil and addTrail[self.id] and addTrail[nid]) or (addTrail[self.id] and other.active) or (self.active and addTrail[nid]) then
         color = addConnector
@@ -391,9 +377,9 @@ function Node:drawConnections(center)
       love.graphics.setColor(color)
 
       if (self.group.id ~= other.group.id) or (self.orbit ~= other.orbit) then
-        self:drawConnection(other, p1, p2)
+        self:drawConnection(other)
       else
-        self:drawArcedConnection(other, center)
+        self:drawArcedConnection(other)
       end
 
       clearColor()
@@ -401,14 +387,13 @@ function Node:drawConnections(center)
   end
 end
 
-function Node:drawConnection(other, p1, p2)
-  love.graphics.line(p1.x, p1.y, p2.x, p2.y)
-  -- love.graphics.line(self.position.x, self.position.y, other.position.x, other.position.y)
+function Node:drawConnection(other)
+  love.graphics.line(self.position.x, self.position.y, other.position.x, other.position.y)
 end
 
 -- @TODO: Convert this method to use the new
 -- arc types introduced in 0.10.1
-function Node:drawArcedConnection(other, center)
+function Node:drawArcedConnection(other)
   local startAngle = Node.arc(self)
   local endAngle = Node.arc(other)
 
@@ -424,7 +409,7 @@ function Node:drawArcedConnection(other, center)
     delta = c
   end
 
-  local center = center or {x = self.group.position.x, y = self.group.position.y}
+  local center = {x = self.group.position.x, y = self.group.position.y}
   local radius = Node.OrbitRadii[self.orbit]
   local steps = math.ceil(30*(delta/(math.pi*2)))
   local stepSize = delta/steps

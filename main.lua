@@ -38,6 +38,8 @@ removeTrail = {}
 ascendancyNodes = {}
 orig_r, orig_g, orig_b, orig_a = love.graphics.getColor()
 
+ascendancyTreeOrigins = {}
+
 -- Load GUI layout(s)
 local guiButtons = {}
 
@@ -349,26 +351,30 @@ function love.draw()
   -- Ascendancy bubble toggler
   ascendancyButton:draw()
 
+  love.graphics.push()
+  local center = {x=0,y=0}
+  center.x, center.y = ascendancyPanel:getCenter()
+  local ascendancyTreeStart = ascendancyTreeOrigins[Node.getAscendancyClassName()]
+  love.graphics.translate(center.x-ascendancyTreeStart.position.x, center.y-ascendancyTreeStart.position.y)
+
   -- Draw ascendancy node connections
   love.graphics.setColor(inactiveConnector)
   love.graphics.setLineWidth(3/camera.scale)
-  local center = {x=0,y=0}
-  center.x, center.y = ascendancyPanel:getCenter()
   if ascendancyButton:isActive() then
     for nid, node in pairs(ascendancyNodes) do
-      node:drawConnections(center)
+      node:drawConnections()
     end
   end
   love.graphics.setLineWidth(1)
   clearColor()
 
   -- Draw ascendancy nodes
-  -- @TODO: Looks like 'ascendant' is going to be a special case :(
   if ascendancyButton:isActive() then
     for nid,node in pairs(ascendancyNodes) do
-      node:immediateDraw(center, pos)
+      node:immediateDraw()
     end
   end
+  love.graphics.pop()
 
   -- Pop graphics state to draw UI
   love.graphics.pop()
@@ -670,11 +676,20 @@ end
 
 function checkIfAscendancyNodeHovered(x, y, button, isTouch)
   local hovered = nil
+
+  local ascendancyTreeStart = ascendancyTreeOrigins[Node.getAscendancyClassName()]
   local center = {}
   center.x, center.y = ascendancyPanel:getCenter()
+
+  local offset = {}
+  offset.x, offset.y = center.x-ascendancyTreeStart.position.x, center.y-ascendancyTreeStart.position.y
+
   for nid, node in pairs(ascendancyNodes) do
     if not node.isAscendancyStart then
-      local pos = Node.nodePosition(node, center)
+      local pos = {
+        x = node.position.x + offset.x,
+        y = node.position.y + offset.y,
+      }
       local wx, wy = cameraCoords(pos.x, pos.y)
       local dx, dy = wx - x, wy - y
       local r = Node.Radii[node.type] * camera.scale
@@ -712,12 +727,17 @@ end
 function checkIfNodeClicked(x, y, button, isTouch)
   local clicked = nil
   if ascendancyButton:isActive() then
-    print('checking ascendancy nodes...')
-    local center = {}
-    center.x, center.y = ascendancyPanel:getCenter()
+    local ascendancyTreeStart = ascendancyTreeOrigins[Node.getAscendancyClassName()]
+    local offset = {}
+    offset.x, offset.y = ascendancyPanel:getCenter()
+    offset.x = offset.x-ascendancyTreeStart.position.x
+    offset.y = offset.y-ascendancyTreeStart.position.y
     for nid, node in pairs(ascendancyNodes) do
       if not node.isAscendancyStart then
-        local pos = Node.nodePosition(node, center)
+        local pos = {
+          x = node.position.x + offset.x,
+          y = node.position.y + offset.y,
+        }
         local wx, wy = cameraCoords(pos.x, pos.y)
         local dx, dy = wx - x, wy - y
         local r = Node.Radii[node.type] * camera.scale
@@ -862,6 +882,9 @@ function refillBatches()
     if node.type > 6 and node.ascendancyName == Node.getAscendancyClassName() then
       -- ascendancyNodes[#ascendancyNodes] = node
       ascendancyNodes[nid] = node
+      if node.isAscendancyStart then
+        ascendancyTreeOrigins[node.ascendancyName] = node
+      end
     end
   end
 
@@ -1034,8 +1057,6 @@ function activateNode(nid)
   updateStatText()
   activeNodes = activeNodes + 1
 
-  -- @TODO: Send to threads that node became active
-
   characterURL = Graph.export(activeClass, ascendancyClass, nodes)
 end
 
@@ -1047,8 +1068,6 @@ function deactivateNode(nid)
   parseDescriptions(node, subtract)
   updateStatText()
   activeNodes = activeNodes - 1
-
-  -- @TODO: Send to threads that node became inactive
 
   characterURL = Graph.export(activeClass, ascendancyClass, nodes)
 end
