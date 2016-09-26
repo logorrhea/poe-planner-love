@@ -158,7 +158,7 @@ function Graph.import(charString)
   local decoded = from_base64(b64)
 
   local class      = string.byte(decoded:sub(5, 5)) + 1
-  local ascendancy = string.byte(decoded:sub(6, 6)) + 1
+  local ascendancy = string.byte(decoded:sub(6, 6))
 
   local nids = {}
   local i = 8
@@ -170,11 +170,14 @@ function Graph.import(charString)
     i = i + 2
   end
 
+  -- http://www.pathofexile.com/passive-skill-tree/AAAABAEBAMse8433uQ==
+  -- http://www.pathofexile.com/passive-skill-tree/AAAABAEAAPe5843LHg==
+
   return class, ascendancy, nids
 end
 
 function Graph.export(class, ascendancy, nodes)
-  local charString = getCharacterString(class-1, ascendancy-1)
+  local charString = getCharacterString(class-1, ascendancy)
 
   for nid,node in pairs(nodes) do
     if node.active and #node.startPositionClasses == 0 and not node.isAscendancyStart then

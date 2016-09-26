@@ -35,6 +35,7 @@ visibleGroups = {}
 startNodes = {}
 addTrail = {}
 removeTrail = {}
+ascendancyNodes = {}
 orig_r, orig_g, orig_b, orig_a = love.graphics.getColor()
 
 -- Load GUI layout(s)
@@ -49,7 +50,7 @@ local character = {
   keystones = {},
   keystoneCount = 0,
 }
-local characterURL = ''
+characterURL = ''
 
 
 -- le Fonts
@@ -109,7 +110,7 @@ function love.load()
   if love.filesystem.exists('builds.lua') then
     local saveDataFunc = love.filesystem.load('builds.lua')
     local saveData = saveDataFunc()
-    activeClass, _, savedNodes = Graph.import(saveData.nodes)
+    activeClass, ascendancyClass, savedNodes = Graph.import(saveData.nodes)
     portrait = love.graphics.newImage('assets/'..Node.Classes[activeClass].name..'-portrait.png')
   end
 
@@ -307,7 +308,7 @@ function love.draw()
 
   -- Draw connections
   love.graphics.setColor(inactiveConnector)
-  love.graphics.setLineWidth(2/camera.scale)
+  love.graphics.setLineWidth(3/camera.scale)
   for nid, node in pairs(visibleNodes) do
     node:drawConnections()
   end
@@ -346,18 +347,24 @@ function love.draw()
   -- Ascendancy bubble toggler
   ascendancyButton:draw()
 
+  -- Draw ascendancy node connections
+  love.graphics.setColor(inactiveConnector)
+  love.graphics.setLineWidth(3/camera.scale)
+  local center = {x=0,y=0}
+  center.x, center.y = ascendancyPanel:getCenter()
+  if ascendancyButton:isActive() then
+    for nid, node in pairs(ascendancyNodes) do
+      node:drawConnections(center)
+    end
+  end
+  love.graphics.setLineWidth(1)
+  clearColor()
+
   -- Draw ascendancy nodes
   -- @TODO: Looks like 'ascendant' is going to be a special case :(
   if ascendancyButton:isActive() then
-    local center = {x=0,y=0}
-    for nid,node in pairs(nodes) do
-      if node.type > 6 then
-        if node.ascendancyName == getAscendancyClassName() then
-          center.x, center.y = ascendancyPanel:getCenter()
-          local pos = Node.nodePosition(node, center)
-          love.graphics.circle('fill', pos.x, pos.y, circleRadius)
-        end
-      end
+    for nid,node in pairs(ascendancyNodes) do
+      node:immediateDraw(center, pos)
     end
   end
 
@@ -496,7 +503,19 @@ else
         refillBatches()
       end
     else
-      checkIfNodeHovered(x, y)
+      local hovered = nil
+      if ascendancyButton:isActive() then
+        hovered = checkIfAscendancyNodeHovered(x, y)
+      end
+      if hovered == nil then
+        hovered = checkIfNodeHovered(x, y)
+      end
+      if hovered == nil then
+        lastClicked = nil
+        addTrail = {}
+        removeTrail = {}
+        dialogWindowVisible = false
+      end
     end
   end
 
@@ -643,77 +662,96 @@ function checkIfNodeHovered(x, y)
       addTrail = Graph.planShortestRoute(hovered) or {}
     end
   end
+
+  return hovered
 end
 
-function checkIfNodeClicked(x, y, button, isTouch)
-  for nid, node in pairs(visibleNodes) do
-    local wx, wy = cameraCoords(node.position.x, node.position.y)
+function checkIfAscendancyNodeHovered(x, y, button, isTouch)
+  local hovered = nil
+  for nid, node in pairs(ascendancyNodes) do
+    local center = {}
+    center.x, center.y = ascendancyPanel:getCenter()
+    local pos = Node.nodePosition(node, center)
+    local wx, wy = cameraCoords(pos.x, pos.y)
     local dx, dy = wx - x, wy - y
     local r = Node.Radii[node.type] * camera.scale
     if dx * dx + dy * dy <= r * r then
-      -- Debug
-      if DEBUG then
-        print('clicked: '..node.id)
-        -- local neighbors = ''
-        -- for _, nnid in ipairs(node.neighbors) do
-        --   neighbors = neighbors..' '..nnid
-        -- end
-        -- print('Neighbors:', neighbors)
+      if not node.isAscendancyStart then
+        hovered = nid
+        showNodeDialog(nid, wx, wy)
       end
+    end
+  end
 
+  if hovered == nil then
+    lastClicked = nil
+    addTrail = {}
+    removeTrail = {}
+    dialogWindowVisible = false
+  elseif hovered ~= lastClicked then
+    if DEBUG then
+      print(hovered..' hovered')
+    end
+    lastClicked = hovered
+    addTrail = {}
+    removeTrail = {}
+    if nodes[hovered].active then
+      removeTrail = Graph.planRefund(hovered) or {}
+    else
+      addTrail = Graph.planShortestRoute(hovered) or {}
+    end
+  end
 
-      -- For mobile, use two-tap node selection system
-      if OS == 'iOS' then
-        if node.id == lastClicked then
-          -- On second click, toggle all nodes in highlighted trail
-          for id,_ in pairs(addTrail) do
-            if not nodes[id].active then
-              activateNode(id)
-            end
-          end
-          addTrail = {}
-          -- Remove all nodes in removeTrail
-          for id,_ in pairs(removeTrail) do
-            deactivateNode(id)
-          end
-          removeTrail = {}
-          refillBatches()
-          lastClicked = nil
-        else
+  return hovered
+end
 
-          -- On first click, we should give some preview information:
-          --  Dialog box diplaying information about the clicked node
-          --  Preview a route from closest active node
-          if node.active then
-            addTrail = {}
-            removeTrail = Graph.planRefund(nid)
-          else
-            removeTrail = {}
-            addTrail = Graph.planShortestRoute(nid)
+function checkIfNodeClicked(x, y, button, isTouch)
+  local clicked = nil
+  if ascendancyButton:isActive() then
+    print('checking ascendancy nodes...')
+    local center = {}
+    center.x, center.y = ascendancyPanel:getCenter()
+    for nid, node in pairs(ascendancyNodes) do
+      local pos = Node.nodePosition(node, center)
+      local wx, wy = cameraCoords(pos.x, pos.y)
+      local dx, dy = wx - x, wy - y
+      local r = Node.Radii[node.type] * camera.scale
+      if dx * dx + dy * dy <= r * r then
+        if not node.isAscendancyStart then
+          clicked = node
+          if DEBUG then
+            print('clicked: '..clicked.id)
           end
-          showNodeDialog(nid)
-          lastClicked = nid
         end
-
-      -- For desktop OS, we don't need the double-click behavior
-      else
-        -- Gather nodes for addition or removal
-        if node.active then
-          addTrail = {}
-          removeTrail = Graph.planRefund(nid)
-        else
-          removeTrail = {}
-          addTrail = Graph.planShortestRoute(nid)
+      end
+    end
+  end
+  if clicked == nil then
+    for nid, node in pairs(visibleNodes) do
+      local wx, wy = cameraCoords(node.position.x, node.position.y)
+      local dx, dy = wx - x, wy - y
+      local r = Node.Radii[node.type] * camera.scale
+      if dx * dx + dy * dy <= r * r then
+        clicked = node
+        if DEBUG then
+          print('clicked: '..clicked.id)
         end
+      end
+    end
+  end
 
-        -- Check that addTrail doesn't take us over maxActive
+  if clicked ~= nil then
+
+    -- For mobile, use two-tap node selection system
+    if OS == 'iOS' then
+      if clicked.id == lastClicked then
+        -- On second click, toggle all nodes in highlighted trail
         for id,_ in pairs(addTrail) do
           if not nodes[id].active then
             activateNode(id)
           end
         end
         addTrail = {}
-
         -- Remove all nodes in removeTrail
         for id,_ in pairs(removeTrail) do
           deactivateNode(id)
@@ -721,9 +759,50 @@ function checkIfNodeClicked(x, y, button, isTouch)
         removeTrail = {}
         refillBatches()
         lastClicked = nil
+      else
+
+        -- On first click, we should give some preview information:
+        --  Dialog box diplaying information about the clicked node
+        --  Preview a route from closest active node
+        if clicked.active then
+          addTrail = {}
+          removeTrail = Graph.planRefund(nid)
+        else
+          removeTrail = {}
+          addTrail = Graph.planShortestRoute(nid)
+        end
+        showNodeDialog(nid)
+        lastClicked = nid
       end
-      return true
+
+      -- For desktop OS, we don't need the double-click behavior
+    else
+      -- Gather nodes for addition or removal
+      if clicked.active then
+        addTrail = {}
+        removeTrail = Graph.planRefund(clicked.id)
+      else
+        removeTrail = {}
+        addTrail = Graph.planShortestRoute(clicked.id)
+      end
+
+      -- Check that addTrail doesn't take us over maxActive
+      for id,_ in pairs(addTrail) do
+        if not nodes[id].active then
+          activateNode(id)
+        end
+      end
+      addTrail = {}
+
+      -- Remove all nodes in removeTrail
+      for id,_ in pairs(removeTrail) do
+        deactivateNode(id)
+      end
+      removeTrail = {}
+      refillBatches()
+      lastClicked = nil
     end
+    return true
   end
 
   -- Not sure which behavior is better?
@@ -764,12 +843,19 @@ function refillBatches()
   local tx, ty = winWidth/(2*camera.scale)-camera.x, winHeight/(2*camera.scale)-camera.y
   visibleNodes = {}
   visibleGroups = {}
+  ascendancyNodes = {}
   for nid, node in pairs(nodes) do
     if node:isVisible(tx, ty) then
       visibleNodes[node.id] = node
       if visibleGroups[node.gid] == nil then
         visibleGroups[node.gid] = groups[node.gid]
       end
+    end
+
+    -- Fill ascendancy node table
+    if node.type > 6 and node.ascendancyName == Node.getAscendancyClassName() then
+      -- ascendancyNodes[#ascendancyNodes] = node
+      ascendancyNodes[nid] = node
     end
   end
 
@@ -781,9 +867,10 @@ function refillBatches()
   for gid, group in pairs(visibleGroups) do
     group:draw()
   end
+
 end
 
-function showNodeDialog(nid)
+function showNodeDialog(nid, x, y)
   local node = nodes[nid]
 
   -- Update text and calculate dialog box position
@@ -809,7 +896,9 @@ function showNodeDialog(nid)
 
   -- Get position of node in camera coords, and adjust it so that
   -- the whole window will always fit on the screen
-  local x, y = cameraCoords(node.position.x, node.position.y)
+  if x == nil or y == nil then
+    x, y = cameraCoords(node.position.x, node.position.y)
+  end
   x, y = adjustDialogPosition(x, y, dialogPosition.w, dialogPosition.h, 20)
   dialogPosition.x, dialogPosition.y = x, y
 
@@ -941,7 +1030,7 @@ function activateNode(nid)
 
   -- @TODO: Send to threads that node became active
 
-  characterURL = Graph.export(activeClass, 1, nodes)
+  characterURL = Graph.export(activeClass, ascendancyClass, nodes)
 end
 
 function deactivateNode(nid)
@@ -955,7 +1044,7 @@ function deactivateNode(nid)
 
   -- @TODO: Send to threads that node became inactive
 
-  characterURL = Graph.export(activeClass, 1, nodes)
+  characterURL = Graph.export(activeClass, ascendancyClass, nodes)
 end
 
 function parseDescriptions(node, op)
@@ -1096,6 +1185,7 @@ end
 function changeActiveClass(sel)
   closeStatPanel()
   activeClass = sel
+  ascendancyClass = 1 -- @TODO: This should be part of the class change process later
   addTrail    = {}
   removeTrail = {}
   startnid = startNodes[activeClass]
@@ -1138,8 +1228,4 @@ function isMouseInGUI(x, y)
       return false
     end
   end
-end
-
-function getAscendancyClassName()
-  return Node.Classes[activeClass].ascendancies[ascendancyClass]
 end
