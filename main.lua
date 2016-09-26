@@ -577,18 +577,6 @@ else
 end
 
 function checkIfGUIItemClicked(mx, my, button, isTouch)
-  for name, item in pairs(guiButtons) do
-    local w, h = item.image:getDimensions()
-    w, h = w*item.sx, h*item.sy
-    local x1, y1 = item.x, item.y
-    local x2, y2 = item.x + w, item.y + h
-
-    if mx >= x1 and mx <= x2 and my >= y1 and my <= y2 then
-      item.trigger()
-      return true
-    end
-  end
-
   if statsShowing then
 
     -- Check close button clicked
@@ -629,6 +617,18 @@ function checkIfGUIItemClicked(mx, my, button, isTouch)
         end
         x1, x2 = x2, x2 + w
       end
+    end
+  end
+
+  for name, item in pairs(guiButtons) do
+    local w, h = item.image:getDimensions()
+    w, h = w*item.sx, h*item.sy
+    local x1, y1 = item.x, item.y
+    local x2, y2 = item.x + w, item.y + h
+
+    if mx >= x1 and mx <= x2 and my >= y1 and my <= y2 then
+      item.trigger()
+      return true
     end
   end
 
