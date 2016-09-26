@@ -28,7 +28,7 @@ scaledWidth, scaledHeight = winWidth/camera.scale, winHeight/camera.scale
 maxActive = 123
 activeNodes = 0
 activeClass = 1
-ascendancyClass = 'trickster'
+ascendancyClass = 1
 clickCoords = {x = 0, y = 0, onGUI = false, onStats = false}
 visibleNodes = {}
 visibleGroups = {}
@@ -352,7 +352,7 @@ function love.draw()
     local center = {x=0,y=0}
     for nid,node in pairs(nodes) do
       if node.type > 6 then
-        if node.ascendancyName == ascendancyClass then
+        if node.ascendancyName == getAscendancyClassName() then
           center.x, center.y = ascendancyPanel:getCenter()
           local pos = Node.nodePosition(node, center)
           love.graphics.circle('fill', pos.x, pos.y, circleRadius)
@@ -1138,4 +1138,8 @@ function isMouseInGUI(x, y)
       return false
     end
   end
+end
+
+function getAscendancyClassName()
+  return Node.Classes[activeClass].ascendancies[ascendancyClass]
 end

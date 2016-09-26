@@ -24,8 +24,10 @@ function panel:draw()
 end
 
 function panel:getCenter()
+  local class = Node.Classes[activeClass].ascendancies[ascendancyClass]
+  local img = images[class]
   local x, y = self.button:getPosition()
-  local w, h = images['ascendant']:getDimensions()
+  local w, h = img:getDimensions()
   return x, y+w/2
 end
 
