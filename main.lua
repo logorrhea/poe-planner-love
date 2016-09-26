@@ -2,8 +2,6 @@ local scaleFix = 2.5
 
 local OS = love.system.getOS()
 local json   = require 'vendor.dkjson'
-local Layout = require 'vendor.luigi.luigi.layout'
-local dark   = require 'vendor.luigi.luigi.theme.dark'
 local Timer  = require 'vendor.hump.timer'
 local lume   = require 'vendor.lume.lume'
 
@@ -271,7 +269,7 @@ function love.load()
 end
 
 function love.update(dt)
-  -- lurker.update(dt)
+  require('vendor.lovebird').update()
   Timer.update(dt)
 end
 

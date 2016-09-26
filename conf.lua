@@ -1,5 +1,3 @@
-require 'vendor.cupid.cupid'
-
 function love.conf(t)
   t.identity = 'poe-planner-love'
   t.version = '0.10.1'
