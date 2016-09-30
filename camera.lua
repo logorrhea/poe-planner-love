@@ -8,6 +8,12 @@ local camera = {
   minScale  = 0.1,
   scaleStep = 0.05,
   pinchFix  = 100,
+
+  minX = -2500,
+  maxX =  2500,
+
+  minY = -2500,
+  maxY =  2500,
 }
 
 function camera:zoomIn()
@@ -33,6 +39,11 @@ end
 
 function camera:setScale(scale)
   self.scale = lume.clamp(scale, self.minScale, self.maxScale)
+end
+
+function camera:setPosition(x, y)
+  self.x = lume.clamp(x, self.minX, self.maxX)
+  self.y = lume.clamp(y, self.minY, self.maxY)
 end
 
 return camera

@@ -241,8 +241,7 @@ function love.load()
   -- Set better starting position
   startnid = startNodes[activeClass]
   startNode = nodes[startnid]
-  camera.x = startNode.position.x
-  camera.y = startNode.position.y
+  camera:setPosition(startNode.position.x, startNode.position.y)
 
   -- Create SpriteBatch for background image
   tiledBackground()
@@ -447,8 +446,7 @@ if OS == 'iOS' then
           statTextLocation:yadj(dy)
         end
       else
-        camera.x = camera.x - (dx/camera.scale)
-        camera.y = camera.y - (dy/camera.scale)
+        camera:setPosition(camera.x - (dx/camera.scale), camera.y - (dy/camera.scale))
         refillBatches()
       end
     elseif #touches == 2 then
@@ -507,8 +505,7 @@ else
           statTextLocation:yadj(dy)
         end
       else
-        camera.x = camera.x - (dx/camera.scale)
-        camera.y = camera.y - (dy/camera.scale)
+        camera:setPosition(camera.x - (dx/camera.scale), camera.y - (dy/camera.scale))
         refillBatches()
       end
     else
@@ -1224,7 +1221,8 @@ function changeActiveClass(sel)
     end
   end
   nodes[startnid].active = true
-  camera.x, camera.y = startNode.position.x, startNode.position.y
+  -- camera.x, camera.y = 
+  camera:setPosition(startNode.position.x, startNode.position.y)
   ascendancyButton:changeStart(startnid)
   refillBatches()
 end
