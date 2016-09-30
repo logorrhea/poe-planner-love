@@ -31,4 +31,9 @@ function panel:getCenter()
   return x, y+w/2
 end
 
+--- Return ascendancy options for given or active class
+function panel:getAscendancyBackground(aclass)
+  return images[aclass]
+end
+
 return panel
