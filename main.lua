@@ -280,7 +280,7 @@ function love.load()
 end
 
 function love.update(dt)
-  require('vendor.lovebird').update()
+  -- require('vendor.lovebird').update()
   Timer.update(dt)
 end
 
@@ -437,11 +437,32 @@ if OS == 'iOS' then
       local dy = y - clickCoords.y
 
       if math.abs(dx) <= 3 and math.abs(dy) <= 3 then
-        if ascendancyButton:click(x, y) then
+        if ascendancyClassPicker:isActive() then
+          local choice = ascendancyClassPicker:click(x, y)
+          ascendancyClassPicker:toggle()
+          if choice then
+            local buttons = {"Cancel", "OK", escapebutton=1, enterbutton=2}
+            if love.window.showMessageBox('Change Class?', 'Are you sure you want to change class and reset the skill tree?', buttons, 'info', true) == 2 then
+              changeActiveClass(newClass, choice)
+            end
+          else
+            newClass = nil
+          end
+        elseif classPickerShowing then
+          local choice = checkClassPickerClicked(x, y)
+          print('class choice: ', Node.Classes[choice].name)
+          if choice then
+            closeStatPanel()
+            newClass = choice
+            ascendancyClassPicker:setOptions(choice)
+            ascendancyClassPicker:activate()
+          end
         else
-          local guiItemClicked = checkIfGUIItemClicked(x, y, button, isTouch)
-          if not guiItemClicked and not clickCoords.onGUI then
-            checkIfNodeClicked(x, y, button, isTouch)
+          if not ascendancyButton:click(x, y) then
+            local guiItemClicked = checkIfGUIItemClicked(x, y, button, isTouch)
+            if not guiItemClicked and not clickCoords.onGUI then
+              checkIfNodeClicked(x, y, button, isTouch)
+            end
           end
         end
       end
