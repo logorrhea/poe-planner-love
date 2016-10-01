@@ -12,6 +12,4 @@ function love.conf(t)
   -- Disable unused packages
   t.modules.joystick = false
   t.modules.physics = false
-
-  t.console = true -- Attach a console, windows only
 end
