@@ -1,6 +1,6 @@
 local lume = require 'vendor.lume.lume'
 local button = {
-  state = 'active',
+  state = 'inactive',
 }
 
 local images = {
