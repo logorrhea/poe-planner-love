@@ -4,7 +4,6 @@ local OS = love.system.getOS()
 local json   = require 'vendor.dkjson'
 local Timer  = require 'vendor.hump.timer'
 local lume   = require 'vendor.lume.lume'
-local vec = require 'vendor.hump.vector'
 
 
 require 'downloader'
@@ -93,7 +92,6 @@ local statTextLocation  = {
 -- Class picker window stuff
 local portraits = {}
 local classPickerShowing = false
-local ascendancyClassPickerShowing = true
 for _, class in ipairs(Node.Classes) do
   portraits[#portraits+1] = love.graphics.newImage('assets/'..class.name..'-portrait.png')
 end
@@ -115,6 +113,9 @@ function love.load()
     local saveDataFunc = love.filesystem.load('builds.lua')
     local saveData = saveDataFunc()
     activeClass, ascendancyClass, savedNodes = Graph.import(saveData.nodes)
+    if ascendancyClass == 0 then
+      ascendancyClass = 1
+    end
     portrait = love.graphics.newImage('assets/'..Node.Classes[activeClass].name..'-portrait.png')
   end
 
@@ -272,6 +273,9 @@ function love.load()
   ascendancyPanel = require 'ui.ascendancypanel'
   ascendancyPanel:init(ascendancyButton, batches)
 
+  -- Ascendancy class picker
+  ascendancyClassPicker = require 'ui.ascendancyclasspicker'
+  ascendancyClassPicker:init()
 
 end
 
@@ -289,6 +293,7 @@ function love.resize(w, h)
 
   -- Regenerate sprite batches
   refillBatches()
+  ascendancyClassPicker:setCenters()
 end
 
 function love.draw()
@@ -357,23 +362,25 @@ function love.draw()
   local center = {x=0,y=0}
   center.x, center.y = ascendancyPanel:getCenter()
   local ascendancyTreeStart = ascendancyTreeOrigins[Node.getAscendancyClassName()]
-  love.graphics.translate(center.x-ascendancyTreeStart.position.x, center.y-ascendancyTreeStart.position.y)
+  if ascendancyTreeStart then
+    love.graphics.translate(center.x-ascendancyTreeStart.position.x, center.y-ascendancyTreeStart.position.y)
 
-  -- Draw ascendancy node connections
-  love.graphics.setColor(inactiveConnector)
-  love.graphics.setLineWidth(3/camera.scale)
-  if ascendancyButton:isActive() then
-    for nid, node in pairs(ascendancyNodes) do
-      node:drawConnections()
+    -- Draw ascendancy node connections
+    love.graphics.setColor(inactiveConnector)
+    love.graphics.setLineWidth(3/camera.scale)
+    if ascendancyButton:isActive() then
+      for nid, node in pairs(ascendancyNodes) do
+        node:drawConnections()
+      end
     end
-  end
-  love.graphics.setLineWidth(1)
-  clearColor()
+    love.graphics.setLineWidth(1)
+    clearColor()
 
-  -- Draw ascendancy nodes
-  if ascendancyButton:isActive() then
-    for nid,node in pairs(ascendancyNodes) do
-      node:immediateDraw()
+    -- Draw ascendancy nodes
+    if ascendancyButton:isActive() then
+      for nid,node in pairs(ascendancyNodes) do
+        node:immediateDraw()
+      end
     end
   end
   love.graphics.pop()
@@ -410,8 +417,8 @@ function love.draw()
     drawClassPickerWindow()
   end
 
-  if ascendancyClassPickerShowing then
-    drawAscendancyClassPickerWindow()
+  if ascendancyClassPicker:isActive() then
+    ascendancyClassPicker:draw()
   end
 end
 
@@ -490,12 +497,30 @@ else
       local dy = y - clickCoords.y
 
       local three = love.window.toPixels(3)
+      -- Make sure it was a click and not a drag
       if math.abs(dx) <= three and math.abs(dy) <= three then
-        if ascendancyButton:click(x, y) then
-        else
-          if ascendancyClassPickerShowing then
-            ascendancyClassPickerClickHandler(x, y, button, isTouch)
+        if ascendancyClassPicker:isActive() then
+          local choice = ascendancyClassPicker:click(x, y)
+          ascendancyClassPicker:toggle()
+          if choice then
+            local buttons = {"Cancel", "OK", escapebutton=1, enterbutton=2}
+            if love.window.showMessageBox('Change Class?', 'Are you sure you want to change class and reset the skill tree?', buttons, 'info', true) == 2 then
+              changeActiveClass(newClass, choice)
+            end
           else
+            newClass = nil
+          end
+        elseif classPickerShowing then
+          local choice = checkClassPickerClicked(x, y)
+          print('class choice: ', Node.Classes[choice].name)
+          if choice then
+            closeStatPanel()
+            newClass = choice
+            ascendancyClassPicker:setOptions(choice)
+            ascendancyClassPicker:activate()
+          end
+        else
+          if not ascendancyButton:click(x, y) then
             local guiItemClicked = checkIfGUIItemClicked(x, y, button, isTouch)
             if not guiItemClicked and not clickCoords.onGUI then
               checkIfNodeClicked(x, y, button, isTouch)
@@ -510,7 +535,9 @@ else
 
   function love.mousemoved(x, y, dx, dy)
     if love.mouse.isDown(1) then
-      if isMouseInGUI(clickCoords.x, clickCoords.y) then
+      if ascendancyClassPicker:isActive() then
+        return nil
+      elseif isMouseInGUI(clickCoords.x, clickCoords.y) then
         if isMouseInStatSection(clickCoords.x, clickCoords.y) then
           statTextLocation:yadj(dy)
         end
@@ -601,29 +628,12 @@ function checkIfGUIItemClicked(mx, my, button, isTouch)
       local x1, y1 = love.window.toPixels(5), love.window.toPixels(5)
       local x2, y2 = x1+love.window.toPixels(w), y1+love.window.toPixels(h)
       if mx >= x1 and mx <= x2 and my >= y1 and my <= y2 then
-        classPickerShowing = not classPickerShowing
-        ascendancyClassPickerShowing = true
-        return true
-      end
-    end
-  end
-
-  -- Check if any of the other class icons are clicked
-  if classPickerShowing then
-    local five = love.window.toPixels(5)
-    local w, h = love.window.toPixels(110), love.window.toPixels(105)
-    local x1, y1 = statPanelLocation.x+w+five, five
-    local x2, y2 = x1+w, y1+h
-    for i, class in ipairs(Node.Classes) do
-      if i ~= activeClass then
-        if mx >= x1 and mx <= x2 and my >= y1 and my <= y2 then
-          local buttons = {"Cancel", "OK", escapebutton=1, enterbutton=2}
-          if love.window.showMessageBox('Change Class?', 'Are you sure you want to change class and reset the skill tree?', buttons, 'info', true) == 2 then
-            changeActiveClass(i)
-            return true
-          end
+        if classPickerShowing then
+          ascendancyClassPicker:activate()
+          newClass = activeClass
         end
-        x1, x2 = x2, x2 + w
+        classPickerShowing = not classPickerShowing
+        return true
       end
     end
   end
@@ -641,6 +651,31 @@ function checkIfGUIItemClicked(mx, my, button, isTouch)
   end
 
   return false
+end
+
+function checkClassPickerClicked(mx, my)
+  local five = love.window.toPixels(5)
+  local w, h = love.window.toPixels(110), love.window.toPixels(105)
+  -- local x1, y1 = statPanelLocation.x+w+five, five
+  local x1, y1 = five, five
+  local x2, y2 = x1+w, y1+h
+
+  -- Check that current portrait was clicked
+  if mx >= x1 and mx <= x2 and my >= y1 and my <= y2 then
+    return activeClass
+  end
+  x1, x2 = x2, x2 + w
+
+  -- Check the rest of the portraits
+  for i, class in ipairs(Node.Classes) do
+    if i ~= activeClass then
+      if mx >= x1 and mx <= x2 and my >= y1 and my <= y2 then
+        classPickerShowing = false
+        return i
+      end
+      x1, x2 = x2, x2 + w
+    end
+  end
 end
 
 function checkIfNodeHovered(x, y)
@@ -687,6 +722,7 @@ function checkIfAscendancyNodeHovered(x, y, button, isTouch)
   local hovered = nil
 
   local ascendancyTreeStart = ascendancyTreeOrigins[Node.getAscendancyClassName()]
+  if ascendancyTreeStart == nil then return nil end
   local center = {}
   center.x, center.y = ascendancyPanel:getCenter()
 
@@ -1289,24 +1325,38 @@ function closeStatPanel()
   end)
 end
 
-function changeActiveClass(sel)
-  closeStatPanel()
-  activeClass = sel
-  ascendancyClass = 1 -- @TODO: This should be part of the class change process later
+function changeActiveClass(class, aclass)
+  -- Don't do anything if not new class
+  if class == activeClass and aclass == ascendancyClass then return false end
+
   addTrail    = {}
   removeTrail = {}
-  startnid = startNodes[activeClass]
-  startNode = nodes[startnid]
-  portrait = love.graphics.newImage('assets/'..Node.Classes[activeClass].name..'-portrait.png')
-  for nid, node in pairs(nodes) do
-    if node.active then
+
+  closeStatPanel()
+  if activeClass ~= class then
+    activeClass = class
+    startnid = startNodes[activeClass]
+    startNode = nodes[startnid]
+    portrait = love.graphics.newImage('assets/'..Node.Classes[activeClass].name..'-portrait.png')
+
+    for nid, node in pairs(nodes) do
+      if node.active then
+        deactivateNode(nid)
+      end
+    end
+
+    nodes[startnid].active = true
+    camera:setPosition(startNode.position.x, startNode.position.y)
+    ascendancyButton:changeStart(startnid)
+  end
+
+  if ascendancyClass ~= aclass then
+    ascendancyClass = aclass
+    for nid, node in pairs(ascendancyNodes) do
       deactivateNode(nid)
     end
   end
-  nodes[startnid].active = true
-  -- camera.x, camera.y = 
-  camera:setPosition(startNode.position.x, startNode.position.y)
-  ascendancyButton:changeStart(startnid)
+
   refillBatches()
 end
 

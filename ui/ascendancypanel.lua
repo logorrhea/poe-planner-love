@@ -17,18 +17,22 @@ end
 function panel:draw()
   local class = Node.Classes[activeClass].ascendancies[ascendancyClass]
   local img = images[class]
-  local x, y = self.button:getPosition()
-  local w, h = img:getDimensions()
+  if img then
+    local x, y = self.button:getPosition()
+    local w, h = img:getDimensions()
 
-  love.graphics.draw(img, x-w/2, y)
+    love.graphics.draw(img, x-w/2, y)
+  end
 end
 
 function panel:getCenter()
   local class = Node.Classes[activeClass].ascendancies[ascendancyClass]
   local img = images[class]
-  local x, y = self.button:getPosition()
-  local w, h = img:getDimensions()
-  return x, y+w/2
+  if img then
+    local x, y = self.button:getPosition()
+    local w, h = img:getDimensions()
+    return x, y+w/2
+  end
 end
 
 --- Return ascendancy options for given or active class
