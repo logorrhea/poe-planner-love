@@ -3,10 +3,10 @@ local scaleFix = 2.5
 -- Local includes
 local OS = love.system.getOS()
 local json   = require 'vendor.dkjson'
-local Timer  = require 'vendor.hump.timer'
 
 
 -- Global includes
+Timer  = require 'vendor.hump.timer'
 lume   = require 'vendor.lume.lume'
 vec = require 'vendor.hump.vector'
 
@@ -62,23 +62,15 @@ characterURL = ''
 
 
 -- le Fonts
-local headerFont = love.graphics.newFont('fonts/fontin-bold-webfont.ttf', 20*love.window.getPixelScale())
+headerFont = love.graphics.newFont('fonts/fontin-bold-webfont.ttf', 20*love.window.getPixelScale())
 headerFont:setFilter('nearest', 'nearest')
-local font = love.graphics.newFont('fonts/fontin-bold-webfont.ttf', 14*love.window.getPixelScale())
+font = love.graphics.newFont('fonts/fontin-bold-webfont.ttf', 14*love.window.getPixelScale())
 font:setFilter('nearest', 'nearest')
 
 -- Stat window images
 local statsShowing = false
 local statsTransitioning = false
-local charStatLabels = love.graphics.newText(headerFont, 'Str:\nInt:\nDex:')
-local charStatText = love.graphics.newText(headerFont, '0\n0\n0')
-local generalStatLabels = love.graphics.newText(font, '')
-local generalStatText = love.graphics.newText(font, '')
 local portrait
-local divider  = love.graphics.newImage('assets/LineConnectorNormal.png')
-local leftIcon = love.graphics.newImage('assets/left.png')
-local keystoneLabels = {}
-local keystoneDescriptions = {}
 
 -- Dialog Window stuff
 local dialogWindowVisible = false
@@ -177,13 +169,6 @@ function love.load()
   end
   times.batches = love.timer.getTime()
 
-  -- Get connection images
-  -- @NOTE: unused; not sure if we should just keep lines or not
-  -- images.straight_connector = {
-  --   active       = love.graphics.newImage('assets/LineConnectorActive.png'),
-  --   intermediate = love.graphics.newImage('assets/LineConnectorIntermediate.png'),
-  --   inactive     = love.graphics.newImage('assets/LineConnectorNormal.png')
-  -- }
 
   spriteQuads = {}
   for name, sizes in pairs(Tree.skillSprites) do
@@ -272,18 +257,41 @@ function love.load()
     sx    = 0.1*love.window.getPixelScale(),
     sy    = 0.1*love.window.getPixelScale(),
     image = love.graphics.newImage('assets/menu.png'),
-    trigger = (function()
+    name = 'Menu Toggle',
+    click = function(t, mx, my)
+      local w, h = t.image:getDimensions()
+      w, h = w*t.sx, h*t.sy
+      local x1, y1 = t.x, t.y
+      local x2, y2 = t.x + w, t.y + h
+      return mx >= x1 and mx <= x2 and my >= y1 and my <= y2
+    end,
+    process = function()
+      statsShowing = true
+      Timer.tween(0.5, statPanelLocation, {x = 0}, 'out-back')
+    end,
+    trigger = function()
         -- Slide in stats board
         statsShowing = true
         -- Timer.tween(0.5, statPanelLocation, {x = 0}, 'in-out-quad')
         Timer.tween(0.5, statPanelLocation, {x = 0}, 'out-back')
-    end)
+    end,
+    isActive = function()
+      return statsShowing == false
+    end,
   }
 
   -- Create class picker
   classPicker = require 'ui.classpicker'
   classPicker:init()
   portrait = classPicker:getPortrait(activeClass)
+
+  -- Create stats panel
+  menu = require 'ui.statpanel'
+  menu:init(portrait)
+
+  -- Create menu toggle
+  menuToggle = require 'ui.menutoggle'
+  menuToggle:init(menu)
 
   -- Create ascendancy button and panel
   ascendancyButton = require 'ui.ascendancybutton'
@@ -299,6 +307,7 @@ function love.load()
   -- Set up click/touch handler layers
   layers[1] = ascendancyClassPicker
   layers[2] = classPicker
+  layers[3] = menuToggle
 
   -- print('tree',       1000*(times.tree - times.start))
   -- print('save',       1000*(times.save - times.tree))
@@ -428,8 +437,8 @@ function love.draw()
   love.graphics.pop()
 
   -- Draw menuToggle.image button in top-left
-  for _, item in pairs(guiButtons) do
-    love.graphics.draw(item.image, item.x, item.y, 0, item.sx, item.sy)
+  if menuToggle:isActive() then
+    menuToggle:draw()
   end
 
   if DEBUG then
@@ -444,9 +453,12 @@ function love.draw()
   end
 
   -- Draw UI
-  if statsShowing then
-    drawStatsPanel()
+  if menu:isActive() then
+    menu:draw(character)
   end
+  -- if statsShowing then
+  --   drawStatsPanel()
+  -- end
 
   if dialogWindowVisible then
     drawDialogWindow()
@@ -553,6 +565,25 @@ else
   end
 
   function love.mousereleased(x, y, button, isTouch)
+    local clickResult = false
+    local i = 1
+    local layer
+    while clickResult == false and i <= #layers do
+      layer = layers[i]
+      if layer:isActive() then
+        clickResult = layer:click(x, y)
+        print(layer.name)
+        if clickResult or layer:isExclusive() then
+          goto endmousereleased
+        end
+      end
+      i = i + 1
+    end
+
+    ::endmousereleased::
+  end
+
+  function love.mmousereleased(x, y, button, isTouch)
     if not isTouch then
       local dx = x - clickCoords.x
       local dy = y - clickCoords.y
@@ -1137,7 +1168,7 @@ function activateNode(nid)
   -- Add node stats to character stats
   local node = nodes[nid]
   parseDescriptions(node, add)
-  updateStatText()
+  menu:updateStatText(character)
   activeNodes = activeNodes + 1
 
   characterURL = Graph.export(activeClass, ascendancyClass, nodes)
@@ -1149,7 +1180,7 @@ function deactivateNode(nid)
   -- Remove node stats from character stats
   local node = nodes[nid]
   parseDescriptions(node, subtract)
-  updateStatText()
+  menu:updateStatText(character)
   activeNodes = activeNodes - 1
 
   characterURL = Graph.export(activeClass, ascendancyClass, nodes)
@@ -1230,55 +1261,6 @@ function subtract(n1, n2)
   return n1-n2
 end
 
-function updateStatText()
-  -- Update base stats
-  charStatText:set(string.format('%i\n%i\n%i', character.str, character.int, character.dex))
-
-  -- Update general stats
-  local _labels = {}
-  local _stats = {}
-  local text
-  for desc, n in pairs(character.stats) do
-    if n > 0 then
-      width, wrapped = font:getWrap(desc, love.window.toPixels(270))
-      for i, text in ipairs(wrapped) do
-        if i == 1 then
-          _labels[#_labels+1] = n
-        else
-          _labels[#_labels+1] = ' '
-        end
-        _stats[#_stats+1] = text
-      end
-    end
-  end
-  generalStatLabels:set(table.concat(_labels, '\n'))
-  generalStatText:set(table.concat(_stats, '\n'))
-  local height = generalStatText:getHeight()
-
-  -- Update Keystone Text
-  local i = 1
-  for nid, descriptions in pairs(character.keystones) do
-    -- Recycle labels if possible
-    local label = keystoneLabels[i] or love.graphics.newText(headerFont, '')
-    local desc = keystoneDescriptions[i] or love.graphics.newText(font, '')
-    label:set(nodes[nid].name)
-    desc:set(table.concat(descriptions, '\n'))
-    keystoneLabels[i] = label
-    keystoneDescriptions[i] = desc
-    height = height + label:getHeight() + desc:getHeight()
-    i = i + 1
-  end
-
-  character.keystoneCount = i-1
-  if i ~= 0 then
-    height = height + headerFont:getHeight()
-  end
-
-  local diff = (winHeight - love.window.toPixels(125)) - height
-  if diff < 0 then
-    statTextLocation.minY = diff
-  end
-end
 
 function closeStatPanel()
   classPicker:deactivate()
@@ -1303,7 +1285,8 @@ function changeActiveClass(class, aclass)
     activeClass = class
     startnid = startNodes[activeClass]
     startNode = nodes[startnid]
-    portrait = love.graphics.newImage('assets/'..Node.Classes[activeClass].name..'-portrait.png')
+    portrait = classPicker:getPortrait(activeClass)
+    menu:updatePortrait(portrait)
 
     for nid, node in pairs(nodes) do
       if node.active then

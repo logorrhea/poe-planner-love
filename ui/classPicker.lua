@@ -1,4 +1,5 @@
 local picker = {}
+picker.name = 'Class Picker'
 
 
 function picker:init()
@@ -55,6 +56,10 @@ end
 
 function picker:isActive()
   return self.state == 'active'
+end
+
+function picker:isExclusive()
+  return true
 end
 
 function picker:toggle()

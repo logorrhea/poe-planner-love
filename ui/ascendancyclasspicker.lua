@@ -57,6 +57,10 @@ function picker:isActive()
   return self.state == 'active'
 end
 
+function picker:isExclusive()
+  return true
+end
+
 function picker:toggle()
   if self.state == 'active' then
     self.state = 'inactive'

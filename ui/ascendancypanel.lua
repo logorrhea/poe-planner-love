@@ -1,6 +1,7 @@
 local lume = require 'vendor.lume.lume'
 local panel = {}
 local images = {}
+panel.name = 'Ascendancy Class Picker'
 
 
 function panel:init(button, batches)
