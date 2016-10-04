@@ -99,13 +99,17 @@ end
 -- Use to determine whether to plan route/refund or activate nodes
 local lastClicked = nil
 
+times = {}
 function love.load()
+  times.start = love.timer.getTime()
+
   circleRadius = 10
 
   -- Get tree data. Will download new version if necessary
   -- Tree = Downloader.getLuaTree()
   -- local data = Downloader.processNodes(Tree)
   Tree = require 'passive-skill-tree'
+  times.tree = love.timer.getTime()
 
   -- Read save file
   local savedNodes = {}
@@ -118,6 +122,7 @@ function love.load()
     end
     portrait = love.graphics.newImage('assets/'..Node.Classes[activeClass].name..'-portrait.png')
   end
+  times.save = love.timer.getTime()
 
   -- Cache node count
   local nodeCount = #Tree.nodes
@@ -125,6 +130,7 @@ function love.load()
   for gid, group in pairs(Tree.groups) do
     groupCount = groupCount + 1
   end
+  times.nodeCount = love.timer.getTime()
 
   -- Generate images
   images = {}
@@ -168,14 +174,15 @@ function love.load()
     end
 
   end
+  times.batches = love.timer.getTime()
 
   -- Get connection images
   -- @NOTE: unused; not sure if we should just keep lines or not
-  images.straight_connector = {
-    active       = love.graphics.newImage('assets/LineConnectorActive.png'),
-    intermediate = love.graphics.newImage('assets/LineConnectorIntermediate.png'),
-    inactive     = love.graphics.newImage('assets/LineConnectorNormal.png')
-  }
+  -- images.straight_connector = {
+  --   active       = love.graphics.newImage('assets/LineConnectorActive.png'),
+  --   intermediate = love.graphics.newImage('assets/LineConnectorIntermediate.png'),
+  --   inactive     = love.graphics.newImage('assets/LineConnectorNormal.png')
+  -- }
 
   spriteQuads = {}
   for name, sizes in pairs(Tree.skillSprites) do
@@ -188,6 +195,7 @@ function love.load()
       spriteQuads[name][title] = love.graphics.newQuad(coords.x, coords.y, coords.w, coords.h, image:getDimensions())
     end
   end
+  times.quads = love.timer.getTime()
 
   -- Create groups
   groups = {}
@@ -225,6 +233,7 @@ function love.load()
 
     nodes[node.id] = node
   end
+  times.nodes = love.timer.getTime()
 
   -- Activate nodes saved in user data
   for _, nid in ipairs(savedNodes) do
@@ -240,6 +249,7 @@ function love.load()
       end
     end
   end
+  times.links = love.timer.getTime()
 
   -- Set better starting position
   startnid = startNodes[activeClass]
@@ -248,9 +258,11 @@ function love.load()
 
   -- Create SpriteBatch for background image
   tiledBackground()
+  times.background = love.timer.getTime()
 
   -- Fill up sprite batches
   refillBatches()
+  times.refill = love.timer.getTime()
 
   -- Show GUI
   guiButtons.menuToggle = {
@@ -276,11 +288,24 @@ function love.load()
   -- Ascendancy class picker
   ascendancyClassPicker = require 'ui.ascendancyclasspicker'
   ascendancyClassPicker:init()
+  times.gui = love.timer.getTime()
 
+
+  -- print('tree',       1000*(times.tree - times.start))
+  -- print('save',       1000*(times.save - times.tree))
+  -- print('nodecount',  1000*(times.nodeCount - times.save))
+  -- print('batches',    1000*(times.batches - times.nodeCount))
+  -- print('quads',      1000*(times.quads - times.batches))
+  -- print('nodes',      1000*(times.nodes - times.quads))
+  -- print('links',      1000*(times.links - times.nodes))
+  -- print('background', 1000*(times.background - times.links))
+  -- print('refill',     1000*(times.refill - times.background))
+  -- print('gui',        1000*(times.gui - times.refill))
+  -- print('total', 1000*(times.gui - times.start))
 end
 
 function love.update(dt)
-  -- require('vendor.lovebird').update()
+  require('vendor.lovebird').update()
   Timer.update(dt)
 end
 
