@@ -1,9 +1,15 @@
 local scaleFix = 2.5
 
+-- Local includes
 local OS = love.system.getOS()
 local json   = require 'vendor.dkjson'
 local Timer  = require 'vendor.hump.timer'
-local lume   = require 'vendor.lume.lume'
+
+
+-- Global includes
+lume   = require 'vendor.lume.lume'
+vec = require 'vendor.hump.vector'
+
 
 
 require 'downloader'
@@ -68,7 +74,7 @@ local charStatLabels = love.graphics.newText(headerFont, 'Str:\nInt:\nDex:')
 local charStatText = love.graphics.newText(headerFont, '0\n0\n0')
 local generalStatLabels = love.graphics.newText(font, '')
 local generalStatText = love.graphics.newText(font, '')
-local portrait = love.graphics.newImage('assets/'..Node.Classes[activeClass].name..'-portrait.png')
+local portrait
 local divider  = love.graphics.newImage('assets/LineConnectorNormal.png')
 local leftIcon = love.graphics.newImage('assets/left.png')
 local keystoneLabels = {}
@@ -89,15 +95,11 @@ local statTextLocation  = {
   end
 }
 
--- Class picker window stuff
-local portraits = {}
-local classPickerShowing = false
-for _, class in ipairs(Node.Classes) do
-  portraits[#portraits+1] = love.graphics.newImage('assets/'..class.name..'-portrait.png')
-end
-
 -- Use to determine whether to plan route/refund or activate nodes
 local lastClicked = nil
+
+-- Layers for click handling (lower = higher priority)
+local layers = {}
 
 times = {}
 function love.load()
@@ -120,7 +122,6 @@ function love.load()
     if ascendancyClass == 0 then
       ascendancyClass = 1
     end
-    portrait = love.graphics.newImage('assets/'..Node.Classes[activeClass].name..'-portrait.png')
   end
   times.save = love.timer.getTime()
 
@@ -279,6 +280,11 @@ function love.load()
     end)
   }
 
+  -- Create class picker
+  classPicker = require 'ui.classpicker'
+  classPicker:init()
+  portrait = classPicker:getPortrait(activeClass)
+
   -- Create ascendancy button and panel
   ascendancyButton = require 'ui.ascendancybutton'
   ascendancyButton:init(Tree, startnid)
@@ -290,6 +296,9 @@ function love.load()
   ascendancyClassPicker:init()
   times.gui = love.timer.getTime()
 
+  -- Set up click/touch handler layers
+  layers[1] = ascendancyClassPicker
+  layers[2] = classPicker
 
   -- print('tree',       1000*(times.tree - times.start))
   -- print('save',       1000*(times.save - times.tree))
@@ -318,7 +327,12 @@ function love.resize(w, h)
 
   -- Regenerate sprite batches
   refillBatches()
+
+  -- Reset centers on class picker
   ascendancyClassPicker:setCenters()
+  classPicker:setCenters()
+
+  print(w, h)
 end
 
 function love.draw()
@@ -438,8 +452,9 @@ function love.draw()
     drawDialogWindow()
   end
 
-  if classPickerShowing then
-    drawClassPickerWindow()
+  if classPicker:isActive() then
+    classPicker:draw()
+    -- drawClassPickerWindow()
   end
 
   if ascendancyClassPicker:isActive() then
@@ -473,8 +488,8 @@ if OS == 'iOS' then
           else
             newClass = nil
           end
-        elseif classPickerShowing then
-          local choice = checkClassPickerClicked(x, y)
+        elseif classPicker:isActive() then
+          local choice = classPicker:click(x, y)
           print('class choice: ', Node.Classes[choice].name)
           if choice then
             closeStatPanel()
@@ -556,11 +571,11 @@ else
           else
             newClass = nil
           end
-        elseif classPickerShowing then
-          local choice = checkClassPickerClicked(x, y)
-          print('class choice: ', Node.Classes[choice].name)
+        elseif classPicker:isActive() then
+          local choice = classPicker:click(x, y)
+          classPicker:toggle()
           if choice then
-            closeStatPanel()
+            print(choice)
             newClass = choice
             ascendancyClassPicker:setOptions(choice)
             ascendancyClassPicker:activate()
@@ -674,11 +689,12 @@ function checkIfGUIItemClicked(mx, my, button, isTouch)
       local x1, y1 = love.window.toPixels(5), love.window.toPixels(5)
       local x2, y2 = x1+love.window.toPixels(w), y1+love.window.toPixels(h)
       if mx >= x1 and mx <= x2 and my >= y1 and my <= y2 then
-        if classPickerShowing then
+        if classPicker:isActive() then
           ascendancyClassPicker:activate()
           newClass = activeClass
         end
-        classPickerShowing = not classPickerShowing
+        closeStatPanel()
+        classPicker:toggle()
         return true
       end
     end
@@ -697,31 +713,6 @@ function checkIfGUIItemClicked(mx, my, button, isTouch)
   end
 
   return false
-end
-
-function checkClassPickerClicked(mx, my)
-  local five = love.window.toPixels(5)
-  local w, h = love.window.toPixels(110), love.window.toPixels(105)
-  -- local x1, y1 = statPanelLocation.x+w+five, five
-  local x1, y1 = five, five
-  local x2, y2 = x1+w, y1+h
-
-  -- Check that current portrait was clicked
-  if mx >= x1 and mx <= x2 and my >= y1 and my <= y2 then
-    return activeClass
-  end
-  x1, x2 = x2, x2 + w
-
-  -- Check the rest of the portraits
-  for i, class in ipairs(Node.Classes) do
-    if i ~= activeClass then
-      if mx >= x1 and mx <= x2 and my >= y1 and my <= y2 then
-        classPickerShowing = false
-        return i
-      end
-      x1, x2 = x2, x2 + w
-    end
-  end
 end
 
 function checkIfNodeHovered(x, y)
@@ -1139,77 +1130,6 @@ function drawClassPickerWindow()
   end
 end
 
-function drawAscendancyClassPickerWindow()
-  local options = {}
-  for i, aclass in ipairs(Node.Classes[activeClass].ascendancies) do
-    options[#options+1] = ascendancyPanel:getAscendancyBackground(aclass)
-  end
-
-  local theta = math.pi/6
-  local iw, ih = options[1]:getDimensions()
-  local limit = math.min(winWidth, winHeight)
-  local r = limit/5
-  local w = 2*r
-  local scale = w/iw
-
-  local xadj = r + r/6
-  local yadj = math.tan(theta) * xadj
-
-  local center = vec(winWidth/2, winHeight/2)
-  local c1 = center + vec(-xadj, -yadj)
-  local c2 = center + vec(xadj, -yadj)
-  local hyp  = lume.distance(center.x, center.y, c1.x, c1.y)
-  local c3 = center + vec(0, hyp)
-
-  love.graphics.draw(options[1], c1.x, c1.y, 0, scale, scale, iw/2, ih/2)
-  love.graphics.draw(options[2], c2.x, c2.y, 0, scale, scale, iw/2, ih/2)
-  love.graphics.draw(options[3], c3.x, c3.y, 0, scale, scale, iw/2, ih/2)
-end
-
-function ascendancyClassPickerClickHandler(x, y)
-  local options = {}
-  for i, aclass in ipairs(Node.Classes[activeClass].ascendancies) do
-    options[#options+1] = ascendancyPanel:getAscendancyBackground(aclass)
-  end
-
-  local theta = math.pi/6
-  local iw, ih = options[1]:getDimensions()
-  local limit = math.min(winWidth, winHeight)
-  local r = limit/5
-  local w = 2*r
-  local scale = w/iw
-
-  local xadj = r + r/6
-  local yadj = math.tan(theta) * xadj
-
-  local center = vec(winWidth/2, winHeight/2)
-  local c1 = center + vec(-xadj, -yadj)
-  local c2 = center + vec(xadj, -yadj)
-  local hyp  = lume.distance(center.x, center.y, c1.x, c1.y)
-  local c3 = center + vec(0, hyp)
-
-  local choice = nil
-
-  local dx, dy = c1.x - x, c1.y - y
-  if dx*dx + dy*dy <= r*r then
-    choice = 1
-  end
-
-  dx, dy = c2.x - x, c2.y - y
-  if dx*dx + dy*dy <= r*r then
-    choice = 2
-  end
-
-  dx, dy = c3.x - x, c3.y - y
-  if dx*dx + dy*dy <= r*r then
-    choice = 3
-  end
-
-  if choice ~= nil then
-    print(choice)
-  end
-  return choice
-end
 
 function activateNode(nid)
   nodes[nid].active = true
@@ -1361,7 +1281,7 @@ function updateStatText()
 end
 
 function closeStatPanel()
-  classPickerShowing = false
+  classPicker:deactivate()
   statsTransitioning = true
   -- Timer.tween(0.5, statPanelLocation, {x = -love.window.toPixels(300)}, 'in-out-quad')
   Timer.tween(0.5, statPanelLocation, {x = -love.window.toPixels(300)}, 'in-back')

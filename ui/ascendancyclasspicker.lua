@@ -1,7 +1,3 @@
-local lume = require 'vendor.lume.lume'
-local vec = require 'vendor.hump.vector'
-
-
 local picker = {}
 local imageWidth, imageHeight
 

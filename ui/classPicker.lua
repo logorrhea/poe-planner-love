@@ -1,36 +1,91 @@
-local classes = {
-  'scion',
-  'marauder',
-  'ranger',
-  'witch',
-  'duelist',
-  'templar',
-  'shadow',
-}
-local totalHeight = #classes * 110
-local layout = {
-  id    = 'statPicker',
-  flow  = 'x',
-  width = (#classes * 110),
-  height = 105,
-  top   = 300,
-  left  = 300,
-  background = {255, 255, 255},
-  -- {
-  --   id = 'scion',
-  --   width = 110,
-  --   height = 105,
-  --   icon = 'assets/scion-portrait.png',
-  -- }
-}
+local picker = {}
 
-for _, class in ipairs(classes) do
-  layout[#layout+1] = {
-    id     = class,
-    width  = 110,
-    height = 105,
-    icon   = 'assets/'..class..'-portrait.png',
-  }
+
+function picker:init()
+  self.state = 'inactive'
+  self:setOptions()
+  self:setCenters()
 end
 
-return layout
+function picker:draw()
+  local imageWidth, imageHeight = self.options[1]:getDimensions()
+  for i, c in ipairs(self.centers) do
+    if self.options[i] then
+      love.graphics.draw(self.options[i], c.x, c.y, 0, self.scale, self.scale, imageWidth/2, imageHeight/2)
+    end
+  end
+end
+
+function picker:setOptions()
+  self.options = {}
+  for i, class in ipairs(Node.Classes) do
+    self.options[#self.options+1] = love.graphics.newImage('assets/'..class.name..'-portrait.png')
+  end
+end
+
+function picker:setCenters()
+  self.centers = {}
+  local winWidth, winHeight, _ = love.window.getMode()
+
+  local theta = math.pi/6
+  local limit = winWidth
+  local imageWidth, imageHeight = self.options[1]:getDimensions()
+  local minR = imageWidth*1.15
+  local maxR = 2*minR
+
+  local limit = math.min(winWidth, winHeight)
+  local r = lume.clamp((limit-imageWidth)/2, minR, maxR)
+
+  local center = vec(winWidth/2, winHeight/2)
+  local x = r*math.cos(theta)
+  local y = r*math.sin(theta)
+
+  self.centers[1] = center
+  self.centers[2] = center + vec(-x, y)
+  self.centers[3] = center + vec(x, y)
+  self.centers[4] = center + vec(0, -r)
+  self.centers[5] = center + vec(0, r)
+  self.centers[6] = center + vec(-x, -y)
+  self.centers[7] = center + vec(x, -y)
+end
+
+function picker:getPortrait(class)
+  return self.options[class]
+end
+
+function picker:isActive()
+  return self.state == 'active'
+end
+
+function picker:toggle()
+  if self.state == 'active' then
+    self.state = 'inactive'
+  else
+    self.state = 'active'
+  end
+end
+
+function picker:activate()
+  self.state = 'active'
+end
+
+function picker:deactivate()
+  self.state = 'inactive'
+end
+
+function picker:click(x, y)
+  local w, h = self.options[1]:getDimensions()
+
+  for i, c in ipairs(self.centers) do
+    local minx, miny = c.x - w/2, c.y - h/2
+    local maxx, maxy = c.x + w/2, c.y + h/2
+    if x < maxx and x > minx and y < maxy and y > miny then
+      return i
+    end
+  end
+
+  return nil
+end
+
+
+return picker
