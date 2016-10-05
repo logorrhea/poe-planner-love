@@ -221,6 +221,41 @@ function love.load()
   end
   times.nodes = love.timer.getTime()
 
+  -- Set better starting position
+  startnid = startNodes[activeClass]
+  startNode = nodes[startnid]
+  camera:setPosition(startNode.position.x, startNode.position.y)
+
+  -- Create class picker
+  classPicker = require 'ui.classpicker'
+  classPicker:init()
+  portrait = classPicker:getPortrait(activeClass)
+
+  -- Create stats panel
+  menu = require 'ui.statpanel'
+  menu:init(portrait)
+
+  -- Create menu toggle
+  menuToggle = require 'ui.menutoggle'
+  menuToggle:init(menu)
+
+  -- Create ascendancy button and panel
+  ascendancyButton = require 'ui.ascendancybutton'
+  print(startnid)
+  ascendancyButton:init(Tree, startnid)
+  ascendancyPanel = require 'ui.ascendancypanel'
+  ascendancyPanel:init(ascendancyButton, batches)
+
+  -- Ascendancy class picker
+  ascendancyClassPicker = require 'ui.ascendancyclasspicker'
+  ascendancyClassPicker:init()
+  times.gui = love.timer.getTime()
+
+  -- Set up click/touch handler layers
+  layers[1] = ascendancyClassPicker
+  layers[2] = classPicker
+  layers[3] = menuToggle
+
   -- Activate nodes saved in user data
   for _, nid in ipairs(savedNodes) do
     activateNode(nid)
@@ -236,11 +271,6 @@ function love.load()
     end
   end
   times.links = love.timer.getTime()
-
-  -- Set better starting position
-  startnid = startNodes[activeClass]
-  startNode = nodes[startnid]
-  camera:setPosition(startNode.position.x, startNode.position.y)
 
   -- Create SpriteBatch for background image
   tiledBackground()
@@ -279,35 +309,6 @@ function love.load()
       return statsShowing == false
     end,
   }
-
-  -- Create class picker
-  classPicker = require 'ui.classpicker'
-  classPicker:init()
-  portrait = classPicker:getPortrait(activeClass)
-
-  -- Create stats panel
-  menu = require 'ui.statpanel'
-  menu:init(portrait)
-
-  -- Create menu toggle
-  menuToggle = require 'ui.menutoggle'
-  menuToggle:init(menu)
-
-  -- Create ascendancy button and panel
-  ascendancyButton = require 'ui.ascendancybutton'
-  ascendancyButton:init(Tree, startnid)
-  ascendancyPanel = require 'ui.ascendancypanel'
-  ascendancyPanel:init(ascendancyButton, batches)
-
-  -- Ascendancy class picker
-  ascendancyClassPicker = require 'ui.ascendancyclasspicker'
-  ascendancyClassPicker:init()
-  times.gui = love.timer.getTime()
-
-  -- Set up click/touch handler layers
-  layers[1] = ascendancyClassPicker
-  layers[2] = classPicker
-  layers[3] = menuToggle
 
   -- print('tree',       1000*(times.tree - times.start))
   -- print('save',       1000*(times.save - times.tree))
