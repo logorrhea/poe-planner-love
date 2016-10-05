@@ -9,8 +9,8 @@ end
 
 function picker:setOptions(class)
   self.options = {}
-  class = class or activeClass
-  for i, aclass in ipairs(Node.Classes[class].ascendancies) do
+  self.class = class or activeClass
+  for i, aclass in ipairs(Node.Classes[self.class].ascendancies) do
     self.options[#self.options+1] = ascendancyPanel:getAscendancyBackground(aclass)
   end
 end
@@ -43,14 +43,16 @@ function picker:draw()
 end
 
 function picker:click(x, y)
+  local choice = nil
   for i, c in ipairs(self.centers) do
     local dx, dy = c.x - x, c.y - y
     if dx * dx + dy * dy <= self.r * self.r then
-      return i
+      choice = i
     end
   end
 
-  return nil
+  self:toggle()
+  return choice
 end
 
 function picker:isActive()

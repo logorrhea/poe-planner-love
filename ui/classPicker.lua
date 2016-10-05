@@ -2,8 +2,9 @@ local picker = {}
 picker.name = 'Class Picker'
 
 
-function picker:init()
+function picker:init(target)
   self.state = 'inactive'
+  self.target = target
   self:setOptions()
   self:setCenters()
 end
@@ -80,16 +81,21 @@ end
 
 function picker:click(x, y)
   local w, h = self.options[1]:getDimensions()
+  local choice = nil
 
   for i, c in ipairs(self.centers) do
     local minx, miny = c.x - w/2, c.y - h/2
     local maxx, maxy = c.x + w/2, c.y + h/2
     if x < maxx and x > minx and y < maxy and y > miny then
-      return i
+      self:toggle()
+      self.target:setOptions(i)
+      self.target:toggle()
+      choice = i
     end
   end
 
-  return nil
+  self:toggle()
+  return choice
 end
 
 

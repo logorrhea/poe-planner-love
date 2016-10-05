@@ -1,4 +1,3 @@
-local lume = require 'vendor.lume.lume'
 local button = {
   state = 'inactive',
 }

@@ -226,22 +226,8 @@ function love.load()
   startNode = nodes[startnid]
   camera:setPosition(startNode.position.x, startNode.position.y)
 
-  -- Create class picker
-  classPicker = require 'ui.classpicker'
-  classPicker:init()
-  portrait = classPicker:getPortrait(activeClass)
-
-  -- Create stats panel
-  menu = require 'ui.statpanel'
-  menu:init(portrait)
-
-  -- Create menu toggle
-  menuToggle = require 'ui.menutoggle'
-  menuToggle:init(menu)
-
   -- Create ascendancy button and panel
   ascendancyButton = require 'ui.ascendancybutton'
-  print(startnid)
   ascendancyButton:init(Tree, startnid)
   ascendancyPanel = require 'ui.ascendancypanel'
   ascendancyPanel:init(ascendancyButton, batches)
@@ -251,10 +237,29 @@ function love.load()
   ascendancyClassPicker:init()
   times.gui = love.timer.getTime()
 
+  -- Create class picker
+  classPicker = require 'ui.classpicker'
+  classPicker:init(ascendancyClassPicker)
+  -- portrait = classPicker:getPortrait(activeClass)
+
+  -- Create stats panel
+  menu = require 'ui.statpanel'
+  menu:init()
+
+  -- Create portrait
+  portrait = require 'ui.portrait'
+  portrait:init(classPicker:getPortrait(activeClass), menu, classPicker)
+
+  -- Create menu toggle
+  menuToggle = require 'ui.menutoggle'
+  menuToggle:init(menu)
+
   -- Set up click/touch handler layers
   layers[1] = ascendancyClassPicker
   layers[2] = classPicker
-  layers[3] = menuToggle
+  layers[3] = portrait
+  layers[4] = menu
+  layers[5] = menuToggle
 
   -- Activate nodes saved in user data
   for _, nid in ipairs(savedNodes) do
@@ -456,6 +461,7 @@ function love.draw()
   -- Draw UI
   if menu:isActive() then
     menu:draw(character)
+    portrait:draw()
   end
   -- if statsShowing then
   --   drawStatsPanel()
@@ -573,15 +579,17 @@ else
       layer = layers[i]
       if layer:isActive() then
         clickResult = layer:click(x, y)
-        print(layer.name)
-        if clickResult or layer:isExclusive() then
+        if not clickResult or layer:isExclusive() then
+          print('following goto', layer)
           goto endmousereleased
         end
       end
       i = i + 1
     end
 
+
     ::endmousereleased::
+    print(i)
   end
 
   function love.mmousereleased(x, y, button, isTouch)
@@ -1085,55 +1093,6 @@ end
 
 function dist(v1, v2)
   return math.sqrt((v2.x - v1.x)*(v2.x - v1.x) + (v2.y - v1.y)*(v2.y - v1.y))
-end
-
-function drawStatsPanel()
-  local five = love.window.toPixels(5)
-
-  love.graphics.setColor(1, 1, 1, 240)
-  love.graphics.rectangle('fill', statPanelLocation.x, 0, love.window.toPixels(300), winHeight)
-
-  -- Stat panel outline
-  clearColor()
-  love.graphics.rectangle('line', statPanelLocation.x, 0, love.window.toPixels(300), winHeight)
-
-  -- Draw portrait
-  love.graphics.draw(portrait, statPanelLocation.x+five, five, 0, love.window.getPixelScale(), love.window.getPixelScale())
-
-  -- Character stats
-  love.graphics.draw(charStatLabels, statPanelLocation.x+love.window.toPixels(155), love.window.toPixels(18))
-  love.graphics.draw(charStatText, statPanelLocation.x+love.window.toPixels(155)+charStatLabels:getWidth()*2, love.window.toPixels(18))
-
-  -- Draw divider
-  love.graphics.draw(divider, statPanelLocation.x+5, love.window.toPixels(115), 0, love.window.toPixels(0.394), 1.0)
-
-  -- Set stat panel scissor
-  love.graphics.setScissor(statPanelLocation.x+5, love.window.toPixels(125), love.window.toPixels(285), winHeight-love.window.toPixels(125))
-
-  -- Draw keystone node text
-  local y = statTextLocation.y
-  for i=1,character.keystoneCount do
-    love.graphics.draw(keystoneLabels[i], statPanelLocation.x+five, y)
-    y = y + keystoneLabels[i]:getHeight()
-    love.graphics.draw(keystoneDescriptions[i], statPanelLocation.x+five, y)
-    y = y + keystoneDescriptions[i]:getHeight()
-  end
-
-  if character.keystoneCount > 0 then
-    y = y + headerFont:getHeight()
-  end
-
-  -- Draw general stats
-  love.graphics.draw(generalStatLabels, statPanelLocation.x+five, y)
-  love.graphics.draw(generalStatText, statPanelLocation.x+five+generalStatLabels:getWidth()*1.5, y)
-
-  -- Reset scissor
-  love.graphics.setScissor()
-
-  -- Draw left icon (click to close stats drawer)
-  local w, h = leftIcon:getDimensions()
-  love.graphics.setColor(255, 255, 255, 255)
-  love.graphics.draw(leftIcon, statPanelLocation.x+love.window.toPixels(295)-love.window.toPixels(w), (winHeight-love.window.toPixels(h))/2, 0, love.window.getPixelScale(), love.window.getPixelScale())
 end
 
 function drawDialogWindow()

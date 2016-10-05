@@ -14,7 +14,7 @@ local keystoneLabels = {}
 local keystoneDescriptions = {}
 
 
-function panel:init(portrait)
+function panel:init()
   self.statText = {
     maxY = love.window.toPixels(125),
     minY = love.window.toPixels(125),
@@ -23,17 +23,13 @@ function panel:init(portrait)
       self.y = lume.clamp(self.y+dy, self.minY, self.maxY)
     end
   }
-  self:updatePortrait(portrait)
-end
-
-function panel:updatePortrait(portrait)
-  self.portrait = portrait
+  self.target = target
 end
 
 function panel:toggle()
   if self.status == 'inactive' then
     self:show()
-  elseif status == 'active' then
+  elseif self.status == 'active' then
     self:hide()
   end
 end
@@ -57,7 +53,7 @@ function panel:isTransitioning()
 end
 
 function panel:isActive()
-  return self.status == 'opening' or self.status == 'active'
+  return self.status ~= 'inactive'
 end
 
 function panel:isExclusive()
@@ -75,7 +71,7 @@ function panel:draw(character)
   love.graphics.rectangle('line', self.x, 0, love.window.toPixels(300), winHeight)
 
   -- Draw portrait
-  love.graphics.draw(self.portrait, self.x+five, five, 0, love.window.getPixelScale(), love.window.getPixelScale())
+  -- love.graphics.draw(self.portrait, self.x+five, five, 0, love.window.getPixelScale(), love.window.getPixelScale())
 
   -- Character stats
   love.graphics.draw(charStatLabels, self.x+love.window.toPixels(155), love.window.toPixels(18))
@@ -162,5 +158,9 @@ function panel:updateStatText(character)
     self.statText.minY = diff
   end
 end
+
+function panel:click(mx, my)
+end
+
 
 return panel
