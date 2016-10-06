@@ -687,33 +687,6 @@ else
     end
   end
 
-  function love.mmousemoved(x, y, dx, dy)
-    if love.mouse.isDown(1) then
-      if ascendancyClassPicker:isActive() then
-        return nil
-      elseif isMouseInGUI(clickCoords.x, clickCoords.y) then
-        if isMouseInStatSection(clickCoords.x, clickCoords.y) then
-          statTextLocation:yadj(dy)
-        end
-      else
-      end
-    else
-      local hovered = nil
-      if ascendancyButton:isActive() then
-        hovered = checkIfAscendancyNodeHovered(x, y)
-      end
-      if hovered == nil then
-        hovered = checkIfNodeHovered(x, y)
-      end
-      if hovered == nil then
-        lastClicked = nil
-        addTrail = {}
-        removeTrail = {}
-        dialogWindowVisible = false
-      end
-    end
-  end
-
   function love.wheelmoved(x, y)
     if menu:isActive() and menu:isMouseInStatSection() then
       menu:scrolltext(y*love.window.toPixels(5))
@@ -745,9 +718,13 @@ else
       Graph.export(activeClass, ascendancyClass, nodes)
       love.event.quit()
     elseif scancode == 'pagedown' then
-      statTextLocation:yadj(-love.window.toPixels(125))
+      if menu:isActive() then
+        menu:scrolltext(-love.window.toPixels(125))
+      end
     elseif scancode == 'pageup' then
-      statTextLocation:yadj(love.window.toPixels(125))
+      if menu:isActive() then
+        menu:scrolltext(love.window.toPixels(125))
+      end
     end
   end
 

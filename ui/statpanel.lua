@@ -160,12 +160,15 @@ function panel:updateStatText(character)
 end
 
 function panel:mousepressed(x, y)
-  self.mouseAttached = self:isMouseInStatSection(x, y)
+  self.mouseOnToggle = self:isMouseOverToggleButton(x, y)
+  self.scrolling = self:isMouseInStatSection(x, y) and not self.mouseOnToggle
 end
 
 function panel:mousemoved(x, y, dx, dy)
-  if self.mouseAttached then
+  if self.scrolling then
     self:scrolltext(dy)
+    return true
+  elseif self.mouseOnToggle then
     return true
   else
     return false
@@ -186,14 +189,31 @@ function panel:isMouseInStatSection(x, y)
   return x < love.window.toPixels(300) and y > love.window.toPixels(125)
 end
 
+function panel:isMouseOverToggleButton(x, y)
+  love.graphics.draw(leftIcon, self.x+love.window.toPixels(295)-love.window.toPixels(w), (winHeight-love.window.toPixels(h))/2, 0, love.window.getPixelScale(), love.window.getPixelScale())
+  local w, h = leftIcon:getDimensions()
+  local x2 = love.window.toPixels(300)
+  local x1 = x2 - love.window.toPixels(w)
+  local y1 = (winHeight - love.window.toPixels(h))/2
+  local y2 = (winHeight + love.window.toPixels(h))/2
+
+  return x > x1 and x < x2 and y > y1 and y < y2
+end
+
 function panel:scrolltext(dy)
   self.statText:yadj(dy)
 end
 
 function panel:click(x, y)
-  self.mouseAttached = false
+  -- Check if menu close button was pushed
+  if self.mouseOnToggle and self:isMouseOverToggleButton(x, y) then
+    self:toggle()
+    return true
+  end
+
   -- Need to return t/f for constintency with other GUI elements
   -- Lets the GUI layer processor know whether or not to continue checking elements
+  self.mouseAttached = false
   return self:containsMouse(x, y)
 end
 
