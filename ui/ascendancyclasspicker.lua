@@ -1,7 +1,3 @@
-local lume = require 'vendor.lume.lume'
-local vec = require 'vendor.hump.vector'
-
-
 local picker = {}
 local imageWidth, imageHeight
 
@@ -13,8 +9,8 @@ end
 
 function picker:setOptions(class)
   self.options = {}
-  class = class or activeClass
-  for i, aclass in ipairs(Node.Classes[class].ascendancies) do
+  self.class = class or activeClass
+  for i, aclass in ipairs(Node.Classes[self.class].ascendancies) do
     self.options[#self.options+1] = ascendancyPanel:getAscendancyBackground(aclass)
   end
 end
@@ -47,18 +43,25 @@ function picker:draw()
 end
 
 function picker:click(x, y)
+  local choice = nil
   for i, c in ipairs(self.centers) do
     local dx, dy = c.x - x, c.y - y
     if dx * dx + dy * dy <= self.r * self.r then
-      return i
+      choice = i
+      changeActiveClass(self.class, choice)
     end
   end
 
-  return nil
+  self:toggle()
+  return choice
 end
 
 function picker:isActive()
   return self.state == 'active'
+end
+
+function picker:isExclusive()
+  return true
 end
 
 function picker:toggle()
@@ -72,5 +75,6 @@ end
 function picker:activate()
   self.state = 'active'
 end
+
 
 return picker

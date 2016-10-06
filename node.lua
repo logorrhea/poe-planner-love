@@ -459,4 +459,31 @@ function Node:getSheet()
   return self.active and self.activeSheet or self.inactiveSheet
 end
 
+function Node:click(x, y)
+  -- Return false under a few circumstances
+  if self.isAscendancyStart or self:isStart() then
+    return false
+  end
+
+  -- Check if clicked
+  local offset = self:getOffset()
+  local pos = vec(self.position.x + offset.x, self.position.y + offset.y)
+  local wx, wy = camera:worldToScreenCoords(pos.x, pos.y)
+  local dx, dy = wx - x, wy - y
+  local r = Node.Radii[self.type] * camera.scale
+
+  return dx * dx + dy * dy <= r * r
+end
+
+function Node:getOffset()
+  local offset = vec(0, 0)
+  if self.type > 6 then
+    local ascendancyTreeStart = ascendancyTreeOrigins[Node.getAscendancyClassName()]
+    offset.x, offset.y = ascendancyPanel:getCenter()
+    offset.x = offset.x-ascendancyTreeStart.position.x
+    offset.y = offset.y-ascendancyTreeStart.position.y
+  end
+  return offset
+end
+
 return Node

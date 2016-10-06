@@ -1,4 +1,3 @@
-local lume = require 'vendor.lume.lume'
 local button = {
   state = 'inactive',
 }
@@ -69,6 +68,10 @@ end
 
 function button:getPosition()
   return self.position.x, self.position.y
+end
+
+function button:isExclusive()
+  return false
 end
 
 function calculatePosition(nid)

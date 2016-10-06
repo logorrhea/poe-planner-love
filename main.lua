@@ -1,9 +1,15 @@
 local scaleFix = 2.5
 
+-- Local includes
 local OS = love.system.getOS()
 local json   = require 'vendor.dkjson'
-local Timer  = require 'vendor.hump.timer'
-local lume   = require 'vendor.lume.lume'
+
+
+-- Global includes
+Timer  = require 'vendor.hump.timer'
+lume   = require 'vendor.lume.lume'
+vec = require 'vendor.hump.vector'
+
 
 
 require 'downloader'
@@ -29,7 +35,7 @@ maxActive = 123
 activeNodes = 0
 activeClass = 1
 ascendancyClass = 1
-clickCoords = {x = 0, y = 0, onGUI = false, onStats = false}
+clickCoords = {x = 0, y = 0}
 visibleNodes = {}
 visibleGroups = {}
 startNodes = {}
@@ -56,23 +62,15 @@ characterURL = ''
 
 
 -- le Fonts
-local headerFont = love.graphics.newFont('fonts/fontin-bold-webfont.ttf', 20*love.window.getPixelScale())
+headerFont = love.graphics.newFont('fonts/fontin-bold-webfont.ttf', 20*love.window.getPixelScale())
 headerFont:setFilter('nearest', 'nearest')
-local font = love.graphics.newFont('fonts/fontin-bold-webfont.ttf', 14*love.window.getPixelScale())
+font = love.graphics.newFont('fonts/fontin-bold-webfont.ttf', 14*love.window.getPixelScale())
 font:setFilter('nearest', 'nearest')
 
 -- Stat window images
 local statsShowing = false
 local statsTransitioning = false
-local charStatLabels = love.graphics.newText(headerFont, 'Str:\nInt:\nDex:')
-local charStatText = love.graphics.newText(headerFont, '0\n0\n0')
-local generalStatLabels = love.graphics.newText(font, '')
-local generalStatText = love.graphics.newText(font, '')
-local portrait = love.graphics.newImage('assets/'..Node.Classes[activeClass].name..'-portrait.png')
-local divider  = love.graphics.newImage('assets/LineConnectorNormal.png')
-local leftIcon = love.graphics.newImage('assets/left.png')
-local keystoneLabels = {}
-local keystoneDescriptions = {}
+local portrait
 
 -- Dialog Window stuff
 local dialogWindowVisible = false
@@ -89,15 +87,11 @@ local statTextLocation  = {
   end
 }
 
--- Class picker window stuff
-local portraits = {}
-local classPickerShowing = false
-for _, class in ipairs(Node.Classes) do
-  portraits[#portraits+1] = love.graphics.newImage('assets/'..class.name..'-portrait.png')
-end
-
 -- Use to determine whether to plan route/refund or activate nodes
 local lastClicked = nil
+
+-- Layers for click handling (lower = higher priority)
+local layers = {}
 
 times = {}
 function love.load()
@@ -120,7 +114,6 @@ function love.load()
     if ascendancyClass == 0 then
       ascendancyClass = 1
     end
-    portrait = love.graphics.newImage('assets/'..Node.Classes[activeClass].name..'-portrait.png')
   end
   times.save = love.timer.getTime()
 
@@ -176,13 +169,6 @@ function love.load()
   end
   times.batches = love.timer.getTime()
 
-  -- Get connection images
-  -- @NOTE: unused; not sure if we should just keep lines or not
-  -- images.straight_connector = {
-  --   active       = love.graphics.newImage('assets/LineConnectorActive.png'),
-  --   intermediate = love.graphics.newImage('assets/LineConnectorIntermediate.png'),
-  --   inactive     = love.graphics.newImage('assets/LineConnectorNormal.png')
-  -- }
 
   spriteQuads = {}
   for name, sizes in pairs(Tree.skillSprites) do
@@ -235,6 +221,46 @@ function love.load()
   end
   times.nodes = love.timer.getTime()
 
+  -- Set better starting position
+  startnid = startNodes[activeClass]
+  startNode = nodes[startnid]
+  camera:setPosition(startNode.position.x, startNode.position.y)
+
+  -- Create ascendancy button and panel
+  ascendancyButton = require 'ui.ascendancybutton'
+  ascendancyButton:init(Tree, startnid)
+  ascendancyPanel = require 'ui.ascendancypanel'
+  ascendancyPanel:init(ascendancyButton, batches)
+
+  -- Ascendancy class picker
+  ascendancyClassPicker = require 'ui.ascendancyclasspicker'
+  ascendancyClassPicker:init()
+  times.gui = love.timer.getTime()
+
+  -- Create class picker
+  classPicker = require 'ui.classpicker'
+  classPicker:init(ascendancyClassPicker)
+  -- portrait = classPicker:getPortrait(activeClass)
+
+  -- Create stats panel
+  menu = require 'ui.statpanel'
+  menu:init()
+
+  -- Create portrait
+  portrait = require 'ui.portrait'
+  portrait:init(classPicker:getPortrait(activeClass), menu, classPicker)
+
+  -- Create menu toggle
+  menuToggle = require 'ui.menutoggle'
+  menuToggle:init(menu)
+
+  -- Set up click/touch handler layers
+  layers[1] = ascendancyClassPicker
+  layers[2] = classPicker
+  layers[3] = portrait
+  layers[4] = menu
+  layers[5] = menuToggle
+
   -- Activate nodes saved in user data
   for _, nid in ipairs(savedNodes) do
     activateNode(nid)
@@ -251,11 +277,6 @@ function love.load()
   end
   times.links = love.timer.getTime()
 
-  -- Set better starting position
-  startnid = startNodes[activeClass]
-  startNode = nodes[startnid]
-  camera:setPosition(startNode.position.x, startNode.position.y)
-
   -- Create SpriteBatch for background image
   tiledBackground()
   times.background = love.timer.getTime()
@@ -271,25 +292,28 @@ function love.load()
     sx    = 0.1*love.window.getPixelScale(),
     sy    = 0.1*love.window.getPixelScale(),
     image = love.graphics.newImage('assets/menu.png'),
-    trigger = (function()
+    name = 'Menu Toggle',
+    click = function(t, mx, my)
+      local w, h = t.image:getDimensions()
+      w, h = w*t.sx, h*t.sy
+      local x1, y1 = t.x, t.y
+      local x2, y2 = t.x + w, t.y + h
+      return mx >= x1 and mx <= x2 and my >= y1 and my <= y2
+    end,
+    process = function()
+      statsShowing = true
+      Timer.tween(0.5, statPanelLocation, {x = 0}, 'out-back')
+    end,
+    trigger = function()
         -- Slide in stats board
         statsShowing = true
         -- Timer.tween(0.5, statPanelLocation, {x = 0}, 'in-out-quad')
         Timer.tween(0.5, statPanelLocation, {x = 0}, 'out-back')
-    end)
+    end,
+    isActive = function()
+      return statsShowing == false
+    end,
   }
-
-  -- Create ascendancy button and panel
-  ascendancyButton = require 'ui.ascendancybutton'
-  ascendancyButton:init(Tree, startnid)
-  ascendancyPanel = require 'ui.ascendancypanel'
-  ascendancyPanel:init(ascendancyButton, batches)
-
-  -- Ascendancy class picker
-  ascendancyClassPicker = require 'ui.ascendancyclasspicker'
-  ascendancyClassPicker:init()
-  times.gui = love.timer.getTime()
-
 
   -- print('tree',       1000*(times.tree - times.start))
   -- print('save',       1000*(times.save - times.tree))
@@ -318,7 +342,12 @@ function love.resize(w, h)
 
   -- Regenerate sprite batches
   refillBatches()
+
+  -- Reset centers on class picker
   ascendancyClassPicker:setCenters()
+  classPicker:setCenters()
+
+  print(w, h)
 end
 
 function love.draw()
@@ -414,8 +443,8 @@ function love.draw()
   love.graphics.pop()
 
   -- Draw menuToggle.image button in top-left
-  for _, item in pairs(guiButtons) do
-    love.graphics.draw(item.image, item.x, item.y, 0, item.sx, item.sy)
+  if menuToggle:isActive() then
+    menuToggle:draw()
   end
 
   if DEBUG then
@@ -430,16 +459,17 @@ function love.draw()
   end
 
   -- Draw UI
-  if statsShowing then
-    drawStatsPanel()
+  if menu:isActive() then
+    menu:draw(character)
+    portrait:draw()
   end
 
   if dialogWindowVisible then
     drawDialogWindow()
   end
 
-  if classPickerShowing then
-    drawClassPickerWindow()
+  if classPicker:isActive() then
+    classPicker:draw()
   end
 
   if ascendancyClassPicker:isActive() then
@@ -447,66 +477,60 @@ function love.draw()
   end
 end
 
-if OS == 'iOS' then
+  -- function love.touchpressed(id, x, y, dx, dy, pressure)
+  --   dialogWindowVisible = false
+  --   clickCoords.x, clickCoords.y = x, y
+  --   clickCoords.onGUI = isMouseInGUI(x, y)
+  --   clickCoords.onStats = isMouseInStatSection()
+  -- end
 
-  function love.touchpressed(id, x, y, dx, dy, pressure)
-    dialogWindowVisible = false
-    clickCoords.x, clickCoords.y = x, y
-    clickCoords.onGUI = isMouseInGUI(x, y)
-    clickCoords.onStats = isMouseInStatSection()
-  end
+  -- function love.touchreleased(id, x, y, dx, dy, pressure)
+  --   if not isTouch then
+  --     local dx = x - clickCoords.x
+  --     local dy = y - clickCoords.y
 
-  function love.touchreleased(id, x, y, dx, dy, pressure)
-    if not isTouch then
-      local dx = x - clickCoords.x
-      local dy = y - clickCoords.y
-
-      if math.abs(dx) <= 3 and math.abs(dy) <= 3 then
-        if ascendancyClassPicker:isActive() then
-          local choice = ascendancyClassPicker:click(x, y)
-          ascendancyClassPicker:toggle()
-          if choice then
-            local buttons = {"Cancel", "OK", escapebutton=1, enterbutton=2}
-            if love.window.showMessageBox('Change Class?', 'Are you sure you want to change class and reset the skill tree?', buttons, 'info', true) == 2 then
-              changeActiveClass(newClass, choice)
-            end
-          else
-            newClass = nil
-          end
-        elseif classPickerShowing then
-          local choice = checkClassPickerClicked(x, y)
-          print('class choice: ', Node.Classes[choice].name)
-          if choice then
-            closeStatPanel()
-            newClass = choice
-            ascendancyClassPicker:setOptions(choice)
-            ascendancyClassPicker:activate()
-          end
-        else
-          if not ascendancyButton:click(x, y) then
-            local guiItemClicked = checkIfGUIItemClicked(x, y, button, isTouch)
-            if not guiItemClicked and not clickCoords.onGUI then
-              checkIfNodeClicked(x, y, button, isTouch)
-            end
-          end
-        end
-      end
-    end
-    clickCoords.onGUI = false
-    clickCoords.onStats = false
-  end
+  --     if math.abs(dx) <= 3 and math.abs(dy) <= 3 then
+  --       if ascendancyClassPicker:isActive() then
+  --         local choice = ascendancyClassPicker:click(x, y)
+  --         ascendancyClassPicker:toggle()
+  --         if choice then
+  --           local buttons = {"Cancel", "OK", escapebutton=1, enterbutton=2}
+  --           if love.window.showMessageBox('Change Class?', 'Are you sure you want to change class and reset the skill tree?', buttons, 'info', true) == 2 then
+  --             changeActiveClass(newClass, choice)
+  --           end
+  --         else
+  --           newClass = nil
+  --         end
+  --       elseif classPicker:isActive() then
+  --         local choice = classPicker:click(x, y)
+  --         print('class choice: ', Node.Classes[choice].name)
+  --         if choice then
+  --           closeStatPanel()
+  --           newClass = choice
+  --           ascendancyClassPicker:setOptions(choice)
+  --           ascendancyClassPicker:activate()
+  --         end
+  --       else
+  --         if not ascendancyButton:click(x, y) then
+  --           local guiItemClicked = checkIfGUIItemClicked(x, y, button, isTouch)
+  --           if not guiItemClicked and not clickCoords.onGUI then
+  --             checkIfNodeClicked(x, y, button, isTouch)
+  --           end
+  --         end
+  --       end
+  --     end
+  --   end
+  --   clickCoords.onGUI = false
+  --   clickCoords.onStats = false
+  -- end
 
   function love.touchmoved(id, x, y, dx, dy, pressure)
     dialogWindowVisible = false
     local touches = love.touch.getTouches()
     if #touches == 1 then
-      if isMouseInGUI(clickCoords.x, clickCoords.y) then
-        if isMouseInStatSection(clickCoords.x, clickCoords.y) then
-          statTextLocation:yadj(dy)
-        end
-      else
+      if classPicker:isActive() or ascendancyClassPicker:isActive() then return end
+      if not menu:mousemoved(x, y, dx, dy) then
         camera:setPosition(camera.x - (dx/camera.scale), camera.y - (dy/camera.scale))
-        refillBatches()
       end
     elseif #touches == 2 then
       -- @TODO: handle zooming in and out with multitouch
@@ -527,76 +551,77 @@ if OS == 'iOS' then
     end
   end
 
-  -- Non-iOS event listeners
-else
 
-  function love.mousepressed(x, y, button, isTouch)
-    dialogWindowVisible = false
-    clickCoords.x, clickCoords.y = x, y
-    clickCoords.onGUI = isMouseInGUI(x, y)
-    clickCoords.onStats = isMouseInStatSection()
+function love.mousepressed(x, y, button, isTouch)
+  dialogWindowVisible = false
+  clickCoords.x, clickCoords.y = x, y
+  menu:mousepressed(x, y)
+end
+
+function love.mousereleased(x, y, button, isTouch)
+  local clickResult = false
+  local i = 1
+  local layer
+  while clickResult == false and i <= #layers do
+    layer = layers[i]
+    if layer:isActive() then
+      clickResult = layer:click(x, y)
+      if clickResult or layer:isExclusive() then return end
+    end
+    i = i + 1
   end
 
-  function love.mousereleased(x, y, button, isTouch)
-    if not isTouch then
-      local dx = x - clickCoords.x
-      local dy = y - clickCoords.y
+  -- Try ascendancy tree toggle button
+  if ascendancyButton:click(x, y) then return end
 
-      local three = love.window.toPixels(3)
-      -- Make sure it was a click and not a drag
-      if math.abs(dx) <= three and math.abs(dy) <= three then
-        if ascendancyClassPicker:isActive() then
-          local choice = ascendancyClassPicker:click(x, y)
-          ascendancyClassPicker:toggle()
-          if choice then
-            local buttons = {"Cancel", "OK", escapebutton=1, enterbutton=2}
-            if love.window.showMessageBox('Change Class?', 'Are you sure you want to change class and reset the skill tree?', buttons, 'info', true) == 2 then
-              changeActiveClass(newClass, choice)
-            end
-          else
-            newClass = nil
-          end
-        elseif classPickerShowing then
-          local choice = checkClassPickerClicked(x, y)
-          print('class choice: ', Node.Classes[choice].name)
-          if choice then
-            closeStatPanel()
-            newClass = choice
-            ascendancyClassPicker:setOptions(choice)
-            ascendancyClassPicker:activate()
-          end
-        else
-          if not ascendancyButton:click(x, y) then
-            local guiItemClicked = checkIfGUIItemClicked(x, y, button, isTouch)
-            if not guiItemClicked and not clickCoords.onGUI then
-              checkIfNodeClicked(x, y, button, isTouch)
-            end
-          end
-        end
+  -- Try ascendancy nodes
+  if not clickResult then
+    for nid, node in pairs(ascendancyNodes) do
+      if node:click(x, y) then
+        toggleNodes(nid)
+        return
       end
     end
-    clickCoords.onGUI = false
-    clickCoords.onStats = false
   end
 
-  function love.mousemoved(x, y, dx, dy)
-    if love.mouse.isDown(1) then
-      if ascendancyClassPicker:isActive() then
-        return nil
-      elseif isMouseInGUI(clickCoords.x, clickCoords.y) then
-        if isMouseInStatSection(clickCoords.x, clickCoords.y) then
-          statTextLocation:yadj(dy)
-        end
-      else
-        camera:setPosition(camera.x - (dx/camera.scale), camera.y - (dy/camera.scale))
-        refillBatches()
+  -- Try regular nodes
+  if not clickResult and (not ascendancyButton:isActive() or not ascendancyPanel:containsMouse(x, y)) then
+    for nid, node in pairs(nodes) do
+      if node:click(x, y) then
+        toggleNodes(nid)
+        return
       end
-    else
+    end
+  end
+end
+
+function love.mousemoved(x, y, dx, dy, isTouch)
+  if isTouch then return end
+  -- Bail if either classpicker is active
+  if classPicker:isActive() or ascendancyClassPicker:isActive() then return end
+
+  if love.mouse.isDown(1) then
+    -- Check if we are scrolling stat text
+    if not menu:mousemoved(x, y, dx, dy) then
+      -- Otherwise pan camera
+      camera:setPosition(camera.x - (dx/camera.scale), camera.y - (dy/camera.scale))
+      refillBatches()
+    end
+    return
+  end
+
+  if not isTouch then
+    -- If mouse not down, see if we are hovering over a node
+    local mouseInAscendancyPanel = ascendancyButton:isActive() and ascendancyPanel:containsMouse(x, y)
+    local mouseInMenu = menu:isActive() and menu:containsMouse(x, y)
+    if not mouseInMenu then
       local hovered = nil
       if ascendancyButton:isActive() then
-        hovered = checkIfAscendancyNodeHovered(x, y)
+        if ascendancyButton:isActive() then
+          hovered = checkIfAscendancyNodeHovered(x, y)
+        end
       end
-      if hovered == nil then
+      if hovered == nil and not mouseInAscendancyPanel then
         hovered = checkIfNodeHovered(x, y)
       end
       if hovered == nil then
@@ -607,129 +632,54 @@ else
       end
     end
   end
+end
 
-  function love.wheelmoved(x, y)
-    -- if stat panel showing
-    if statsShowing and isMouseInGUI() then
-      -- and mouse over stat text section, scroll stat text
-      if isMouseInStatSection() then
-        statTextLocation:yadj(y*love.window.toPixels(5))
-      end
-    else
-      -- otherwise, scroll camera
-      if y > 0 then
-        camera:zoomIn()
-      elseif y < 0 then
-        camera:zoomOut()
-      end
-    end
-  end
-
-  function love.keypressed(key, scancode, isRepeat)
-    if key == 'up' then
+function love.wheelmoved(x, y)
+  if menu:isActive() and menu:isMouseInStatSection() then
+    menu:scrolltext(y*love.window.toPixels(5))
+  else
+    if y > 0 then
       camera:zoomIn()
-    elseif key == 'down' then
+    elseif y < 0 then
       camera:zoomOut()
-    elseif key == 'p' then
-      if lastClicked then
-        graphSearchThread = Graph.planShortestRoute(lastClicked)
-      end
-    elseif key == 'f1' then
-      DEBUG = not DEBUG
-    elseif scancode == '[' then
-      if statsShowing then
-        closeStatPanel()
-      else
-        guiButtons.menuToggle.trigger()
-      end
-    elseif key == 'escape' then
-      -- local buttons = {"Cancel", "OK", escapebutton=1, enterbutton=2}
-      -- if love.window.showMessageBox('Close PoE Planner?', '', buttons, 'info', true) == 2 then
-        love.event.quit()
-      -- end
-    elseif scancode == 'pagedown' then
-      statTextLocation:yadj(-love.window.toPixels(125))
-    elseif scancode == 'pageup' then
-      statTextLocation:yadj(love.window.toPixels(125))
-    end
-  end
-
-end
-
-function checkIfGUIItemClicked(mx, my, button, isTouch)
-  if statsShowing then
-
-    -- Check close button clicked
-    local w, h = leftIcon:getDimensions()
-    local x1, y1 = love.window.toPixels(300)-love.window.toPixels(w), (winHeight-love.window.toPixels(h))/2
-    local x2, y2 = x1+love.window.toPixels(w), y1+love.window.toPixels(h)
-    if mx >= x1 and mx <= x2 and my >= y1 and my <= y2 then
-      closeStatPanel()
-      return true
-    end
-
-    -- Check class portrait clicked
-    if not statsTransitioning then
-      local w, h = portrait:getDimensions()
-      local x1, y1 = love.window.toPixels(5), love.window.toPixels(5)
-      local x2, y2 = x1+love.window.toPixels(w), y1+love.window.toPixels(h)
-      if mx >= x1 and mx <= x2 and my >= y1 and my <= y2 then
-        if classPickerShowing then
-          ascendancyClassPicker:activate()
-          newClass = activeClass
-        end
-        classPickerShowing = not classPickerShowing
-        return true
-      end
-    end
-  end
-
-  for name, item in pairs(guiButtons) do
-    local w, h = item.image:getDimensions()
-    w, h = w*item.sx, h*item.sy
-    local x1, y1 = item.x, item.y
-    local x2, y2 = item.x + w, item.y + h
-
-    if mx >= x1 and mx <= x2 and my >= y1 and my <= y2 then
-      item.trigger()
-      return true
-    end
-  end
-
-  return false
-end
-
-function checkClassPickerClicked(mx, my)
-  local five = love.window.toPixels(5)
-  local w, h = love.window.toPixels(110), love.window.toPixels(105)
-  -- local x1, y1 = statPanelLocation.x+w+five, five
-  local x1, y1 = five, five
-  local x2, y2 = x1+w, y1+h
-
-  -- Check that current portrait was clicked
-  if mx >= x1 and mx <= x2 and my >= y1 and my <= y2 then
-    return activeClass
-  end
-  x1, x2 = x2, x2 + w
-
-  -- Check the rest of the portraits
-  for i, class in ipairs(Node.Classes) do
-    if i ~= activeClass then
-      if mx >= x1 and mx <= x2 and my >= y1 and my <= y2 then
-        classPickerShowing = false
-        return i
-      end
-      x1, x2 = x2, x2 + w
     end
   end
 end
+
+function love.keypressed(key, scancode, isRepeat)
+  if key == 'up' then
+    camera:zoomIn()
+  elseif key == 'down' then
+    camera:zoomOut()
+  elseif key == 'p' then
+    if lastClicked then
+      graphSearchThread = Graph.planShortestRoute(lastClicked)
+    end
+  elseif key == 'f1' then
+    DEBUG = not DEBUG
+  elseif scancode == '[' then
+    if not ascendancyClassPicker:isActive() and not classPicker:isActive() and not menu:isTransitioning() then
+      menu:toggle()
+    end
+  elseif key == 'escape' then
+    Graph.export(activeClass, ascendancyClass, nodes)
+    love.event.quit()
+  elseif scancode == 'pagedown' then
+    if menu:isActive() then
+      menu:scrolltext(-love.window.toPixels(125))
+    end
+  elseif scancode == 'pageup' then
+    if menu:isActive() then
+      menu:scrolltext(love.window.toPixels(125))
+    end
+  end
+end
+
 
 function checkIfNodeHovered(x, y)
   local hovered = nil
   for nid, node in pairs(visibleNodes) do
     if not node:isMastery() and not node:isStart() then
-    -- end
-    -- if node.type ~= Node.NT_MASTERY and node.type ~= Node.NT_START then
       local wx, wy = cameraCoords(node.position.x, node.position.y)
       local dx, dy = wx - x, wy - y
       local r = Node.Radii[node.type] * camera.scale
@@ -813,121 +763,6 @@ function checkIfAscendancyNodeHovered(x, y, button, isTouch)
   end
 
   return hovered
-end
-
-function checkIfNodeClicked(x, y, button, isTouch)
-  local clicked = nil
-  if ascendancyButton:isActive() then
-    local ascendancyTreeStart = ascendancyTreeOrigins[Node.getAscendancyClassName()]
-    local offset = {}
-    offset.x, offset.y = ascendancyPanel:getCenter()
-    offset.x = offset.x-ascendancyTreeStart.position.x
-    offset.y = offset.y-ascendancyTreeStart.position.y
-    for nid, node in pairs(ascendancyNodes) do
-      if not node.isAscendancyStart then
-        local pos = {
-          x = node.position.x + offset.x,
-          y = node.position.y + offset.y,
-        }
-        local wx, wy = cameraCoords(pos.x, pos.y)
-        local dx, dy = wx - x, wy - y
-        local r = Node.Radii[node.type] * camera.scale
-        if dx * dx + dy * dy <= r * r then
-          if not node.isAscendancyStart then
-            clicked = node
-            if DEBUG then
-              print('clicked: '..clicked.id)
-            end
-          end
-        end
-      end
-    end
-  end
-  if clicked == nil then
-    for nid, node in pairs(visibleNodes) do
-      local wx, wy = cameraCoords(node.position.x, node.position.y)
-      local dx, dy = wx - x, wy - y
-      local r = Node.Radii[node.type] * camera.scale
-      if dx * dx + dy * dy <= r * r then
-        clicked = node
-        if DEBUG then
-          print('clicked: '..clicked.id)
-        end
-      end
-    end
-  end
-
-  if clicked ~= nil then
-
-    -- For mobile, use two-tap node selection system
-    if OS == 'iOS' then
-      if clicked.id == lastClicked then
-        -- On second click, toggle all nodes in highlighted trail
-        for id,_ in pairs(addTrail) do
-          if not nodes[id].active then
-            activateNode(id)
-          end
-        end
-        addTrail = {}
-        -- Remove all nodes in removeTrail
-        for id,_ in pairs(removeTrail) do
-          deactivateNode(id)
-        end
-        removeTrail = {}
-        refillBatches()
-        lastClicked = nil
-      else
-
-        -- On first click, we should give some preview information:
-        --  Dialog box diplaying information about the clicked node
-        --  Preview a route from closest active node
-        if clicked.active then
-          addTrail = {}
-          removeTrail = Graph.planRefund(nid)
-        else
-          removeTrail = {}
-          addTrail = Graph.planShortestRoute(nid)
-        end
-        showNodeDialog(nid)
-        lastClicked = nid
-      end
-
-      -- For desktop OS, we don't need the double-click behavior
-    else
-      -- Gather nodes for addition or removal
-      if clicked.active then
-        addTrail = {}
-        removeTrail = Graph.planRefund(clicked.id)
-      else
-        removeTrail = {}
-        addTrail = Graph.planShortestRoute(clicked.id)
-      end
-
-      -- Check that addTrail doesn't take us over maxActive
-      for id,_ in pairs(addTrail) do
-        if not nodes[id].active then
-          activateNode(id)
-        end
-      end
-      addTrail = {}
-
-      -- Remove all nodes in removeTrail
-      for id,_ in pairs(removeTrail) do
-        deactivateNode(id)
-      end
-      removeTrail = {}
-      refillBatches()
-      lastClicked = nil
-    end
-    return true
-  end
-
-  -- Not sure which behavior is better?
-  -- Clear trail on empty click, or are they just trying to hide
-  -- the dialog window? Maybe make it an option at some point?
-  -- OR  - maybe the dialog window should have an obvious close button?
-  -- addTrail = {}
-  return false
 end
 
 function clearColor()
@@ -1064,55 +899,6 @@ function dist(v1, v2)
   return math.sqrt((v2.x - v1.x)*(v2.x - v1.x) + (v2.y - v1.y)*(v2.y - v1.y))
 end
 
-function drawStatsPanel()
-  local five = love.window.toPixels(5)
-
-  love.graphics.setColor(1, 1, 1, 240)
-  love.graphics.rectangle('fill', statPanelLocation.x, 0, love.window.toPixels(300), winHeight)
-
-  -- Stat panel outline
-  clearColor()
-  love.graphics.rectangle('line', statPanelLocation.x, 0, love.window.toPixels(300), winHeight)
-
-  -- Draw portrait
-  love.graphics.draw(portrait, statPanelLocation.x+five, five, 0, love.window.getPixelScale(), love.window.getPixelScale())
-
-  -- Character stats
-  love.graphics.draw(charStatLabels, statPanelLocation.x+love.window.toPixels(155), love.window.toPixels(18))
-  love.graphics.draw(charStatText, statPanelLocation.x+love.window.toPixels(155)+charStatLabels:getWidth()*2, love.window.toPixels(18))
-
-  -- Draw divider
-  love.graphics.draw(divider, statPanelLocation.x+5, love.window.toPixels(115), 0, love.window.toPixels(0.394), 1.0)
-
-  -- Set stat panel scissor
-  love.graphics.setScissor(statPanelLocation.x+5, love.window.toPixels(125), love.window.toPixels(285), winHeight-love.window.toPixels(125))
-
-  -- Draw keystone node text
-  local y = statTextLocation.y
-  for i=1,character.keystoneCount do
-    love.graphics.draw(keystoneLabels[i], statPanelLocation.x+five, y)
-    y = y + keystoneLabels[i]:getHeight()
-    love.graphics.draw(keystoneDescriptions[i], statPanelLocation.x+five, y)
-    y = y + keystoneDescriptions[i]:getHeight()
-  end
-
-  if character.keystoneCount > 0 then
-    y = y + headerFont:getHeight()
-  end
-
-  -- Draw general stats
-  love.graphics.draw(generalStatLabels, statPanelLocation.x+five, y)
-  love.graphics.draw(generalStatText, statPanelLocation.x+five+generalStatLabels:getWidth()*1.5, y)
-
-  -- Reset scissor
-  love.graphics.setScissor()
-
-  -- Draw left icon (click to close stats drawer)
-  local w, h = leftIcon:getDimensions()
-  love.graphics.setColor(255, 255, 255, 255)
-  love.graphics.draw(leftIcon, statPanelLocation.x+love.window.toPixels(295)-love.window.toPixels(w), (winHeight-love.window.toPixels(h))/2, 0, love.window.getPixelScale(), love.window.getPixelScale())
-end
-
 function drawDialogWindow()
   local five = love.window.toPixels(5)
 
@@ -1127,97 +913,13 @@ function drawDialogWindow()
   love.graphics.draw(dialogContentText, dialogPosition.x + five, dialogPosition.y + five*4)
 end
 
-function drawClassPickerWindow()
-  local five = love.window.toPixels(5)
-  local w, h = love.window.toPixels(110), love.window.toPixels(105)
-  local x, y = statPanelLocation.x+w+five, five
-  for i, img in ipairs(portraits) do
-    if i ~= activeClass then
-      love.graphics.draw(img, x, y, 0, love.window.getPixelScale(), love.window.getPixelScale())
-      x = x + w
-    end
-  end
-end
-
-function drawAscendancyClassPickerWindow()
-  local options = {}
-  for i, aclass in ipairs(Node.Classes[activeClass].ascendancies) do
-    options[#options+1] = ascendancyPanel:getAscendancyBackground(aclass)
-  end
-
-  local theta = math.pi/6
-  local iw, ih = options[1]:getDimensions()
-  local limit = math.min(winWidth, winHeight)
-  local r = limit/5
-  local w = 2*r
-  local scale = w/iw
-
-  local xadj = r + r/6
-  local yadj = math.tan(theta) * xadj
-
-  local center = vec(winWidth/2, winHeight/2)
-  local c1 = center + vec(-xadj, -yadj)
-  local c2 = center + vec(xadj, -yadj)
-  local hyp  = lume.distance(center.x, center.y, c1.x, c1.y)
-  local c3 = center + vec(0, hyp)
-
-  love.graphics.draw(options[1], c1.x, c1.y, 0, scale, scale, iw/2, ih/2)
-  love.graphics.draw(options[2], c2.x, c2.y, 0, scale, scale, iw/2, ih/2)
-  love.graphics.draw(options[3], c3.x, c3.y, 0, scale, scale, iw/2, ih/2)
-end
-
-function ascendancyClassPickerClickHandler(x, y)
-  local options = {}
-  for i, aclass in ipairs(Node.Classes[activeClass].ascendancies) do
-    options[#options+1] = ascendancyPanel:getAscendancyBackground(aclass)
-  end
-
-  local theta = math.pi/6
-  local iw, ih = options[1]:getDimensions()
-  local limit = math.min(winWidth, winHeight)
-  local r = limit/5
-  local w = 2*r
-  local scale = w/iw
-
-  local xadj = r + r/6
-  local yadj = math.tan(theta) * xadj
-
-  local center = vec(winWidth/2, winHeight/2)
-  local c1 = center + vec(-xadj, -yadj)
-  local c2 = center + vec(xadj, -yadj)
-  local hyp  = lume.distance(center.x, center.y, c1.x, c1.y)
-  local c3 = center + vec(0, hyp)
-
-  local choice = nil
-
-  local dx, dy = c1.x - x, c1.y - y
-  if dx*dx + dy*dy <= r*r then
-    choice = 1
-  end
-
-  dx, dy = c2.x - x, c2.y - y
-  if dx*dx + dy*dy <= r*r then
-    choice = 2
-  end
-
-  dx, dy = c3.x - x, c3.y - y
-  if dx*dx + dy*dy <= r*r then
-    choice = 3
-  end
-
-  if choice ~= nil then
-    print(choice)
-  end
-  return choice
-end
-
 function activateNode(nid)
   nodes[nid].active = true
 
   -- Add node stats to character stats
   local node = nodes[nid]
   parseDescriptions(node, add)
-  updateStatText()
+  menu:updateStatText(character)
   activeNodes = activeNodes + 1
 
   characterURL = Graph.export(activeClass, ascendancyClass, nodes)
@@ -1229,7 +931,7 @@ function deactivateNode(nid)
   -- Remove node stats from character stats
   local node = nodes[nid]
   parseDescriptions(node, subtract)
-  updateStatText()
+  menu:updateStatText(character)
   activeNodes = activeNodes - 1
 
   characterURL = Graph.export(activeClass, ascendancyClass, nodes)
@@ -1307,83 +1009,30 @@ function add(n1, n2)
 end
 
 function subtract(n1, n2)
+  if DEBUG then
+    print('Subtracting '..n1..' from '..n2)
+  end
   return n1-n2
-end
-
-function updateStatText()
-  -- Update base stats
-  charStatText:set(string.format('%i\n%i\n%i', character.str, character.int, character.dex))
-
-  -- Update general stats
-  local _labels = {}
-  local _stats = {}
-  local text
-  for desc, n in pairs(character.stats) do
-    if n > 0 then
-      width, wrapped = font:getWrap(desc, love.window.toPixels(270))
-      for i, text in ipairs(wrapped) do
-        if i == 1 then
-          _labels[#_labels+1] = n
-        else
-          _labels[#_labels+1] = ' '
-        end
-        _stats[#_stats+1] = text
-      end
-    end
-  end
-  generalStatLabels:set(table.concat(_labels, '\n'))
-  generalStatText:set(table.concat(_stats, '\n'))
-  local height = generalStatText:getHeight()
-
-  -- Update Keystone Text
-  local i = 1
-  for nid, descriptions in pairs(character.keystones) do
-    -- Recycle labels if possible
-    local label = keystoneLabels[i] or love.graphics.newText(headerFont, '')
-    local desc = keystoneDescriptions[i] or love.graphics.newText(font, '')
-    label:set(nodes[nid].name)
-    desc:set(table.concat(descriptions, '\n'))
-    keystoneLabels[i] = label
-    keystoneDescriptions[i] = desc
-    height = height + label:getHeight() + desc:getHeight()
-    i = i + 1
-  end
-
-  character.keystoneCount = i-1
-  if i ~= 0 then
-    height = height + headerFont:getHeight()
-  end
-
-  local diff = (winHeight - love.window.toPixels(125)) - height
-  if diff < 0 then
-    statTextLocation.minY = diff
-  end
-end
-
-function closeStatPanel()
-  classPickerShowing = false
-  statsTransitioning = true
-  -- Timer.tween(0.5, statPanelLocation, {x = -love.window.toPixels(300)}, 'in-out-quad')
-  Timer.tween(0.5, statPanelLocation, {x = -love.window.toPixels(300)}, 'in-back')
-  Timer.after(0.5, function()
-                statsTransitioning = false
-                statsShowing = false
-  end)
 end
 
 function changeActiveClass(class, aclass)
   -- Don't do anything if not new class
   if class == activeClass and aclass == ascendancyClass then return false end
 
+  -- Provide confirmation dialog
+  local buttons = {"Cancel", "OK", escapebutton=1, enterbutton=2}
+  if love.window.showMessageBox('Change Class?', 'Are you sure you want to change class and reset the skill tree?', buttons, 'info', true) ~= 2 then return end
+
   addTrail    = {}
   removeTrail = {}
 
-  closeStatPanel()
+  -- Only reset tree if main class changed
   if activeClass ~= class then
     activeClass = class
     startnid = startNodes[activeClass]
     startNode = nodes[startnid]
-    portrait = love.graphics.newImage('assets/'..Node.Classes[activeClass].name..'-portrait.png')
+    portrait = classPicker:getPortrait(activeClass)
+    menu:updatePortrait(portrait)
 
     for nid, node in pairs(nodes) do
       if node.active then
@@ -1396,6 +1045,7 @@ function changeActiveClass(class, aclass)
     ascendancyButton:changeStart(startnid)
   end
 
+  -- Probably don't need this check, but whatever
   if ascendancyClass ~= aclass then
     ascendancyClass = aclass
     for nid, node in pairs(ascendancyNodes) do
@@ -1403,33 +1053,34 @@ function changeActiveClass(class, aclass)
     end
   end
 
+  -- Always refill the batches
   refillBatches()
 end
 
-function isMouseInStatSection(x, y)
-  if x == nil or y == nil then
-    x, y = love.mouse.getPosition()
-  end
-  return x < love.window.toPixels(300) and y > love.window.toPixels(125)
-end
-
-function isMouseInGUI(x, y)
-  if x == nil or y == nil then
-    x, y = love.mouse.getPosition()
-  end
-
-  -- Oversimplified, but should do the job for now
-  if statsShowing then
-    return x < love.window.toPixels(300)
+function toggleNodes(nid)
+  local clicked = nodes[nid]
+  if clicked.active then
+    addTrail = {}
+    removeTrail = Graph.planRefund(clicked.id)
   else
-    if guiButtons.menuToggle then
-      local ten = love.window.toPixels(10)
-      local w,h = guiButtons.menuToggle.image:getDimensions()
-      w = w*guiButtons.menuToggle.sx
-      h = h*guiButtons.menuToggle.sy
-      return x > ten and x < (ten+w) and y > ten and y < (ten+h)
-    else
-      return false
+    removeTrail = {}
+    addTrail = Graph.planShortestRoute(clicked.id)
+  end
+
+  -- Add nodes in addTrail
+  for id,_ in pairs(addTrail) do
+    if not nodes[id].active then
+      activateNode(id)
     end
   end
+  addTrail = {}
+
+  -- Remove all nodes in removeTrail
+  for id,_ in pairs(removeTrail) do
+    deactivateNode(id)
+  end
+  removeTrail = {}
+  refillBatches()
+  lastClicked = nil
 end
+
