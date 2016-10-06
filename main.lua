@@ -463,9 +463,6 @@ function love.draw()
     menu:draw(character)
     portrait:draw()
   end
-  -- if statsShowing then
-  --   drawStatsPanel()
-  -- end
 
   if dialogWindowVisible then
     drawDialogWindow()
@@ -479,8 +476,6 @@ function love.draw()
     ascendancyClassPicker:draw()
   end
 end
-
-if OS == 'iOS' then
 
   -- function love.touchpressed(id, x, y, dx, dy, pressure)
   --   dialogWindowVisible = false
@@ -532,16 +527,12 @@ if OS == 'iOS' then
   function love.touchmoved(id, x, y, dx, dy, pressure)
     dialogWindowVisible = false
     local touches = love.touch.getTouches()
-    -- if #touches == 1 then
-    --   if isMouseInGUI(clickCoords.x, clickCoords.y) then
-    --     if isMouseInStatSection(clickCoords.x, clickCoords.y) then
-    --       statTextLocation:yadj(dy)
-    --     end
-    --   else
-    --     camera:setPosition(camera.x - (dx/camera.scale), camera.y - (dy/camera.scale))
-    --     refillBatches()
-    --   end
-    if #touches == 2 then
+    if #touches == 1 then
+      if classPicker:isActive() or ascendancyClassPicker:isActive() then return end
+      if not menu:mousemoved(x, y, dx, dy) then
+        camera:setPosition(camera.x - (dx/camera.scale), camera.y - (dy/camera.scale))
+      end
+    elseif #touches == 2 then
       -- @TODO: handle zooming in and out with multitouch
       local ox, oy = nil, nil
       for tid, touch in pairs(touches) do
@@ -560,66 +551,66 @@ if OS == 'iOS' then
     end
   end
 
-  -- Non-iOS event listeners
-else
 
-  function love.mousepressed(x, y, button, isTouch)
-    dialogWindowVisible = false
-    clickCoords.x, clickCoords.y = x, y
-    menu:mousepressed(x, y)
+function love.mousepressed(x, y, button, isTouch)
+  dialogWindowVisible = false
+  clickCoords.x, clickCoords.y = x, y
+  menu:mousepressed(x, y)
+end
+
+function love.mousereleased(x, y, button, isTouch)
+  local clickResult = false
+  local i = 1
+  local layer
+  while clickResult == false and i <= #layers do
+    layer = layers[i]
+    if layer:isActive() then
+      clickResult = layer:click(x, y)
+      if clickResult or layer:isExclusive() then return end
+    end
+    i = i + 1
   end
 
-  function love.mousereleased(x, y, button, isTouch)
-    local clickResult = false
-    local i = 1
-    local layer
-    while clickResult == false and i <= #layers do
-      layer = layers[i]
-      if layer:isActive() then
-        clickResult = layer:click(x, y)
-        if clickResult or layer:isExclusive() then return end
-      end
-      i = i + 1
-    end
+  -- Try ascendancy tree toggle button
+  if ascendancyButton:click(x, y) then return end
 
-    -- Try ascendancy tree toggle button
-    if ascendancyButton:click(x, y) then return end
-
-    -- Try ascendancy nodes
-    if not clickResult then
-      for nid, node in pairs(ascendancyNodes) do
-        if node:click(x, y) then
-          toggleNodes(nid)
-          return
-        end
-      end
-    end
-
-    -- Try regular nodes
-    if not clickResult and (not ascendancyButton:isActive() or not ascendancyPanel:containsMouse(x, y)) then
-      for nid, node in pairs(nodes) do
-        if node:click(x, y) then
-          toggleNodes(nid)
-          return
-        end
+  -- Try ascendancy nodes
+  if not clickResult then
+    for nid, node in pairs(ascendancyNodes) do
+      if node:click(x, y) then
+        toggleNodes(nid)
+        return
       end
     end
   end
 
-  function love.mousemoved(x, y, dx, dy)
-    -- Bail if either classpicker is active
-    if classPicker:isActive() or ascendancyClassPicker:isActive() then return end
-
-    if love.mouse.isDown(1) then
-      -- Check if we are scrolling stat text
-      if not menu:mousemoved(x, y, dx, dy) then
-        -- Otherwise pan camera
-        camera:setPosition(camera.x - (dx/camera.scale), camera.y - (dy/camera.scale))
-        refillBatches()
+  -- Try regular nodes
+  if not clickResult and (not ascendancyButton:isActive() or not ascendancyPanel:containsMouse(x, y)) then
+    for nid, node in pairs(nodes) do
+      if node:click(x, y) then
+        toggleNodes(nid)
+        return
       end
-      return
     end
+  end
+end
 
+function love.mousemoved(x, y, dx, dy, isTouch)
+  if isTouch then return end
+  -- Bail if either classpicker is active
+  if classPicker:isActive() or ascendancyClassPicker:isActive() then return end
+
+  if love.mouse.isDown(1) then
+    -- Check if we are scrolling stat text
+    if not menu:mousemoved(x, y, dx, dy) then
+      -- Otherwise pan camera
+      camera:setPosition(camera.x - (dx/camera.scale), camera.y - (dy/camera.scale))
+      refillBatches()
+    end
+    return
+  end
+
+  if not isTouch then
     -- If mouse not down, see if we are hovering over a node
     local mouseInAscendancyPanel = ascendancyButton:isActive() and ascendancyPanel:containsMouse(x, y)
     local mouseInMenu = menu:isActive() and menu:containsMouse(x, y)
@@ -641,48 +632,47 @@ else
       end
     end
   end
+end
 
-  function love.wheelmoved(x, y)
-    if menu:isActive() and menu:isMouseInStatSection() then
-      menu:scrolltext(y*love.window.toPixels(5))
-    else
-      if y > 0 then
-        camera:zoomIn()
-      elseif y < 0 then
-        camera:zoomOut()
-      end
-    end
-  end
-
-  function love.keypressed(key, scancode, isRepeat)
-    if key == 'up' then
+function love.wheelmoved(x, y)
+  if menu:isActive() and menu:isMouseInStatSection() then
+    menu:scrolltext(y*love.window.toPixels(5))
+  else
+    if y > 0 then
       camera:zoomIn()
-    elseif key == 'down' then
+    elseif y < 0 then
       camera:zoomOut()
-    elseif key == 'p' then
-      if lastClicked then
-        graphSearchThread = Graph.planShortestRoute(lastClicked)
-      end
-    elseif key == 'f1' then
-      DEBUG = not DEBUG
-    elseif scancode == '[' then
-      if not ascendancyClassPicker:isActive() and not classPicker:isActive() and not menu:isTransitioning() then
-        menu:toggle()
-      end
-    elseif key == 'escape' then
-      Graph.export(activeClass, ascendancyClass, nodes)
-      love.event.quit()
-    elseif scancode == 'pagedown' then
-      if menu:isActive() then
-        menu:scrolltext(-love.window.toPixels(125))
-      end
-    elseif scancode == 'pageup' then
-      if menu:isActive() then
-        menu:scrolltext(love.window.toPixels(125))
-      end
     end
   end
+end
 
+function love.keypressed(key, scancode, isRepeat)
+  if key == 'up' then
+    camera:zoomIn()
+  elseif key == 'down' then
+    camera:zoomOut()
+  elseif key == 'p' then
+    if lastClicked then
+      graphSearchThread = Graph.planShortestRoute(lastClicked)
+    end
+  elseif key == 'f1' then
+    DEBUG = not DEBUG
+  elseif scancode == '[' then
+    if not ascendancyClassPicker:isActive() and not classPicker:isActive() and not menu:isTransitioning() then
+      menu:toggle()
+    end
+  elseif key == 'escape' then
+    Graph.export(activeClass, ascendancyClass, nodes)
+    love.event.quit()
+  elseif scancode == 'pagedown' then
+    if menu:isActive() then
+      menu:scrolltext(-love.window.toPixels(125))
+    end
+  elseif scancode == 'pageup' then
+    if menu:isActive() then
+      menu:scrolltext(love.window.toPixels(125))
+    end
+  end
 end
 
 
