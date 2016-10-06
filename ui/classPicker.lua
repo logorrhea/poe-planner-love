@@ -87,7 +87,6 @@ function picker:click(x, y)
     local minx, miny = c.x - w/2, c.y - h/2
     local maxx, maxy = c.x + w/2, c.y + h/2
     if x < maxx and x > minx and y < maxy and y > miny then
-      self:toggle()
       self.target:setOptions(i)
       self.target:toggle()
       choice = i

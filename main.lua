@@ -483,66 +483,66 @@ end
 
 if OS == 'iOS' then
 
-  function love.touchpressed(id, x, y, dx, dy, pressure)
-    dialogWindowVisible = false
-    clickCoords.x, clickCoords.y = x, y
-    clickCoords.onGUI = isMouseInGUI(x, y)
-    clickCoords.onStats = isMouseInStatSection()
-  end
+  -- function love.touchpressed(id, x, y, dx, dy, pressure)
+  --   dialogWindowVisible = false
+  --   clickCoords.x, clickCoords.y = x, y
+  --   clickCoords.onGUI = isMouseInGUI(x, y)
+  --   clickCoords.onStats = isMouseInStatSection()
+  -- end
 
-  function love.touchreleased(id, x, y, dx, dy, pressure)
-    if not isTouch then
-      local dx = x - clickCoords.x
-      local dy = y - clickCoords.y
+  -- function love.touchreleased(id, x, y, dx, dy, pressure)
+  --   if not isTouch then
+  --     local dx = x - clickCoords.x
+  --     local dy = y - clickCoords.y
 
-      if math.abs(dx) <= 3 and math.abs(dy) <= 3 then
-        if ascendancyClassPicker:isActive() then
-          local choice = ascendancyClassPicker:click(x, y)
-          ascendancyClassPicker:toggle()
-          if choice then
-            local buttons = {"Cancel", "OK", escapebutton=1, enterbutton=2}
-            if love.window.showMessageBox('Change Class?', 'Are you sure you want to change class and reset the skill tree?', buttons, 'info', true) == 2 then
-              changeActiveClass(newClass, choice)
-            end
-          else
-            newClass = nil
-          end
-        elseif classPicker:isActive() then
-          local choice = classPicker:click(x, y)
-          print('class choice: ', Node.Classes[choice].name)
-          if choice then
-            closeStatPanel()
-            newClass = choice
-            ascendancyClassPicker:setOptions(choice)
-            ascendancyClassPicker:activate()
-          end
-        else
-          if not ascendancyButton:click(x, y) then
-            local guiItemClicked = checkIfGUIItemClicked(x, y, button, isTouch)
-            if not guiItemClicked and not clickCoords.onGUI then
-              checkIfNodeClicked(x, y, button, isTouch)
-            end
-          end
-        end
-      end
-    end
-    clickCoords.onGUI = false
-    clickCoords.onStats = false
-  end
+  --     if math.abs(dx) <= 3 and math.abs(dy) <= 3 then
+  --       if ascendancyClassPicker:isActive() then
+  --         local choice = ascendancyClassPicker:click(x, y)
+  --         ascendancyClassPicker:toggle()
+  --         if choice then
+  --           local buttons = {"Cancel", "OK", escapebutton=1, enterbutton=2}
+  --           if love.window.showMessageBox('Change Class?', 'Are you sure you want to change class and reset the skill tree?', buttons, 'info', true) == 2 then
+  --             changeActiveClass(newClass, choice)
+  --           end
+  --         else
+  --           newClass = nil
+  --         end
+  --       elseif classPicker:isActive() then
+  --         local choice = classPicker:click(x, y)
+  --         print('class choice: ', Node.Classes[choice].name)
+  --         if choice then
+  --           closeStatPanel()
+  --           newClass = choice
+  --           ascendancyClassPicker:setOptions(choice)
+  --           ascendancyClassPicker:activate()
+  --         end
+  --       else
+  --         if not ascendancyButton:click(x, y) then
+  --           local guiItemClicked = checkIfGUIItemClicked(x, y, button, isTouch)
+  --           if not guiItemClicked and not clickCoords.onGUI then
+  --             checkIfNodeClicked(x, y, button, isTouch)
+  --           end
+  --         end
+  --       end
+  --     end
+  --   end
+  --   clickCoords.onGUI = false
+  --   clickCoords.onStats = false
+  -- end
 
   function love.touchmoved(id, x, y, dx, dy, pressure)
     dialogWindowVisible = false
     local touches = love.touch.getTouches()
-    if #touches == 1 then
-      if isMouseInGUI(clickCoords.x, clickCoords.y) then
-        if isMouseInStatSection(clickCoords.x, clickCoords.y) then
-          statTextLocation:yadj(dy)
-        end
-      else
-        camera:setPosition(camera.x - (dx/camera.scale), camera.y - (dy/camera.scale))
-        refillBatches()
-      end
-    elseif #touches == 2 then
+    -- if #touches == 1 then
+    --   if isMouseInGUI(clickCoords.x, clickCoords.y) then
+    --     if isMouseInStatSection(clickCoords.x, clickCoords.y) then
+    --       statTextLocation:yadj(dy)
+    --     end
+    --   else
+    --     camera:setPosition(camera.x - (dx/camera.scale), camera.y - (dy/camera.scale))
+    --     refillBatches()
+    --   end
+    if #touches == 2 then
       -- @TODO: handle zooming in and out with multitouch
       local ox, oy = nil, nil
       for tid, touch in pairs(touches) do
@@ -569,6 +569,7 @@ else
     clickCoords.x, clickCoords.y = x, y
     clickCoords.onGUI = isMouseInGUI(x, y)
     clickCoords.onStats = isMouseInStatSection()
+    menu:mousepressed(x, y)
   end
 
   function love.mousereleased(x, y, button, isTouch)
@@ -579,17 +580,33 @@ else
       layer = layers[i]
       if layer:isActive() then
         clickResult = layer:click(x, y)
-        if not clickResult or layer:isExclusive() then
-          print('following goto', layer)
-          goto endmousereleased
-        end
+        if clickResult or layer:isExclusive() then return end
       end
       i = i + 1
     end
 
+    -- Try ascendancy tree toggle button
+    if ascendancyButton:click(x, y) then return end
 
-    ::endmousereleased::
-    print(i)
+    -- Try ascendancy nodes
+    if not clickResult then
+      for nid, node in pairs(ascendancyNodes) do
+        if node:click(x, y) then
+          toggleNodes(nid)
+          return
+        end
+      end
+    end
+
+    -- Try regular nodes
+    if not clickResult and (not ascendancyButton:isActive() or not ascendancyPanel:containsMouse(x, y)) then
+      for nid, node in pairs(nodes) do
+        if node:click(x, y) then
+          toggleNodes(nid)
+          return
+        end
+      end
+    end
   end
 
   function love.mmousereleased(x, y, button, isTouch)
@@ -635,6 +652,42 @@ else
   end
 
   function love.mousemoved(x, y, dx, dy)
+    -- Bail if either classpicker is active
+    if classPicker:isActive() or ascendancyClassPicker:isActive() then return end
+
+    if love.mouse.isDown(1) then
+      -- Check if we are scrolling stat text
+      if not menu:mousemoved(x, y, dx, dy) then
+        -- Otherwise pan camera
+        camera:setPosition(camera.x - (dx/camera.scale), camera.y - (dy/camera.scale))
+        refillBatches()
+      end
+      return
+    end
+
+    -- If mouse not down, see if we are hovering over a node
+    local mouseInAscendancyPanel = ascendancyButton:isActive() and ascendancyPanel:containsMouse(x, y)
+    local mouseInMenu = menu:isActive() and menu:containsMouse(x, y)
+    if not mouseInMenu then
+      local hovered = nil
+      if ascendancyButton:isActive() then
+        if ascendancyButton:isActive() then
+          hovered = checkIfAscendancyNodeHovered(x, y)
+        end
+      end
+      if hovered == nil and not mouseInAscendancyPanel then
+        hovered = checkIfNodeHovered(x, y)
+      end
+      if hovered == nil then
+        lastClicked = nil
+        addTrail = {}
+        removeTrail = {}
+        dialogWindowVisible = false
+      end
+    end
+  end
+
+  function love.mmousemoved(x, y, dx, dy)
     if love.mouse.isDown(1) then
       if ascendancyClassPicker:isActive() then
         return nil
@@ -643,8 +696,6 @@ else
           statTextLocation:yadj(dy)
         end
       else
-        camera:setPosition(camera.x - (dx/camera.scale), camera.y - (dy/camera.scale))
-        refillBatches()
       end
     else
       local hovered = nil
@@ -664,14 +715,9 @@ else
   end
 
   function love.wheelmoved(x, y)
-    -- if stat panel showing
-    if statsShowing and isMouseInGUI() then
-      -- and mouse over stat text section, scroll stat text
-      if isMouseInStatSection() then
-        statTextLocation:yadj(y*love.window.toPixels(5))
-      end
+    if menu:isActive() and menu:isMouseInStatSection() then
+      menu:scrolltext(y*love.window.toPixels(5))
     else
-      -- otherwise, scroll camera
       if y > 0 then
         camera:zoomIn()
       elseif y < 0 then
@@ -692,16 +738,12 @@ else
     elseif key == 'f1' then
       DEBUG = not DEBUG
     elseif scancode == '[' then
-      if statsShowing then
-        closeStatPanel()
-      else
-        guiButtons.menuToggle.trigger()
+      if not ascendancyClassPicker:isActive() and not classPicker:isActive() and not menu:isTransitioning() then
+        menu:toggle()
       end
     elseif key == 'escape' then
-      -- local buttons = {"Cancel", "OK", escapebutton=1, enterbutton=2}
-      -- if love.window.showMessageBox('Close PoE Planner?', '', buttons, 'info', true) == 2 then
-        love.event.quit()
-      -- end
+      Graph.export(activeClass, ascendancyClass, nodes)
+      love.event.quit()
     elseif scancode == 'pagedown' then
       statTextLocation:yadj(-love.window.toPixels(125))
     elseif scancode == 'pageup' then
@@ -759,8 +801,6 @@ function checkIfNodeHovered(x, y)
   local hovered = nil
   for nid, node in pairs(visibleNodes) do
     if not node:isMastery() and not node:isStart() then
-    -- end
-    -- if node.type ~= Node.NT_MASTERY and node.type ~= Node.NT_START then
       local wx, wy = cameraCoords(node.position.x, node.position.y)
       local dx, dy = wx - x, wy - y
       local r = Node.Radii[node.type] * camera.scale
@@ -1218,6 +1258,9 @@ function add(n1, n2)
 end
 
 function subtract(n1, n2)
+  if DEBUG then
+    print('Subtracting '..n1..' from '..n2)
+  end
   return n1-n2
 end
 
@@ -1237,10 +1280,14 @@ function changeActiveClass(class, aclass)
   -- Don't do anything if not new class
   if class == activeClass and aclass == ascendancyClass then return false end
 
+  -- Provide confirmation dialog
+  local buttons = {"Cancel", "OK", escapebutton=1, enterbutton=2}
+  if love.window.showMessageBox('Change Class?', 'Are you sure you want to change class and reset the skill tree?', buttons, 'info', true) ~= 2 then return end
+
   addTrail    = {}
   removeTrail = {}
 
-  closeStatPanel()
+  -- Only reset tree if main class changed
   if activeClass ~= class then
     activeClass = class
     startnid = startNodes[activeClass]
@@ -1259,6 +1306,7 @@ function changeActiveClass(class, aclass)
     ascendancyButton:changeStart(startnid)
   end
 
+  -- Probably don't need this check, but whatever
   if ascendancyClass ~= aclass then
     ascendancyClass = aclass
     for nid, node in pairs(ascendancyNodes) do
@@ -1266,7 +1314,35 @@ function changeActiveClass(class, aclass)
     end
   end
 
+  -- Always refill the batches
   refillBatches()
+end
+
+function toggleNodes(nid)
+  local clicked = nodes[nid]
+  if clicked.active then
+    addTrail = {}
+    removeTrail = Graph.planRefund(clicked.id)
+  else
+    removeTrail = {}
+    addTrail = Graph.planShortestRoute(clicked.id)
+  end
+
+  -- Add nodes in addTrail
+  for id,_ in pairs(addTrail) do
+    if not nodes[id].active then
+      activateNode(id)
+    end
+  end
+  addTrail = {}
+
+  -- Remove all nodes in removeTrail
+  for id,_ in pairs(removeTrail) do
+    deactivateNode(id)
+  end
+  removeTrail = {}
+  refillBatches()
+  lastClicked = nil
 end
 
 function isMouseInStatSection(x, y)

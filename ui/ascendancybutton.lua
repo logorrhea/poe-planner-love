@@ -70,6 +70,10 @@ function button:getPosition()
   return self.position.x, self.position.y
 end
 
+function button:isExclusive()
+  return false
+end
+
 function calculatePosition(nid)
   local position = nodes[nid].position
   local radius = Node.Radii[Node.NT_START]

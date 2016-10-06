@@ -1,6 +1,7 @@
 local lume = require 'vendor.lume.lume'
 local panel = {}
 local images = {}
+-- local scaleFix = 2.5
 panel.name = 'Ascendancy Class Picker'
 
 
@@ -34,6 +35,16 @@ function panel:getCenter()
     local w, h = img:getDimensions()
     return x, y+w/2
   end
+end
+
+function panel:containsMouse(x, y)
+  local class = Node.Classes[activeClass].ascendancies[ascendancyClass]
+  local w, h = images[class]:getDimensions()
+  local r = (math.max(w, h)/2)*camera.scale
+  local cx, cy = self:getCenter()
+  cx, cy = camera:worldToScreenCoords(cx, cy)
+  local dx, dy = cx - x, cy - y
+  return dx*dx + dy*dy <= r*r
 end
 
 --- Return ascendancy options for given or active class

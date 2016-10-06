@@ -48,6 +48,7 @@ function picker:click(x, y)
     local dx, dy = c.x - x, c.y - y
     if dx * dx + dy * dy <= self.r * self.r then
       choice = i
+      changeActiveClass(self.class, choice)
     end
   end
 
@@ -74,5 +75,6 @@ end
 function picker:activate()
   self.state = 'active'
 end
+
 
 return picker

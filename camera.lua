@@ -46,4 +46,10 @@ function camera:setPosition(x, y)
   self.y = lume.clamp(y, self.minY, self.maxY)
 end
 
+function camera:worldToScreenCoords(x, y)
+  local w,h,_ = love.window.getMode()
+  x, y = x - self.x, y - self.y
+  return x * self.scale + w/2, y * self.scale + h/2
+end
+
 return camera

@@ -159,7 +159,42 @@ function panel:updateStatText(character)
   end
 end
 
-function panel:click(mx, my)
+function panel:mousepressed(x, y)
+  self.mouseAttached = self:isMouseInStatSection(x, y)
+end
+
+function panel:mousemoved(x, y, dx, dy)
+  if self.mouseAttached then
+    self:scrolltext(dy)
+    return true
+  else
+    return false
+  end
+end
+
+function panel:containsMouse(x, y)
+  if x == nil or y == nil then
+    x, y = love.mouse.getPosition()
+  end
+  return x < love.window.toPixels(300)
+end
+
+function panel:isMouseInStatSection(x, y)
+  if x == nil or y == nil then
+    x, y = love.mouse.getPosition()
+  end
+  return x < love.window.toPixels(300) and y > love.window.toPixels(125)
+end
+
+function panel:scrolltext(dy)
+  self.statText:yadj(dy)
+end
+
+function panel:click(x, y)
+  self.mouseAttached = false
+  -- Need to return t/f for constintency with other GUI elements
+  -- Lets the GUI layer processor know whether or not to continue checking elements
+  return self:containsMouse(x, y)
 end
 
 
