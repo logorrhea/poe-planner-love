@@ -3,6 +3,8 @@ local scaleFix = 2.5
 -- Local includes
 local OS = love.system.getOS()
 local json   = require 'vendor.dkjson'
+local Camera = require 'vendor.hump.camera'
+-- local touchy = require 'lib.touchy'
 
 
 -- Global includes
@@ -21,14 +23,11 @@ require 'graph'
 DEBUG = false
 pinches = {nil, nil}
 
-camera = require 'camera'
+-- oldcamera = require 'camera'
+camera = Camera(0, 0, 0.5)
 
--- Store window width and height. Set highdpi
-winWidth, winHeight, flags = love.window.getMode()
-flags.highdpi = true
-love.window.setMode(winWidth, winHeight, flags)
-winWidth = love.window.toPixels(winWidth)
-winHeight = love.window.toPixels(winHeight)
+-- Store window width and height
+winWidth, winHeight = love.graphics.getDimensions()
 scaledWidth, scaledHeight = winWidth/camera.scale, winHeight/camera.scale
 
 maxActive = 123
@@ -48,6 +47,10 @@ ascendancyTreeOrigins = {}
 
 -- Load GUI layout(s)
 local guiButtons = {}
+
+-- track touch data
+local touchIds = {}
+local touches = {}
 
 -- Keep track of character stats
 local character = {
@@ -224,7 +227,7 @@ function love.load()
   -- Set better starting position
   startnid = startNodes[activeClass]
   startNode = nodes[startnid]
-  camera:setPosition(startNode.position.x, startNode.position.y)
+  camera:lookAt(startNode.position.x, startNode.position.y)
 
   -- Create ascendancy button and panel
   ascendancyButton = require 'ui.ascendancybutton'
@@ -240,7 +243,6 @@ function love.load()
   -- Create class picker
   classPicker = require 'ui.classpicker'
   classPicker:init(ascendancyClassPicker)
-  -- portrait = classPicker:getPortrait(activeClass)
 
   -- Create stats panel
   menu = require 'ui.statpanel'
@@ -330,7 +332,11 @@ end
 
 function love.update(dt)
   require('vendor.lovebird').update()
+  -- require('lib.touchy').update(dt)
+  -- touchy.update(dt)
   Timer.update(dt)
+
+  -- touchHandler()
 end
 
 function love.resize(w, h)
@@ -346,8 +352,6 @@ function love.resize(w, h)
   -- Reset centers on class picker
   ascendancyClassPicker:setCenters()
   classPicker:setCenters()
-
-  print(w, h)
 end
 
 function love.draw()
@@ -359,12 +363,14 @@ function love.draw()
   love.graphics.draw(background)
   clearColor()
 
+  camera:attach()
+
   -- Store the translation info, for profit
   local cx, cy = winWidth/(2*camera.scale), winHeight/(2*camera.scale)
-  love.graphics.push()
-  love.graphics.scale(camera.scale)
-  love.graphics.translate(cx, cy)
-  love.graphics.translate(-camera.x, -camera.y)
+  -- love.graphics.push()
+  -- love.graphics.scale(camera.scale)
+  -- love.graphics.translate(cx, cy)
+  -- love.graphics.translate(-camera.x, -camera.y)
 
   -- Draw group backgrounds
   love.graphics.draw(batches['PSGroupBackground1'])
@@ -440,7 +446,8 @@ function love.draw()
   love.graphics.pop()
 
   -- Pop graphics state to draw UI
-  love.graphics.pop()
+  camera:detach()
+  -- love.graphics.pop()
 
   -- Draw menuToggle.image button in top-left
   if menuToggle:isActive() then
@@ -475,6 +482,9 @@ function love.draw()
   if ascendancyClassPicker:isActive() then
     ascendancyClassPicker:draw()
   end
+
+  drawTouches()
+  -- touchy.draw()
 end
 
   -- function love.touchpressed(id, x, y, dx, dy, pressure)
@@ -524,41 +534,68 @@ end
   --   clickCoords.onStats = false
   -- end
 
-  function love.touchmoved(id, x, y, dx, dy, pressure)
-    dialogWindowVisible = false
-    local touches = love.touch.getTouches()
-    if #touches == 1 then
-      if classPicker:isActive() or ascendancyClassPicker:isActive() then return end
-      if not menu:mousemoved(x, y, dx, dy) then
-        camera:setPosition(camera.x - (dx/camera.scale), camera.y - (dy/camera.scale))
+function love.touchmoved(id, x, y, dx, dy, pressure)
+  local touches = love.touch.getTouches()
+  if #touches == 1 then
+    -- camera pan
+  elseif #touches == 2 then
+    -- camera zoom
+    local t = nil
+    for _, tid in ipairs(touches) do
+      if tid ~= id then
+        t = tid
       end
-    elseif #touches == 2 then
-      -- @TODO: handle zooming in and out with multitouch
-      local ox, oy = nil, nil
-      for tid, touch in pairs(touches) do
-        if tid ~= id then
-          ox, oy = love.touch.getPosition(touch)
-        end
-      end
-      local d1 = dist({x=ox, y=oy}, {x=x, y=y})
-      local d2 = dist({x=ox, y=oy}, {x=x+dx, y=y+dy})
-      camera:pinch(d2-d1)
-    elseif #touches == 5 then
-      local buttons = {"Cancel", "OK", escapebutton=1, enterbutton=2}
-      if love.window.showMessageBox('Close PoE Planner?', '', buttons, 'info', true) == 2 then
-        love.event.quit()
+    end
+
+    local ox, oy = love.touch.getPosition(t)
+    local d1 = lume.distance(ox, oy, x, y)
+    local d2 = lume.distance(ox, oy, x+dx, y+dy)
+
+    if d1 ~= d2 then
+      if d2-d1 > 0 then
+        camera:zoom(2)
+      else
+        camera:zoom(0.5)
       end
     end
   end
-
-
-function love.mousepressed(x, y, button, isTouch)
-  dialogWindowVisible = false
-  clickCoords.x, clickCoords.y = x, y
-  menu:mousepressed(x, y)
+  -- touches[id] = {
+  --   x = x,
+  --   y = y,
+  --   dx = dx,
+  --   dy = dy,
+  --   pressure = pressure,
+  -- }
+  -- print(id, dx, dy)
+  -- dialogWindowVisible = false
+  -- local touches = love.touch.getTouches()
+  -- print(#touches)
+  -- if #touches == 1 then
+  --   if classPicker:isActive() or ascendancyClassPicker:isActive() then return end
+  --   if not menu:mousemoved(x, y, dx, dy) then
+  --     camera:setPosition(camera.x - (dx/camera.scale), camera.y - (dy/camera.scale))
+  --   end
+  -- elseif #touches == 2 then
+  -- @TODO: handle zooming in and out with multitouch
+  -- local ox, oy = nil, nil
+  -- for tid, touch in pairs(touches) do
+  --   if tid ~= id then
+  --     ox, oy = love.touch.getPosition(touch)
+  --   end
+  -- end
+  -- local d1 = dist({x=ox, y=oy}, {x=x, y=y})
+  -- local d2 = dist({x=ox, y=oy}, {x=x+dx, y=y+dy})
+  -- camera:pinch(d2-d1)
+  -- elseif #touches == 5 then
+  --   local buttons = {"Cancel", "OK", escapebutton=1, enterbutton=2}
+  --   if love.window.showMessageBox('Close PoE Planner?', '', buttons, 'info', true) == 2 then
+  --     love.event.quit()
+  --   end
+  -- end
 end
 
-function love.mousereleased(x, y, button, isTouch)
+--[[
+function love.touchreleased(id, x, y, dx, dy, pressure)
   local clickResult = false
   local i = 1
   local layer
@@ -575,7 +612,7 @@ function love.mousereleased(x, y, button, isTouch)
   if ascendancyButton:click(x, y) then return end
 
   -- Try ascendancy nodes
-  if not clickResult then
+  if not clickResult and ascendancyButton:isActive() then
     for nid, node in pairs(ascendancyNodes) do
       if node:click(x, y) then
         toggleNodes(nid)
@@ -586,7 +623,62 @@ function love.mousereleased(x, y, button, isTouch)
 
   -- Try regular nodes
   if not clickResult and (not ascendancyButton:isActive() or not ascendancyPanel:containsMouse(x, y)) then
-    for nid, node in pairs(nodes) do
+    for nid, node in pairs(visibleNodes) do
+      if node:click(x, y) then
+        toggleNodes(nid)
+        return
+      end
+    end
+  end
+end
+]]
+
+
+function love.mousepressed(x, y, button, isTouch)
+  -- if isTouch then return end
+  -- if touchy ~= nil then
+  --   if touchy.mousepressed(x, y, button, isTouch) then return end
+  -- end
+
+  dialogWindowVisible = false
+  clickCoords.x, clickCoords.y = x, y
+  menu:mousepressed(x, y)
+end
+
+function love.mousereleased(x, y, button, isTouch)
+  -- if isTouch then return end
+  -- if touchy ~= nil then
+  --   if touchy.mousepressed(x, y, button, isTouch) then return end
+  -- end
+
+  local clickResult = false
+  local i = 1
+  local layer
+  while clickResult == false and i <= #layers do
+    layer = layers[i]
+    if layer:isActive() then
+      clickResult = layer:click(x, y)
+      if clickResult or layer:isExclusive() then return end
+    end
+    i = i + 1
+  end
+
+  -- Try ascendancy tree toggle button
+  if ascendancyButton:click(x, y) then return end
+
+  -- Try ascendancy nodes
+  if not clickResult and ascendancyButton:isActive() then
+    for nid, node in pairs(ascendancyNodes) do
+      if node:click(x, y) then
+        toggleNodes(nid)
+        return
+      end
+    end
+  end
+
+  -- Try regular nodes
+  if not clickResult and (not ascendancyButton:isActive() or not ascendancyPanel:containsMouse(x, y)) then
+    for nid, node in pairs(visibleNodes) do
       if node:click(x, y) then
         toggleNodes(nid)
         return
@@ -596,7 +688,9 @@ function love.mousereleased(x, y, button, isTouch)
 end
 
 function love.mousemoved(x, y, dx, dy, isTouch)
-  if isTouch then return end
+  -- if isTouch then return end
+  -- if love.keyboard.isScancodeDown(touchy.key) then return end
+
   -- Bail if either classpicker is active
   if classPicker:isActive() or ascendancyClassPicker:isActive() then return end
 
@@ -604,7 +698,7 @@ function love.mousemoved(x, y, dx, dy, isTouch)
     -- Check if we are scrolling stat text
     if not menu:mousemoved(x, y, dx, dy) then
       -- Otherwise pan camera
-      camera:setPosition(camera.x - (dx/camera.scale), camera.y - (dy/camera.scale))
+      camera:move(-dx/camera.scale, -dy/camera.scale)
       refillBatches()
     end
     return
@@ -639,18 +733,22 @@ function love.wheelmoved(x, y)
     menu:scrolltext(y*love.window.toPixels(5))
   else
     if y > 0 then
-      camera:zoomIn()
+      camera:zoom(2)
+      refillBatches()
     elseif y < 0 then
-      camera:zoomOut()
+      camera:zoom(0.5)
+      refillBatches()
     end
   end
 end
 
 function love.keypressed(key, scancode, isRepeat)
   if key == 'up' then
-    camera:zoomIn()
+    camera:zoom(2)
+    refillBatches()
   elseif key == 'down' then
-    camera:zoomOut()
+    camera:zoom(0.5)
+    refillBatches()
   elseif key == 'p' then
     if lastClicked then
       graphSearchThread = Graph.planShortestRoute(lastClicked)
@@ -680,7 +778,7 @@ function checkIfNodeHovered(x, y)
   local hovered = nil
   for nid, node in pairs(visibleNodes) do
     if not node:isMastery() and not node:isStart() then
-      local wx, wy = cameraCoords(node.position.x, node.position.y)
+      local wx, wy = camera:cameraCoords(node.position.x, node.position.y)
       local dx, dy = wx - x, wy - y
       local r = Node.Radii[node.type] * camera.scale
       if dx * dx + dy * dy <= r * r then
@@ -731,7 +829,7 @@ function checkIfAscendancyNodeHovered(x, y, button, isTouch)
         x = node.position.x + offset.x,
         y = node.position.y + offset.y,
       }
-      local wx, wy = cameraCoords(pos.x, pos.y)
+      local wx, wy = camera:cameraCoords(pos.x, pos.y)
       local dx, dy = wx - x, wy - y
       local r = Node.Radii[node.type] * camera.scale
       if dx * dx + dy * dy <= r * r then
@@ -792,12 +890,16 @@ function refillBatches()
   end
 
   -- Re-calculate visible nodes
+  local w, h = love.graphics.getDimensions()
+  w, h = w/camera.scale, h/camera.scale
+
   local tx, ty = winWidth/(2*camera.scale)-camera.x, winHeight/(2*camera.scale)-camera.y
+  -- local tx, ty = camera:cameraCoords(winWidth/2, winHeight/2)
   visibleNodes = {}
   visibleGroups = {}
   ascendancyNodes = {}
   for nid, node in pairs(nodes) do
-    if node:isVisible(tx, ty) then
+    if node:isVisible(tx, ty, w, h) then
       visibleNodes[node.id] = node
       if visibleGroups[node.gid] == nil then
         visibleGroups[node.gid] = groups[node.gid]
@@ -852,23 +954,13 @@ function showNodeDialog(nid, x, y)
   -- Get position of node in camera coords, and adjust it so that
   -- the whole window will always fit on the screen
   if x == nil or y == nil then
-    x, y = cameraCoords(node.position.x, node.position.y)
+    x, y = camera:cameraCoords(node.position.x, node.position.y)
   end
   x, y = adjustDialogPosition(x, y, dialogPosition.w, dialogPosition.h, 20)
   dialogPosition.x, dialogPosition.y = x, y
 
   -- Set window to visible
   dialogWindowVisible = true
-end
-
-function screenToWorldCoords(x, y)
-  x, y = (x - winWidth/2) / camera.scale, (y - winHeight/2) / camera.scale
-  return x + camera.x, y + camera.y
-end
-
-function cameraCoords(x, y)
-  x, y = x - camera.x, y - camera.y
-  return x * camera.scale + winWidth/2, y * camera.scale + winHeight/2
 end
 
 function adjustDialogPosition(x, y, w, h, offset)
@@ -1031,8 +1123,7 @@ function changeActiveClass(class, aclass)
     activeClass = class
     startnid = startNodes[activeClass]
     startNode = nodes[startnid]
-    portrait = classPicker:getPortrait(activeClass)
-    menu:updatePortrait(portrait)
+    portrait:updatePortrait(classPicker:getPortrait(activeClass))
 
     for nid, node in pairs(nodes) do
       if node.active then
@@ -1041,7 +1132,7 @@ function changeActiveClass(class, aclass)
     end
 
     nodes[startnid].active = true
-    camera:setPosition(startNode.position.x, startNode.position.y)
+    camera:lookAt(startNode.position.x, startNode.position.y)
     ascendancyButton:changeStart(startnid)
   end
 
@@ -1084,3 +1175,47 @@ function toggleNodes(nid)
   lastClicked = nil
 end
 
+
+function touchHandler()
+  local touches = love.touch.getTouches()
+  if #touches == 2 then
+    local t1 = love.touch.getTouch(touches[1])
+    local t2 = love.touch.getTouch(touches[2])
+
+    local d1 = lume.distance(t1.x, t1.y, t2.x, t2.y)
+    local d2 = lume.distance(t1.x+t1.dx, t1.y+t1.dy, t2.x+t2.dx, t2.y+t2.dy)
+
+    if d1 ~= d2 then
+      if d2-d1 > 0 then
+        camera:zoom(2)
+        refillBatches()
+      else
+        camera:zoom(0.5)
+        refillBatches()
+      end
+      -- camera:pinch(d2-d1)
+    end
+  end
+
+  -- local numTouches = lume.count(touches)
+  -- if numTouches == 2 then
+  --   -- pinch
+  --   local t1 = touches[touchIds[1]]
+  --   local t2 = touches[touchIds[2]]
+
+  --   local d1 = lume.distance(t1.x, t1.y, t2.x, t2.y, true)
+  --   local d2 = lume.distance(t1.x+t1.dx, t1.y+t1.dy, t2.x+t2.dx, t2.y+t2.dy, true)
+  --   print(d1, d2)
+  -- elseif numTouches == 5 then
+  --   -- quit
+  -- end
+end
+
+function drawTouches()
+  for i, id in ipairs(love.touch.getTouches()) do
+    local x, y = love.touch.getPosition(id)
+    love.graphics.setColor(255, 0, 255, 150)
+    love.graphics.circle('fill', x, y, 30)
+    clearColor()
+  end
+end

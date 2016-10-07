@@ -42,7 +42,7 @@ function panel:containsMouse(x, y)
   local w, h = images[class]:getDimensions()
   local r = (math.max(w, h)/2)*camera.scale
   local cx, cy = self:getCenter()
-  cx, cy = camera:worldToScreenCoords(cx, cy)
+  cx, cy = camera:cameraCoords(cx, cy)
   local dx, dy = cx - x, cy - y
   return dx*dx + dy*dy <= r*r
 end

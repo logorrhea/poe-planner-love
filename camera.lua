@@ -7,7 +7,7 @@ local camera = {
   maxScale  = 1.0,
   minScale  = 0.1,
   scaleStep = 0.05,
-  pinchFix  = 100,
+  pinchFix  = 2000,
 
   minX = -2500,
   maxX =  2500,
@@ -49,7 +49,7 @@ end
 function camera:worldToScreenCoords(x, y)
   local w,h,_ = love.window.getMode()
   x, y = x - self.x, y - self.y
-  return x * self.scale + w/2, y * self.scale + h/2
+  return love.window.toPixels(x * self.scale + w/2), love.window.toPixels(y * self.scale + h/2)
 end
 
 return camera

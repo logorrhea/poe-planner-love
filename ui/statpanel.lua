@@ -70,9 +70,6 @@ function panel:draw(character)
   clearColor()
   love.graphics.rectangle('line', self.x, 0, love.window.toPixels(300), winHeight)
 
-  -- Draw portrait
-  -- love.graphics.draw(self.portrait, self.x+five, five, 0, love.window.getPixelScale(), love.window.getPixelScale())
-
   -- Character stats
   love.graphics.draw(charStatLabels, self.x+love.window.toPixels(155), love.window.toPixels(18))
   love.graphics.draw(charStatText, self.x+love.window.toPixels(155)+charStatLabels:getWidth()*2, love.window.toPixels(18))
@@ -165,7 +162,9 @@ function panel:mousepressed(x, y)
 end
 
 function panel:mousemoved(x, y, dx, dy)
-  if self.scrolling then
+  if not self:isActive() then
+    return false
+  elseif self.scrolling then
     self:scrolltext(dy)
     return true
   elseif self.mouseOnToggle then
@@ -179,7 +178,7 @@ function panel:containsMouse(x, y)
   if x == nil or y == nil then
     x, y = love.mouse.getPosition()
   end
-  return x < love.window.toPixels(300)
+  return self:isActive() and x < love.window.toPixels(300)
 end
 
 function panel:isMouseInStatSection(x, y)
