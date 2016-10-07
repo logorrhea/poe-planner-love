@@ -696,6 +696,7 @@ function love.mousereleased(x, y, button, isTouch)
 
   addTrail = {}
   removeTrail = {}
+  lastClicked = nil
 end
 
 function love.mousemoved(x, y, dx, dy, isTouch)
