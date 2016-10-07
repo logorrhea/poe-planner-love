@@ -26,6 +26,7 @@ THE SOFTWARE.
 
 local _PATH = (...):match('^(.*[%./])[^%.%/]+$') or ''
 local cos, sin = math.cos, math.sin
+local lume = require 'lib.lume'
 
 local camera = {}
 camera.__index = camera
@@ -65,7 +66,16 @@ local function new(x,y, zoom, rot, smoother)
 	zoom = zoom or 1
 	rot  = rot or 0
 	smoother = smoother or camera.smooth.none() -- for locking, see below
-	return setmetatable({x = x, y = y, scale = zoom, rot = rot, smoother = smoother}, camera)
+  return setmetatable({
+      x = x,
+      y = y,
+      scale = zoom,
+      rot = rot,
+      smoother = smoother,
+      maxScale = 1,
+      minScale = 0.2,
+      scaleStep = 0.05},
+    camera)
 end
 
 function camera:lookAt(x,y)
@@ -100,6 +110,19 @@ end
 function camera:zoomTo(zoom)
 	self.scale = zoom
 	return self
+end
+
+function camera:zoomIn()
+  local scale = lume.clamp(self.scale + self.scaleStep, self.minScale, self.maxScale)
+  print(scale)
+  self:zoomTo(scale)
+end
+
+function camera:zoomOut()
+  local scale = lume.clamp(self.scale - self.scaleStep, self.minScale, self.maxScale)
+  print(self.scale + self.scaleStep)
+  print(scale)
+  self:zoomTo(scale)
 end
 
 function camera:attach(x,y,w,h, noclip)

@@ -483,8 +483,6 @@ function love.draw()
     ascendancyClassPicker:draw()
   end
 
-  drawTouches()
-  -- touchy.draw()
 end
 
   -- function love.touchpressed(id, x, y, dx, dy, pressure)
@@ -537,7 +535,12 @@ end
 function love.touchmoved(id, x, y, dx, dy, pressure)
   local touches = love.touch.getTouches()
   if #touches == 1 then
-    -- camera pan
+    -- scroll text
+    if not menu:mousemoved(x, y, dx, dy) then
+      -- camera pan
+      camera:move(-dx/camera.scale, -dy/camera.scale)
+      refillBatches()
+    end
   elseif #touches == 2 then
     -- camera zoom
     local t = nil
@@ -553,11 +556,16 @@ function love.touchmoved(id, x, y, dx, dy, pressure)
 
     if d1 ~= d2 then
       if d2-d1 > 0 then
-        camera:zoom(2)
+        camera:zoomIn()
+        refillBatches()
       else
-        camera:zoom(0.5)
+        camera:zoomOut()
+        refillBatches()
       end
     end
+  elseif #touches == 5 then
+    Graph.export(activeClass, ascendancyClass, nodes)
+    love.event.quit()
   end
   -- touches[id] = {
   --   x = x,
@@ -670,7 +678,7 @@ function love.mousereleased(x, y, button, isTouch)
   if not clickResult and ascendancyButton:isActive() then
     for nid, node in pairs(ascendancyNodes) do
       if node:click(x, y) then
-        toggleNodes(nid)
+        toggleNodes(nid, isTouch)
         return
       end
     end
@@ -680,15 +688,18 @@ function love.mousereleased(x, y, button, isTouch)
   if not clickResult and (not ascendancyButton:isActive() or not ascendancyPanel:containsMouse(x, y)) then
     for nid, node in pairs(visibleNodes) do
       if node:click(x, y) then
-        toggleNodes(nid)
+        toggleNodes(nid, isTouch)
         return
       end
     end
   end
+
+  addTrail = {}
+  removeTrail = {}
 end
 
 function love.mousemoved(x, y, dx, dy, isTouch)
-  -- if isTouch then return end
+  if isTouch then return end
   -- if love.keyboard.isScancodeDown(touchy.key) then return end
 
   -- Bail if either classpicker is active
@@ -715,7 +726,7 @@ function love.mousemoved(x, y, dx, dy, isTouch)
           hovered = checkIfAscendancyNodeHovered(x, y)
         end
       end
-      if hovered == nil and not mouseInAscendancyPanel then
+      if hovered == nil and not mouseInAscendancyPanel and not isTouch then
         hovered = checkIfNodeHovered(x, y)
       end
       if hovered == nil then
@@ -733,10 +744,10 @@ function love.wheelmoved(x, y)
     menu:scrolltext(y*love.window.toPixels(5))
   else
     if y > 0 then
-      camera:zoom(2)
+      camera:zoomIn()
       refillBatches()
     elseif y < 0 then
-      camera:zoom(0.5)
+      camera:zoomOut()
       refillBatches()
     end
   end
@@ -744,10 +755,10 @@ end
 
 function love.keypressed(key, scancode, isRepeat)
   if key == 'up' then
-    camera:zoom(2)
+    camera:zoomIn()
     refillBatches()
   elseif key == 'down' then
-    camera:zoom(0.5)
+    camera:zoomOut()
     refillBatches()
   elseif key == 'p' then
     if lastClicked then
@@ -1148,7 +1159,7 @@ function changeActiveClass(class, aclass)
   refillBatches()
 end
 
-function toggleNodes(nid)
+function toggleNodes(nid, isTouch)
   local clicked = nodes[nid]
   if clicked.active then
     addTrail = {}
@@ -1158,64 +1169,24 @@ function toggleNodes(nid)
     addTrail = Graph.planShortestRoute(clicked.id)
   end
 
-  -- Add nodes in addTrail
-  for id,_ in pairs(addTrail) do
-    if not nodes[id].active then
-      activateNode(id)
-    end
-  end
-  addTrail = {}
-
-  -- Remove all nodes in removeTrail
-  for id,_ in pairs(removeTrail) do
-    deactivateNode(id)
-  end
-  removeTrail = {}
-  refillBatches()
-  lastClicked = nil
-end
-
-
-function touchHandler()
-  local touches = love.touch.getTouches()
-  if #touches == 2 then
-    local t1 = love.touch.getTouch(touches[1])
-    local t2 = love.touch.getTouch(touches[2])
-
-    local d1 = lume.distance(t1.x, t1.y, t2.x, t2.y)
-    local d2 = lume.distance(t1.x+t1.dx, t1.y+t1.dy, t2.x+t2.dx, t2.y+t2.dy)
-
-    if d1 ~= d2 then
-      if d2-d1 > 0 then
-        camera:zoom(2)
-        refillBatches()
-      else
-        camera:zoom(0.5)
-        refillBatches()
+  if not isTouch or lastClicked == nid then
+    -- Add nodes in addTrail
+    for id,_ in pairs(addTrail) do
+      if not nodes[id].active then
+        activateNode(id)
       end
-      -- camera:pinch(d2-d1)
     end
-  end
+    addTrail = {}
 
-  -- local numTouches = lume.count(touches)
-  -- if numTouches == 2 then
-  --   -- pinch
-  --   local t1 = touches[touchIds[1]]
-  --   local t2 = touches[touchIds[2]]
-
-  --   local d1 = lume.distance(t1.x, t1.y, t2.x, t2.y, true)
-  --   local d2 = lume.distance(t1.x+t1.dx, t1.y+t1.dy, t2.x+t2.dx, t2.y+t2.dy, true)
-  --   print(d1, d2)
-  -- elseif numTouches == 5 then
-  --   -- quit
-  -- end
-end
-
-function drawTouches()
-  for i, id in ipairs(love.touch.getTouches()) do
-    local x, y = love.touch.getPosition(id)
-    love.graphics.setColor(255, 0, 255, 150)
-    love.graphics.circle('fill', x, y, 30)
-    clearColor()
+    -- Remove all nodes in removeTrail
+    for id,_ in pairs(removeTrail) do
+      deactivateNode(id)
+    end
+    removeTrail = {}
+    refillBatches()
+    lastClicked = nil
+  else
+    lastClicked = nid
+    showNodeDialog(nid)
   end
 end
