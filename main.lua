@@ -2,15 +2,15 @@ local scaleFix = 2.5
 
 -- Local includes
 local OS = love.system.getOS()
-local json   = require 'vendor.dkjson'
-local Camera = require 'vendor.hump.camera'
+local json   = require 'lib.dkjson'
+local Camera = require 'lib.camera'
 -- local touchy = require 'lib.touchy'
 
 
 -- Global includes
-Timer  = require 'vendor.hump.timer'
-lume   = require 'vendor.lume.lume'
-vec = require 'vendor.hump.vector'
+Timer  = require 'lib.timer'
+lume   = require 'lib.lume'
+vec = require 'lib.vector'
 
 
 
@@ -331,7 +331,7 @@ function love.load()
 end
 
 function love.update(dt)
-  require('vendor.lovebird').update()
+  require('lib.lovebird').update()
   -- require('lib.touchy').update(dt)
   -- touchy.update(dt)
   Timer.update(dt)

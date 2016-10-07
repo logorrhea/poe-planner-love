@@ -1,4 +1,4 @@
-local lume = require 'vendor.lume.lume'
+local lume = require 'lib.lume'
 
 local camera = {
   x         = 0,
