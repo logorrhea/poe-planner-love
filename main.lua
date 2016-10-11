@@ -485,53 +485,6 @@ function love.draw()
 
 end
 
-  -- function love.touchpressed(id, x, y, dx, dy, pressure)
-  --   dialogWindowVisible = false
-  --   clickCoords.x, clickCoords.y = x, y
-  --   clickCoords.onGUI = isMouseInGUI(x, y)
-  --   clickCoords.onStats = isMouseInStatSection()
-  -- end
-
-  -- function love.touchreleased(id, x, y, dx, dy, pressure)
-  --   if not isTouch then
-  --     local dx = x - clickCoords.x
-  --     local dy = y - clickCoords.y
-
-  --     if math.abs(dx) <= 3 and math.abs(dy) <= 3 then
-  --       if ascendancyClassPicker:isActive() then
-  --         local choice = ascendancyClassPicker:click(x, y)
-  --         ascendancyClassPicker:toggle()
-  --         if choice then
-  --           local buttons = {"Cancel", "OK", escapebutton=1, enterbutton=2}
-  --           if love.window.showMessageBox('Change Class?', 'Are you sure you want to change class and reset the skill tree?', buttons, 'info', true) == 2 then
-  --             changeActiveClass(newClass, choice)
-  --           end
-  --         else
-  --           newClass = nil
-  --         end
-  --       elseif classPicker:isActive() then
-  --         local choice = classPicker:click(x, y)
-  --         print('class choice: ', Node.Classes[choice].name)
-  --         if choice then
-  --           closeStatPanel()
-  --           newClass = choice
-  --           ascendancyClassPicker:setOptions(choice)
-  --           ascendancyClassPicker:activate()
-  --         end
-  --       else
-  --         if not ascendancyButton:click(x, y) then
-  --           local guiItemClicked = checkIfGUIItemClicked(x, y, button, isTouch)
-  --           if not guiItemClicked and not clickCoords.onGUI then
-  --             checkIfNodeClicked(x, y, button, isTouch)
-  --           end
-  --         end
-  --       end
-  --     end
-  --   end
-  --   clickCoords.onGUI = false
-  --   clickCoords.onStats = false
-  -- end
-
 function love.touchmoved(id, x, y, dx, dy, pressure)
   local touches = love.touch.getTouches()
   if #touches == 1 then
@@ -567,80 +520,7 @@ function love.touchmoved(id, x, y, dx, dy, pressure)
     Graph.export(activeClass, ascendancyClass, nodes)
     love.event.quit()
   end
-  -- touches[id] = {
-  --   x = x,
-  --   y = y,
-  --   dx = dx,
-  --   dy = dy,
-  --   pressure = pressure,
-  -- }
-  -- print(id, dx, dy)
-  -- dialogWindowVisible = false
-  -- local touches = love.touch.getTouches()
-  -- print(#touches)
-  -- if #touches == 1 then
-  --   if classPicker:isActive() or ascendancyClassPicker:isActive() then return end
-  --   if not menu:mousemoved(x, y, dx, dy) then
-  --     camera:setPosition(camera.x - (dx/camera.scale), camera.y - (dy/camera.scale))
-  --   end
-  -- elseif #touches == 2 then
-  -- @TODO: handle zooming in and out with multitouch
-  -- local ox, oy = nil, nil
-  -- for tid, touch in pairs(touches) do
-  --   if tid ~= id then
-  --     ox, oy = love.touch.getPosition(touch)
-  --   end
-  -- end
-  -- local d1 = dist({x=ox, y=oy}, {x=x, y=y})
-  -- local d2 = dist({x=ox, y=oy}, {x=x+dx, y=y+dy})
-  -- camera:pinch(d2-d1)
-  -- elseif #touches == 5 then
-  --   local buttons = {"Cancel", "OK", escapebutton=1, enterbutton=2}
-  --   if love.window.showMessageBox('Close PoE Planner?', '', buttons, 'info', true) == 2 then
-  --     love.event.quit()
-  --   end
-  -- end
 end
-
---[[
-function love.touchreleased(id, x, y, dx, dy, pressure)
-  local clickResult = false
-  local i = 1
-  local layer
-  while clickResult == false and i <= #layers do
-    layer = layers[i]
-    if layer:isActive() then
-      clickResult = layer:click(x, y)
-      if clickResult or layer:isExclusive() then return end
-    end
-    i = i + 1
-  end
-
-  -- Try ascendancy tree toggle button
-  if ascendancyButton:click(x, y) then return end
-
-  -- Try ascendancy nodes
-  if not clickResult and ascendancyButton:isActive() then
-    for nid, node in pairs(ascendancyNodes) do
-      if node:click(x, y) then
-        toggleNodes(nid)
-        return
-      end
-    end
-  end
-
-  -- Try regular nodes
-  if not clickResult and (not ascendancyButton:isActive() or not ascendancyPanel:containsMouse(x, y)) then
-    for nid, node in pairs(visibleNodes) do
-      if node:click(x, y) then
-        toggleNodes(nid)
-        return
-      end
-    end
-  end
-end
-]]
-
 
 function love.mousepressed(x, y, button, isTouch)
   -- if isTouch then return end
