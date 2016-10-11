@@ -226,7 +226,7 @@ end
 
 function searchNearest(currentNodes, level, tiers, visited)
   local tier = {}
-  print(level)
+  -- print(level)
 
   -- Loop through currentNodes, adding neighbors to tier if not visited
   for _,i in ipairs(currentNodes) do
