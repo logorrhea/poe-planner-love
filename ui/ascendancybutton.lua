@@ -41,7 +41,7 @@ end
 function button:click(x, y)
   local w, h = images[self.state]:getDimensions()
   w,h = w*camera.scale/2, h*camera.scale/2
-  local px, py = cameraCoords(self.position.x, self.position.y)
+  local px, py = camera:cameraCoords(self.position.x, self.position.y)
   local x1, x2 = px - w, px + w
   local y1, y2 = py - h, py + h
 

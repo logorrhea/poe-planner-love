@@ -27,7 +27,6 @@ end
 
 function picker:setCenters()
   self.centers = {}
-  local winWidth, winHeight, _ = love.window.getMode()
 
   local theta = math.pi/6
   local limit = winWidth

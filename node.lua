@@ -285,11 +285,11 @@ function Node:setQuad(quad)
   }
 end
 
-function Node:isVisible(tx, ty)
+function Node:isVisible(tx, ty, w, h)
   return self.type < 7 and
-         (self.visibleQuad.top + ty) < scaledHeight and
+         (self.visibleQuad.top + ty) < h and
          (self.visibleQuad.bottom + ty) > 0 and
-         (self.visibleQuad.left + tx) < scaledWidth and
+         (self.visibleQuad.left + tx) < w and
          (self.visibleQuad.right + tx) > 0
 end
 
@@ -468,9 +468,12 @@ function Node:click(x, y)
   -- Check if clicked
   local offset = self:getOffset()
   local pos = vec(self.position.x + offset.x, self.position.y + offset.y)
-  local wx, wy = camera:worldToScreenCoords(pos.x, pos.y)
+  local wx, wy = camera:cameraCoords(pos.x, pos.y)
   local dx, dy = wx - x, wy - y
   local r = Node.Radii[self.type] * camera.scale
+
+  -- print('click position: ', x, y)
+  -- print('node position:  ', wx, wy)
 
   return dx * dx + dy * dy <= r * r
 end

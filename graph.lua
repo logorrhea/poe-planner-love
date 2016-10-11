@@ -1,6 +1,6 @@
 local bit    = require 'bit'
-local basexx = require 'vendor.basexx.basexx'
-local ser    = require 'vendor.ser.ser'
+local basexx = require 'lib.basexx'
+local ser    = require 'lib.ser'
 local to_base64, from_base64 = basexx.to_base64, basexx.from_base64
 
 Graph = {}
@@ -226,6 +226,7 @@ end
 
 function searchNearest(currentNodes, level, tiers, visited)
   local tier = {}
+  -- print(level)
 
   -- Loop through currentNodes, adding neighbors to tier if not visited
   for _,i in ipairs(currentNodes) do
