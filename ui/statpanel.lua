@@ -137,8 +137,17 @@ function panel:updateStatText(character)
     -- Recycle labels if possible
     local label = keystoneLabels[i] or love.graphics.newText(headerFont, '')
     local desc = keystoneDescriptions[i] or love.graphics.newText(font, '')
+    
+    local _desc = {}
+    for _, line in ipairs(descriptions) do
+      local width, wrapped = font:getWrap(line, love.window.toPixels(270))
+      for _, wrappedLine in ipairs(wrapped) do
+        _desc[#_desc+1] = wrappedLine
+      end
+    end
+    
     label:set(nodes[nid].name)
-    desc:set(table.concat(descriptions, '\n'))
+    desc:set(table.concat(_desc, '\n'))
     keystoneLabels[i] = label
     keystoneDescriptions[i] = desc
     height = height + label:getHeight() + desc:getHeight()
