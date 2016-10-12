@@ -31,7 +31,9 @@ winWidth, winHeight = love.graphics.getDimensions()
 scaledWidth, scaledHeight = winWidth/camera.scale, winHeight/camera.scale
 
 maxActive = 123
+maxAscendancy = 8
 activeNodes = 0
+activeAscendancy = 0
 activeClass = 1
 ascendancyClass = 1
 clickCoords = {x = 0, y = 0}
@@ -317,6 +319,13 @@ function love.load()
   
   -- Dimming shader
   dimmer = love.graphics.newShader('shaders/dimmer.hlsl')
+  
+  if OS ~= 'iOS' and OS ~= 'Android' then
+    -- Mouse cursor
+    cursorImage = love.graphics.newImage('assets/pointer2.png')
+    cursor = love.mouse.newCursor(cursorImage:getData(), 0, 0)
+    love.mouse.setCursor(cursor)
+  end
 end
 
 function love.update(dt)
@@ -470,7 +479,10 @@ function love.draw()
   if ascendancyClassPicker:isActive() then
     ascendancyClassPicker:draw()
   end
-
+  
+  -- Draw # active nodes
+  love.graphics.print(string.format("%i/%i", activeNodes, maxActive), winWidth - love.window.toPixels(100), love.window.toPixels(10))
+  love.graphics.print(string.format("%i/%i", activeAscendancy, maxAscendancy), winWidth - love.window.toPixels(100), love.window.toPixels(30))
 end
 
 function love.touchmoved(id, x, y, dx, dy, pressure)
@@ -892,7 +904,13 @@ function activateNode(nid)
   local node = nodes[nid]
   parseDescriptions(node, add)
   menu:updateStatText(character)
-  activeNodes = activeNodes + 1
+  if not node.isAscendancyStart then
+    if node:isAscendancy() then
+      activeAscendancy = activeAscendancy + 1
+    else
+      activeNodes = activeNodes + 1
+    end
+  end
 
   characterURL = Graph.export(activeClass, ascendancyClass, nodes)
 end
@@ -904,7 +922,13 @@ function deactivateNode(nid)
   local node = nodes[nid]
   parseDescriptions(node, subtract)
   menu:updateStatText(character)
-  activeNodes = activeNodes - 1
+  if not node.isAscendancyStart then
+    if node:isAscendancy() then
+      activeAscendancy = activeAscendancy - 1
+    else
+      activeNodes = activeNodes - 1
+    end
+  end
 
   characterURL = Graph.export(activeClass, ascendancyClass, nodes)
 end
