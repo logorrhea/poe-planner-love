@@ -12,4 +12,6 @@ function love.conf(t)
   -- Disable unused packages
   t.modules.joystick = false
   t.modules.physics = false
+  t.modules.thread = false
+  t.modules.video = false
 end
