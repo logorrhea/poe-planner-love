@@ -100,8 +100,6 @@ times = {}
 function love.load()
   times.start = love.timer.getTime()
 
-  circleRadius = 10
-
   -- Get tree data. Will download new version if necessary
   -- Tree = Downloader.getLuaTree()
   -- local data = Downloader.processNodes(Tree)
@@ -316,27 +314,14 @@ function love.load()
       return statsShowing == false
     end,
   }
-
-  -- print('tree',       1000*(times.tree - times.start))
-  -- print('save',       1000*(times.save - times.tree))
-  -- print('nodecount',  1000*(times.nodeCount - times.save))
-  -- print('batches',    1000*(times.batches - times.nodeCount))
-  -- print('quads',      1000*(times.quads - times.batches))
-  -- print('nodes',      1000*(times.nodes - times.quads))
-  -- print('links',      1000*(times.links - times.nodes))
-  -- print('background', 1000*(times.background - times.links))
-  -- print('refill',     1000*(times.refill - times.background))
-  -- print('gui',        1000*(times.gui - times.refill))
-  -- print('total', 1000*(times.gui - times.start))
+  
+  -- Dimming shader
+  dimmer = love.graphics.newShader('shaders/dimmer.hlsl')
 end
 
 function love.update(dt)
   require('lib.lovebird').update()
-  -- require('lib.touchy').update(dt)
-  -- touchy.update(dt)
   Timer.update(dt)
-
-  -- touchHandler()
 end
 
 function love.resize(w, h)
@@ -357,7 +342,14 @@ end
 function love.draw()
 
   love.graphics.clear(255, 255, 255, 255)
-  love.graphics.setColor(255, 255, 255, 230)
+
+  -- Set grayscale shader if classpickers are active
+  if classPicker:isActive() or ascendancyClassPicker:isActive() then
+    love.graphics.setShader(dimmer)
+  else
+    love.graphics.setColor(255, 255, 255, 240)
+    love.graphics.setShader()
+  end
 
   -- Draw background image separate from transformations
   love.graphics.draw(background)
@@ -367,10 +359,6 @@ function love.draw()
 
   -- Store the translation info, for profit
   local cx, cy = winWidth/(2*camera.scale), winHeight/(2*camera.scale)
-  -- love.graphics.push()
-  -- love.graphics.scale(camera.scale)
-  -- love.graphics.translate(cx, cy)
-  -- love.graphics.translate(-camera.x, -camera.y)
 
   -- Draw group backgrounds
   love.graphics.draw(batches['PSGroupBackground1'])
@@ -446,8 +434,8 @@ function love.draw()
   love.graphics.pop()
 
   -- Pop graphics state to draw UI
+  love.graphics.setShader()
   camera:detach()
-  -- love.graphics.pop()
 
   -- Draw menuToggle.image button in top-left
   if menuToggle:isActive() then
