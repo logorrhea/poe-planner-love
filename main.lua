@@ -1,3 +1,5 @@
+VERSION = '0.1.0'
+
 local scaleFix = 2.5
 
 -- Local includes

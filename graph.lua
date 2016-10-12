@@ -93,6 +93,19 @@ function Graph.export(class, ascendancy, nodes)
 
   local encoded = string.gsub(string.gsub(to_base64(charString), '/', '_'), '+', '-')
 
+  -- local data = {
+  --   version = VERSION,
+  --   lastOpened = currentBuild,
+  --   builds = {
+  --     [currentBuild] = {
+  --       name = currentBuild,
+  --       nodes = encoded,
+  --     }
+  --   }
+  -- }
+  
+  -- love.filesystem.write('builds.lua', ser(data))
+
   local character = {name = 'test', nodes = encoded}
   love.filesystem.write('builds.lua', ser(character))
   return encoded
