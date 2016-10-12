@@ -489,4 +489,8 @@ function Node:getOffset()
   return offset
 end
 
+function Node:isAscendancy()
+  return self.type >= Node.NT_ASC_COMMON
+end
+
 return Node
