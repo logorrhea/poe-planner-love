@@ -332,7 +332,7 @@ end
 
 function love.update(dt)
   Timer.update(dt)
-  require('lib.lovebird').update()
+  -- require('lib.lovebird').update()
 end
 
 function love.resize(w, h)
@@ -1040,6 +1040,8 @@ function changeActiveClass(class, aclass)
     nodes[startnid].active = true
     camera:lookAt(startNode.position.x, startNode.position.y)
     ascendancyButton:changeStart(startnid)
+    
+    activeNodes = 0
   end
 
   -- Probably don't need this check, but whatever
@@ -1048,6 +1050,7 @@ function changeActiveClass(class, aclass)
     for nid, node in pairs(ascendancyNodes) do
       deactivateNode(nid)
     end
+    activeAscendancy = 0
   end
 
   -- Always refill the batches

@@ -36,8 +36,8 @@ end
 
 function panel:show()
   self.status = 'opening'
-  local duration = 1.0
-  Timer.tween(duration, self, {y = 0}, 'in-bounce')
+  local duration = 0.5
+  Timer.tween(duration, self, {y = 0}, 'out-back')
   Timer.after(duration, function() panel.status = 'active' end)
 end
 
