@@ -18,7 +18,7 @@ function portrait:updatePortrait(image)
 end
 
 function portrait:draw()
-  love.graphics.draw(self.image, self.parent.x + self.x, self.y, 0, love.window.getPixelScale(), love.window.getPixelScale())
+  love.graphics.draw(self.image, self.parent.x + self.x, self.parent.y+self.y, 0, love.window.getPixelScale(), love.window.getPixelScale())
 end
 
 function portrait:isActive()

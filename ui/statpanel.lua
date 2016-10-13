@@ -1,6 +1,6 @@
 local panel = {
-  x = -love.window.toPixels(300),
-  y = 0,
+  x = 0,
+  y = -winWidth,
   status = 'inactive',
 }
 
@@ -36,15 +36,17 @@ end
 
 function panel:show()
   self.status = 'opening'
-  Timer.tween(0.5, self, {x = 0}, 'out-back')
-  Timer.after(0.5, function() panel.status = 'active' end)
+  local duration = 1.0
+  Timer.tween(duration, self, {y = 0}, 'in-bounce')
+  Timer.after(duration, function() panel.status = 'active' end)
 end
 
 function panel:hide()
   self.status = 'closing'
-  Timer.tween(0.5, self, {x = -love.window.toPixels(300)}, 'in-back')
-  Timer.after(0.5, function()
-                panel.status = 'inactive'
+  local duration = 0.5
+  Timer.tween(duration, self, {y = -winWidth}, 'in-back')
+  Timer.after(duration, function()
+    panel.status = 'inactive'
   end)
 end
 
@@ -64,28 +66,28 @@ function panel:draw(character)
   local five = love.window.toPixels(5)
 
   love.graphics.setColor(1, 1, 1, 240)
-  love.graphics.rectangle('fill', self.x, 0, love.window.toPixels(300), winHeight)
+  love.graphics.rectangle('fill', self.x, self.y, love.window.toPixels(300), winHeight)
 
   -- Stat panel outline
   clearColor()
-  love.graphics.rectangle('line', self.x, 0, love.window.toPixels(300), winHeight)
+  love.graphics.rectangle('line', self.x, self.y, love.window.toPixels(300), winHeight)
 
   -- Character stats
-  love.graphics.draw(charStatLabels, self.x+love.window.toPixels(155), love.window.toPixels(18))
-  love.graphics.draw(charStatText, self.x+love.window.toPixels(155)+charStatLabels:getWidth()*2, love.window.toPixels(18))
+  love.graphics.draw(charStatLabels, self.x+love.window.toPixels(155), self.y+love.window.toPixels(18))
+  love.graphics.draw(charStatText, self.x+love.window.toPixels(155)+charStatLabels:getWidth()*2, self.y+love.window.toPixels(18))
 
   -- Draw divider
-  love.graphics.draw(divider, self.x+5, love.window.toPixels(115), 0, love.window.toPixels(0.394), 1.0)
+  love.graphics.draw(divider, self.x+5, self.y+love.window.toPixels(115), 0, love.window.toPixels(0.394), 1.0)
 
   -- Set stat panel scissor
-  love.graphics.setScissor(self.x+5, love.window.toPixels(125), love.window.toPixels(285), winHeight-love.window.toPixels(125))
+  love.graphics.setScissor(self.x+5, self.y+love.window.toPixels(125), love.window.toPixels(285), winHeight-love.window.toPixels(125))
 
   -- Draw keystone node text
   local y = self.statText.y
   for i=1,character.keystoneCount do
-    love.graphics.draw(keystoneLabels[i], self.x+five, y)
+    love.graphics.draw(keystoneLabels[i], self.x+five, self.y+y)
     y = y + keystoneLabels[i]:getHeight()
-    love.graphics.draw(keystoneDescriptions[i], self.x+five, y)
+    love.graphics.draw(keystoneDescriptions[i], self.x+five, self.y+y)
     y = y + keystoneDescriptions[i]:getHeight()
   end
 
@@ -94,8 +96,8 @@ function panel:draw(character)
   end
 
   -- Draw general stats
-  love.graphics.draw(generalStatLabels, self.x+five, y)
-  love.graphics.draw(generalStatText, self.x+five+generalStatLabels:getWidth()*1.5, y)
+  love.graphics.draw(generalStatLabels, self.x+five, self.y+y)
+  love.graphics.draw(generalStatText, self.x+five+generalStatLabels:getWidth()*1.5, self.y+y)
 
   -- Reset scissor
   love.graphics.setScissor()
@@ -103,7 +105,7 @@ function panel:draw(character)
   -- Draw left icon (click to close stats drawer)
   local w, h = leftIcon:getDimensions()
   love.graphics.setColor(255, 255, 255, 255)
-  love.graphics.draw(leftIcon, self.x+love.window.toPixels(295)-love.window.toPixels(w), (winHeight-love.window.toPixels(h))/2, 0, love.window.getPixelScale(), love.window.getPixelScale())
+  love.graphics.draw(leftIcon, self.x+love.window.toPixels(295)-love.window.toPixels(w), self.y+(winHeight-love.window.toPixels(h))/2, 0, love.window.getPixelScale(), love.window.getPixelScale())
 end
 
 function panel:updateStatText(character)
