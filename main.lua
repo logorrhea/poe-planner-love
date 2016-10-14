@@ -257,6 +257,10 @@ function love.load()
   -- Create menu toggle
   menuToggle = require 'ui.menutoggle'
   menuToggle:init(menu)
+  
+  -- Search box
+  searchBox = require 'ui.searchbox'
+  searchBox:init()
 
   -- Set up click/touch handler layers
   layers[1] = ascendancyClassPicker
@@ -264,6 +268,7 @@ function love.load()
   layers[3] = portrait
   layers[4] = menu
   layers[5] = menuToggle
+  layers[6] = searchBox
 
   -- Activate nodes saved in user data
   for _, nid in ipairs(savedNodes) do
@@ -332,7 +337,7 @@ end
 
 function love.update(dt)
   Timer.update(dt)
-  -- require('lib.lovebird').update()
+  require('lib.lovebird').update()
 end
 
 function love.resize(w, h)
@@ -408,6 +413,12 @@ function love.draw()
   for _, class in pairs(Node.Classes) do
     love.graphics.draw(batches[class.frame])
   end
+  
+  love.graphics.setColor(255, 255, 0, 150)
+  for _, nid in ipairs(searchBox:getMatches('regular')) do
+    love.graphics.circle('fill', nodes[nid].position.x, nodes[nid].position.y, 20)
+  end
+  clearColor()
 
   -- Ascendancy graph
   if ascendancyButton:isActive() then
@@ -485,6 +496,8 @@ function love.draw()
   -- Draw # active nodes
   love.graphics.print(string.format("%i/%i", activeNodes, maxActive), winWidth - love.window.toPixels(100), love.window.toPixels(10))
   love.graphics.print(string.format("%i/%i", activeAscendancy, maxAscendancy), winWidth - love.window.toPixels(100), love.window.toPixels(30))
+  
+  searchBox:draw()
 end
 
 function love.touchmoved(id, x, y, dx, dy, pressure)
@@ -664,9 +677,19 @@ function love.keypressed(key, scancode, isRepeat)
     if menu:isActive() then
       menu:scrolltext(love.window.toPixels(125))
     end
+  elseif scancode == 'backspace' and searchBox:isFocused() then
+    searchBox:backspace()
+  else
+    print(scancode)
   end
 end
 
+function love.textinput(t)
+  if searchBox:isFocused() then
+    print('sending textinput to searchbox...')
+    searchBox:textinput(t)
+  end
+end
 
 function checkIfNodeHovered(x, y)
   local hovered = nil
