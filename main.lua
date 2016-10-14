@@ -416,7 +416,7 @@ function love.draw()
   
   love.graphics.setColor(255, 255, 0, 150)
   for _, nid in ipairs(searchBox:getMatches('regular')) do
-    love.graphics.circle('fill', nodes[nid].position.x, nodes[nid].position.y, 20)
+    love.graphics.circle('fill', nodes[nid].position.x, nodes[nid].position.y, nodes[nid].radius)
   end
   clearColor()
 
