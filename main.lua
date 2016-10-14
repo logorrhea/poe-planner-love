@@ -112,9 +112,10 @@ function love.load()
 
   -- Read save file
   local savedNodes = {}
+  local saveData = {}
   if love.filesystem.exists('builds.lua') then
     local saveDataFunc = love.filesystem.load('builds.lua')
-    local saveData = saveDataFunc()
+    saveData = saveDataFunc()
     activeClass, ascendancyClass, savedNodes = Graph.import(saveData.nodes)
     if ascendancyClass == 0 then
       ascendancyClass = 1
@@ -248,7 +249,7 @@ function love.load()
 
   -- Create stats panel
   menu = require 'ui.statpanel'
-  menu:init()
+  menu:init({[1] = saveData})
 
   -- Create portrait
   portrait = require 'ui.portrait'
@@ -257,7 +258,7 @@ function love.load()
   -- Create menu toggle
   menuToggle = require 'ui.menutoggle'
   menuToggle:init(menu)
-  
+
   -- Search box
   searchBox = require 'ui.searchbox'
   searchBox:init()
@@ -323,10 +324,10 @@ function love.load()
       return statsShowing == false
     end,
   }
-  
+
   -- Dimming shader
   dimmer = love.graphics.newShader('shaders/dimmer.hlsl')
-  
+
   if OS ~= 'iOS' and OS ~= 'Android' then
     -- Mouse cursor
     cursorImage = love.graphics.newImage('assets/pointer2.png')
@@ -413,7 +414,7 @@ function love.draw()
   for _, class in pairs(Node.Classes) do
     love.graphics.draw(batches[class.frame])
   end
-  
+
   love.graphics.setColor(255, 255, 0, 150)
   for _, nid in ipairs(searchBox:getMatches('regular')) do
     love.graphics.circle('fill', nodes[nid].position.x, nodes[nid].position.y, nodes[nid].radius)
@@ -492,11 +493,11 @@ function love.draw()
   if ascendancyClassPicker:isActive() then
     ascendancyClassPicker:draw()
   end
-  
+
   -- Draw # active nodes
   love.graphics.print(string.format("%i/%i", activeNodes, maxActive), winWidth - love.window.toPixels(100), love.window.toPixels(10))
   love.graphics.print(string.format("%i/%i", activeAscendancy, maxAscendancy), winWidth - love.window.toPixels(100), love.window.toPixels(30))
-  
+
   searchBox:draw()
 end
 
@@ -680,7 +681,7 @@ function love.keypressed(key, scancode, isRepeat)
   elseif scancode == 'backspace' and searchBox:isFocused() then
     searchBox:backspace()
   else
-    print(scancode)
+    print('scancode: '..scancode)
   end
 end
 
@@ -1062,7 +1063,7 @@ function changeActiveClass(class, aclass)
     nodes[startnid].active = true
     camera:lookAt(startNode.position.x, startNode.position.y)
     ascendancyButton:changeStart(startnid)
-    
+
     activeNodes = 0
   end
 

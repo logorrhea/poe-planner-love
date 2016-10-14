@@ -2,6 +2,9 @@ local panel = {
   x = 0,
   y = -winWidth,
   status = 'inactive',
+  -- innerContent = 'stats',
+  innerContent = 'builds',
+  builds = {}
 }
 
 local divider  = love.graphics.newImage('assets/LineConnectorNormal.png')
@@ -14,7 +17,8 @@ local keystoneLabels = {}
 local keystoneDescriptions = {}
 
 
-function panel:init()
+
+function panel:init(builds)
   self.statText = {
     maxY = love.window.toPixels(125),
     minY = love.window.toPixels(125),
@@ -23,7 +27,8 @@ function panel:init()
       self.y = lume.clamp(self.y+dy, self.minY, self.maxY)
     end
   }
-  self.target = target
+  -- self.target = target
+  self.builds = builds
 end
 
 function panel:toggle()
@@ -77,27 +82,39 @@ function panel:draw(character)
   love.graphics.draw(charStatText, self.x+love.window.toPixels(155)+charStatLabels:getWidth()*2, self.y+love.window.toPixels(18))
 
   -- Draw divider
-  love.graphics.draw(divider, self.x+5, self.y+love.window.toPixels(115), 0, love.window.toPixels(0.394), 1.0)
+  love.graphics.draw(divider, self.x+five, self.y+love.window.toPixels(115), 0, love.window.toPixels(0.394), 1.0)
 
   -- Set stat panel scissor
-  love.graphics.setScissor(self.x+5, self.y+love.window.toPixels(125), love.window.toPixels(285), winHeight-love.window.toPixels(125))
+  love.graphics.setScissor(self.x+five, self.y+love.window.toPixels(125), love.window.toPixels(285), winHeight-love.window.toPixels(125))
 
-  -- Draw keystone node text
-  local y = self.statText.y
-  for i=1,character.keystoneCount do
-    love.graphics.draw(keystoneLabels[i], self.x+five, self.y+y)
-    y = y + keystoneLabels[i]:getHeight()
-    love.graphics.draw(keystoneDescriptions[i], self.x+five, self.y+y)
-    y = y + keystoneDescriptions[i]:getHeight()
+  if self.innerContent == 'stats' then
+    -- Draw keystone node text
+    local y = self.statText.y
+    for i=1,character.keystoneCount do
+      love.graphics.draw(keystoneLabels[i], self.x+five, self.y+y)
+      y = y + keystoneLabels[i]:getHeight()
+      love.graphics.draw(keystoneDescriptions[i], self.x+five, self.y+y)
+      y = y + keystoneDescriptions[i]:getHeight()
+    end
+
+    if character.keystoneCount > 0 then
+      y = y + headerFont:getHeight()
+    end
+
+    -- Draw general stats
+    love.graphics.draw(generalStatLabels, self.x+five, self.y+y)
+    love.graphics.draw(generalStatText, self.x+five+generalStatLabels:getWidth()*1.5, self.y+y)
+  elseif self.innerContent == 'builds' then
+    -- Show builds listing
+    local y = love.window.toPixels(125)
+    for i, build in ipairs(self.builds) do
+      -- Build title
+      love.graphics.print(build.name, five, self.y+y)
+      -- Build link (might exclude this)
+      y = y + love.window.toPixels(20)
+      love.graphics.print(build.nodes, five, self.y+y)
+    end
   end
-
-  if character.keystoneCount > 0 then
-    y = y + headerFont:getHeight()
-  end
-
-  -- Draw general stats
-  love.graphics.draw(generalStatLabels, self.x+five, self.y+y)
-  love.graphics.draw(generalStatText, self.x+five+generalStatLabels:getWidth()*1.5, self.y+y)
 
   -- Reset scissor
   love.graphics.setScissor()
@@ -227,5 +244,8 @@ function panel:click(x, y)
   return self:containsMouse(x, y)
 end
 
+function panel:setBuilds(builds)
+  self.builds = builds
+end
 
 return panel
