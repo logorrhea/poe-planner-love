@@ -686,7 +686,6 @@ end
 
 function love.textinput(t)
   if searchBox:isFocused() then
-    print('sending textinput to searchbox...')
     searchBox:textinput(t)
   end
 end

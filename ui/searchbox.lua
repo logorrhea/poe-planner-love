@@ -19,7 +19,8 @@ function searchbox:update()
 end
 
 function searchbox:draw()
-  -- Black box
+  -- Text box
+  love.graphics.setColor(255, 255, 255, 150)
   love.graphics.rectangle('fill', self.pos.x, self.pos.y, self.dims.x, self.dims.y)
   
   -- Search text

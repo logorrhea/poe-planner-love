@@ -114,14 +114,14 @@ end
 
 function camera:zoomIn()
   local scale = lume.clamp(self.scale + self.scaleStep, self.minScale, self.maxScale)
-  print(scale)
+--   print(scale)
   self:zoomTo(scale)
 end
 
 function camera:zoomOut()
   local scale = lume.clamp(self.scale - self.scaleStep, self.minScale, self.maxScale)
-  print(self.scale + self.scaleStep)
-  print(scale)
+--   print(self.scale + self.scaleStep)
+--   print(scale)
   self:zoomTo(scale)
 end
 
