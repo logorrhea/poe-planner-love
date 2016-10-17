@@ -3,10 +3,13 @@
 local BASE = (...):match('(.-)[^%.]+$')
 
 return function(core, normal, ...)
-	local opt, x,y = core.getOptionsAndSize(...)
+	local opt,x,y,rot,sx,sy = core.getOptionsAndSize(...)
 	opt.normal = normal or opt.normal or opt[1]
 	opt.hovered = opt.hovered or opt[2] or opt.normal
 	opt.active = opt.active or opt[3] or opt.hovered
+  rot = rot or 0
+  sx = sx or 1.0
+  sy = sy or 1.0
 	assert(opt.normal, "Need at least `normal' state image")
 	opt.id = opt.id or opt.normal
 
@@ -14,7 +17,7 @@ return function(core, normal, ...)
 		local id = opt.normal:getData()
 		assert(id:typeOf("ImageData"), "Can only use uncompressed images")
 		u, v = math.floor(u+.5), math.floor(v+.5)
-		if u < 0 or u >= opt.normal:getWidth() or v < 0 or v >= opt.normal:getHeight() then
+		if u < 0 or u >= opt.normal:getWidth()*sx or v < 0 or v >= opt.normal:getHeight()*sy then
 			return false
 		end
 		local _,_,_,a = id:getPixel(u,v)
@@ -30,7 +33,7 @@ return function(core, normal, ...)
 
 	core:registerDraw(opt.draw or function(img,x,y, r,g,b,a)
 		love.graphics.setColor(r,g,b,a)
-		love.graphics.draw(img,x,y)
+		love.graphics.draw(img,x,y,rot,sx,sy)
 	end, img, x,y, love.graphics.getColor())
 
 	return {

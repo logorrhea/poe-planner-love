@@ -111,19 +111,19 @@ function panel:draw(character)
   elseif self.innerContent == 'builds' then
     -- Show builds listing
     local y = love.window.toPixels(125)
-    for i, build in ipairs(self.builds) do
+    for name, build in pairs(self.builds) do
       -- Build title
       love.graphics.print(build.name, five, self.y+y)
       -- Build link (might exclude this)
       y = y + love.window.toPixels(20)
       love.graphics.print(build.nodes, five, self.y+y)
       y = y + love.window.toPixels(20)
+    end
 
-      -- Show new build button
-      if suit.ImageButton(plusbutton, {}, five, self.y+y) then
-        print('new build')
-      end
-      -- love.graphics.draw(plusbutton, five, self.y+y, 0, 0.25, 0.25)
+    -- Show new build button
+    if suit.ImageButton(plusbutton, {}, five, self.y+y, 0, 0.25, 0.25).hit then
+      startNewBuild()
+      self:hide()
     end
   end
 
