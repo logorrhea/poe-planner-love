@@ -6,13 +6,13 @@ local scaleFix = 2.5
 local OS = love.system.getOS()
 local json   = require 'lib.dkjson'
 local Camera = require 'lib.camera'
--- local touchy = require 'lib.touchy'
 
 
 -- Global includes
-Timer  = require 'lib.timer'
-lume   = require 'lib.lume'
-vec = require 'lib.vector'
+Timer = require 'lib.timer'
+lume  = require 'lib.lume'
+vec   = require 'lib.vector'
+suit  = require 'lib.suit'
 
 
 
@@ -498,6 +498,8 @@ function love.draw()
   love.graphics.print(string.format("%i/%i", activeNodes, maxActive), winWidth - love.window.toPixels(100), love.window.toPixels(10))
   love.graphics.print(string.format("%i/%i", activeAscendancy, maxAscendancy), winWidth - love.window.toPixels(100), love.window.toPixels(30))
 
+  suit.draw()
+
   searchBox:draw()
 end
 
@@ -539,22 +541,12 @@ function love.touchmoved(id, x, y, dx, dy, pressure)
 end
 
 function love.mousepressed(x, y, button, isTouch)
-  -- if isTouch then return end
-  -- if touchy ~= nil then
-  --   if touchy.mousepressed(x, y, button, isTouch) then return end
-  -- end
-
   dialogWindowVisible = false
   clickCoords.x, clickCoords.y = x, y
   menu:mousepressed(x, y)
 end
 
 function love.mousereleased(x, y, button, isTouch)
-  -- if isTouch then return end
-  -- if touchy ~= nil then
-  --   if touchy.mousepressed(x, y, button, isTouch) then return end
-  -- end
-
   local clickResult = false
   local i = 1
   local layer
@@ -597,7 +589,6 @@ end
 
 function love.mousemoved(x, y, dx, dy, isTouch)
   if isTouch then return end
-  -- if love.keyboard.isScancodeDown(touchy.key) then return end
 
   -- Bail if either classpicker is active
   if classPicker:isActive() or ascendancyClassPicker:isActive() then return end
@@ -1065,6 +1056,15 @@ function changeActiveClass(class, aclass)
     ascendancyButton:changeStart(startnid)
 
     activeNodes = 0
+
+    character = {
+      str       = 0,
+      int       = 0,
+      dex       = 0,
+      stats     = {},
+      keystones = {},
+      keystoneCount = 0,
+    }
   end
 
   -- Probably don't need this check, but whatever
