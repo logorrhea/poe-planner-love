@@ -73,7 +73,11 @@ function Graph.import(saveData)
   local build = saveData.builds[saveData.lastOpened]
   local charString = build.nodes
 
-  local b64 = string.gsub(string.gsub(charString, '_', '/'), '-', '+')
+  return Graph.parse(charString)
+end
+
+function Graph.parse(encoded)
+  local b64 = string.gsub(string.gsub(encoded, '_', '/'), '-', '+')
   local decoded = from_base64(b64)
 
   local class      = string.byte(decoded:sub(5, 5)) + 1
@@ -88,9 +92,6 @@ function Graph.import(saveData)
     nids[#nids+1] = nid
     i = i + 2
   end
-
-  -- http://www.pathofexile.com/passive-skill-tree/AAAABAEBAMse8433uQ==
-  -- http://www.pathofexile.com/passive-skill-tree/AAAABAEAAPe5843LHg==
 
   return class, ascendancy, nids
 end

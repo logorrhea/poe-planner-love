@@ -1101,6 +1101,16 @@ function changeActiveClass(class, aclass)
   refillBatches()
 end
 
+function changeActiveBuild(buildName)
+  print('change active class to '..buildName)
+  currentBuild = buildName
+  activeClass, ascendancyClass, savedNodes = Graph.parse(saveData.builds[buildName].nodes)
+  changeActiveClass(activeClass, ascendancyClass)
+  for _, nid in ipairs(savedNodes) do
+    activateNode(nid)
+  end
+end
+
 function startNewBuild()
   -- Save current build
   saveData = Graph.export(saveData, currentBuild, activeClass, ascendancyClass, nodes)
