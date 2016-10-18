@@ -93,6 +93,9 @@ function picker:click(x, y)
   end
 
   self:toggle()
+  if choice == nil then
+    startingNewBuild = false
+  end
   return choice
 end
 

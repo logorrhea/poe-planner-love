@@ -1,3 +1,5 @@
+local suit = require 'lib.suit'
+
 local panel = {
   x = 0,
   y = -winWidth,
@@ -16,6 +18,8 @@ local generalStatText = love.graphics.newText(font, '')
 local keystoneLabels = {}
 local keystoneDescriptions = {}
 
+
+local plusbutton = love.graphics.newImage('assets/cross100x100.png')
 
 
 function panel:init(builds)
@@ -107,12 +111,19 @@ function panel:draw(character)
   elseif self.innerContent == 'builds' then
     -- Show builds listing
     local y = love.window.toPixels(125)
-    for i, build in ipairs(self.builds) do
+    for name, build in pairs(self.builds) do
       -- Build title
       love.graphics.print(build.name, five, self.y+y)
       -- Build link (might exclude this)
       y = y + love.window.toPixels(20)
       love.graphics.print(build.nodes, five, self.y+y)
+      y = y + love.window.toPixels(20)
+    end
+
+    -- Show new build button
+    if suit.ImageButton(plusbutton, {}, five, self.y+y, 0, 0.25, 0.25).hit then
+      startNewBuild()
+      self:hide()
     end
   end
 
@@ -156,7 +167,7 @@ function panel:updateStatText(character)
     -- Recycle labels if possible
     local label = keystoneLabels[i] or love.graphics.newText(headerFont, '')
     local desc = keystoneDescriptions[i] or love.graphics.newText(font, '')
-    
+
     local _desc = {}
     for _, line in ipairs(descriptions) do
       local width, wrapped = font:getWrap(line, love.window.toPixels(270))
@@ -164,7 +175,7 @@ function panel:updateStatText(character)
         _desc[#_desc+1] = wrappedLine
       end
     end
-    
+
     label:set(nodes[nid].name)
     desc:set(table.concat(_desc, '\n'))
     keystoneLabels[i] = label
