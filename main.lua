@@ -103,6 +103,7 @@ local layers = {}
 saveData = {}
 currentBuild = nil
 startingNewBuild = false
+changingBuild = false
 
 times = {}
 function love.load()
@@ -948,7 +949,6 @@ end
 function deactivateNode(nid, autosave)
   nodes[nid].active = false
   if autosave == nil then autosave = true end
-  print('autosave? '..tostring(autosave))
 
   -- Remove node stats from character stats
   local node = nodes[nid]
@@ -1047,10 +1047,11 @@ end
 
 function changeActiveClass(class, aclass)
   -- Don't do anything if not new class
-  if not startingNewBuild and class == activeClass and aclass == ascendancyClass then return false end
+  local autosave = not startingNewBuild and not changingBuild
+  if autosave and class == activeClass and aclass == ascendancyClass then return false end
 
   -- Provide confirmation dialog; no need to confirm when starting a new build
-  if not startingNewBuild then
+  if autosave then
     local buttons = {"Cancel", "OK", escapebutton=1, enterbutton=2}
     if love.window.showMessageBox('Change Class?', 'Are you sure you want to change class and reset the skill tree?', buttons, 'info', true) ~= 2 then return end
   end
@@ -1059,7 +1060,7 @@ function changeActiveClass(class, aclass)
   removeTrail = {}
 
   -- Only reset tree if main class changed
-  if activeClass ~= class or startingNewBuild then
+  if activeClass ~= class or startingNewBuild or changingBuild then
     activeClass = class
     startnid = startNodes[activeClass]
     startNode = nodes[startnid]
@@ -1067,7 +1068,7 @@ function changeActiveClass(class, aclass)
 
     for nid, node in pairs(nodes) do
       if node.active then
-        deactivateNode(nid, not startingNewBuild)
+        deactivateNode(nid, autosave)
       end
     end
 
@@ -1088,17 +1089,18 @@ function changeActiveClass(class, aclass)
   end
 
   -- Probably don't need this check, but whatever
-  if ascendancyClass ~= aclass or startingNewBuild then
+  if ascendancyClass ~= aclass or startingNewBuild or changingBuild then
     ascendancyClass = aclass
     for nid, node in pairs(ascendancyNodes) do
-      deactivateNode(nid, not startingNewBuild)
+      if node.active then
+        deactivateNode(nid, autosave)
+      end
     end
     activeAscendancy = 0
   end
 
   -- If we were starting a new build, give it a name and do an export
   if startingNewBuild then
-    print('starting new build...')
     currentBuild = getUniqueBuildName(class, aclass)
     saveData = Graph.export(saveData, currentBuild, class, aclass, nodes)
     startingNewBuild = false
@@ -1109,13 +1111,15 @@ function changeActiveClass(class, aclass)
 end
 
 function changeActiveBuild(buildName)
-  print('change active class to '..buildName)
   currentBuild = buildName
   activeClass, ascendancyClass, savedNodes = Graph.parse(saveData.builds[buildName].nodes)
+  changingBuild = true
   changeActiveClass(activeClass, ascendancyClass)
   for _, nid in ipairs(savedNodes) do
     activateNode(nid)
   end
+  changingBuild = false
+  refillBatches()
 end
 
 function startNewBuild()
