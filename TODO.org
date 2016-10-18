@@ -19,10 +19,14 @@ the official skill tree.
 *** TODO Better organize character stats?
 *** TODO Display number of regular and ascendancy points allocated
 
+
 This should not be prohibitive (don't lock the user at the max active). However,
 once the user has reached the maximum allowed points, the text should change
 color or somehow otherwise indicate the user has allocated too many points.
-
+*** DONE Use suit.Input for search box
+CLOSED: [2016-10-18 Tue 12:31]
+*** TODO Make search text input toggleable
+Start with like a search icon or something. Once clicked, start drawing suit.Input.
 ** Mobile-related Issues
 *** TODO Disable touch-drag camera panning while changing classes
 *** TODO Fix zoom min/max on mobile

@@ -349,6 +349,7 @@ function love.load()
 end
 
 function love.update(dt)
+  searchBox:update(dt)
   Timer.update(dt)
   require('lib.lovebird').update()
 end
@@ -510,9 +511,8 @@ function love.draw()
   love.graphics.print(string.format("%i/%i", activeNodes, maxActive), winWidth - love.window.toPixels(100), love.window.toPixels(10))
   love.graphics.print(string.format("%i/%i", activeAscendancy, maxAscendancy), winWidth - love.window.toPixels(100), love.window.toPixels(30))
 
-  suit.draw()
-
   searchBox:draw()
+  suit.draw()
 end
 
 function love.touchmoved(id, x, y, dx, dy, pressure)
@@ -654,6 +654,7 @@ function love.wheelmoved(x, y)
 end
 
 function love.keypressed(key, scancode, isRepeat)
+  suit.keypressed(key)
   if key == 'up' then
     camera:zoomIn()
     refillBatches()
@@ -682,7 +683,7 @@ function love.keypressed(key, scancode, isRepeat)
       menu:scrolltext(love.window.toPixels(125))
     end
   elseif scancode == 'backspace' and searchBox:isFocused() then
-    searchBox:backspace()
+    -- searchBox:backspace()
   else
     print('scancode: '..scancode)
   end
@@ -690,8 +691,9 @@ end
 
 function love.textinput(t)
   if searchBox:isFocused() then
-    searchBox:textinput(t)
+    -- searchBox:textinput(t)
   end
+  suit.textinput(t)
 end
 
 function checkIfNodeHovered(x, y)
