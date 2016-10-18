@@ -6,13 +6,13 @@ local scaleFix = 2.5
 local OS = love.system.getOS()
 local json   = require 'lib.dkjson'
 local Camera = require 'lib.camera'
--- local touchy = require 'lib.touchy'
 
 
 -- Global includes
-Timer  = require 'lib.timer'
-lume   = require 'lib.lume'
-vec = require 'lib.vector'
+Timer = require 'lib.timer'
+lume  = require 'lib.lume'
+vec   = require 'lib.vector'
+suit  = require 'lib.suit'
 
 
 
@@ -100,6 +100,11 @@ local lastClicked = nil
 -- Layers for click handling (lower = higher priority)
 local layers = {}
 
+saveData = {}
+currentBuild = nil
+startingNewBuild = false
+changingBuild = false
+
 times = {}
 function love.load()
   times.start = love.timer.getTime()
@@ -112,14 +117,21 @@ function love.load()
 
   -- Read save file
   local savedNodes = {}
-  local saveData = {}
+  saveData = {}
   if love.filesystem.exists('builds.lua') then
     local saveDataFunc = love.filesystem.load('builds.lua')
     saveData = saveDataFunc()
-    activeClass, ascendancyClass, savedNodes = Graph.import(saveData.nodes)
+    currentBuild = saveData.lastOpened
+    activeClass, ascendancyClass, savedNodes = Graph.import(saveData)
     if ascendancyClass == 0 then
       ascendancyClass = 1
     end
+  else
+    activeClass = 1
+    ascendancyClass = 1
+    currentBuild = 'ascendant'
+    saveData.builds = {}
+    saveData = Graph.export(saveData, currentBuild, activeClass, ascendancyClass, {})
   end
   times.save = love.timer.getTime()
 
@@ -249,7 +261,7 @@ function love.load()
 
   -- Create stats panel
   menu = require 'ui.statpanel'
-  menu:init({[1] = saveData})
+  menu:init(saveData.builds)
 
   -- Create portrait
   portrait = require 'ui.portrait'
@@ -498,6 +510,8 @@ function love.draw()
   love.graphics.print(string.format("%i/%i", activeNodes, maxActive), winWidth - love.window.toPixels(100), love.window.toPixels(10))
   love.graphics.print(string.format("%i/%i", activeAscendancy, maxAscendancy), winWidth - love.window.toPixels(100), love.window.toPixels(30))
 
+  suit.draw()
+
   searchBox:draw()
 end
 
@@ -533,28 +547,18 @@ function love.touchmoved(id, x, y, dx, dy, pressure)
       end
     end
   elseif #touches == 5 then
-    Graph.export(activeClass, ascendancyClass, nodes)
+    saveData = Graph.export(saveData, currentBuild, activeClass, ascendancyClass, nodes)
     love.event.quit()
   end
 end
 
 function love.mousepressed(x, y, button, isTouch)
-  -- if isTouch then return end
-  -- if touchy ~= nil then
-  --   if touchy.mousepressed(x, y, button, isTouch) then return end
-  -- end
-
   dialogWindowVisible = false
   clickCoords.x, clickCoords.y = x, y
   menu:mousepressed(x, y)
 end
 
 function love.mousereleased(x, y, button, isTouch)
-  -- if isTouch then return end
-  -- if touchy ~= nil then
-  --   if touchy.mousepressed(x, y, button, isTouch) then return end
-  -- end
-
   local clickResult = false
   local i = 1
   local layer
@@ -597,7 +601,6 @@ end
 
 function love.mousemoved(x, y, dx, dy, isTouch)
   if isTouch then return end
-  -- if love.keyboard.isScancodeDown(touchy.key) then return end
 
   -- Bail if either classpicker is active
   if classPicker:isActive() or ascendancyClassPicker:isActive() then return end
@@ -668,7 +671,7 @@ function love.keypressed(key, scancode, isRepeat)
       menu:toggle()
     end
   elseif key == 'escape' then
-    Graph.export(activeClass, ascendancyClass, nodes)
+    saveData = Graph.export(saveData, currentBuild, activeClass, ascendancyClass, nodes)
     love.event.quit()
   elseif scancode == 'pagedown' then
     if menu:isActive() then
@@ -922,8 +925,9 @@ function drawDialogWindow()
   love.graphics.draw(dialogContentText, dialogPosition.x + five, dialogPosition.y + five*4)
 end
 
-function activateNode(nid)
+function activateNode(nid, autosave)
   nodes[nid].active = true
+  autosave = autosave or true
 
   -- Add node stats to character stats
   local node = nodes[nid]
@@ -937,11 +941,14 @@ function activateNode(nid)
     end
   end
 
-  characterURL = Graph.export(activeClass, ascendancyClass, nodes)
+  if autosave then
+    saveData = Graph.export(saveData, currentBuild, activeClass, ascendancyClass, nodes)
+  end
 end
 
-function deactivateNode(nid)
+function deactivateNode(nid, autosave)
   nodes[nid].active = false
+  if autosave == nil then autosave = true end
 
   -- Remove node stats from character stats
   local node = nodes[nid]
@@ -955,7 +962,9 @@ function deactivateNode(nid)
     end
   end
 
-  characterURL = Graph.export(activeClass, ascendancyClass, nodes)
+  if autosave then
+    saveData = Graph.export(saveData, currentBuild, activeClass, ascendancyClass, nodes)
+  end
 end
 
 function parseDescriptions(node, op)
@@ -1038,17 +1047,20 @@ end
 
 function changeActiveClass(class, aclass)
   -- Don't do anything if not new class
-  if class == activeClass and aclass == ascendancyClass then return false end
+  local autosave = not startingNewBuild and not changingBuild
+  if autosave and class == activeClass and aclass == ascendancyClass then return false end
 
-  -- Provide confirmation dialog
-  local buttons = {"Cancel", "OK", escapebutton=1, enterbutton=2}
-  if love.window.showMessageBox('Change Class?', 'Are you sure you want to change class and reset the skill tree?', buttons, 'info', true) ~= 2 then return end
+  -- Provide confirmation dialog; no need to confirm when starting a new build
+  if autosave then
+    local buttons = {"Cancel", "OK", escapebutton=1, enterbutton=2}
+    if love.window.showMessageBox('Change Class?', 'Are you sure you want to change class and reset the skill tree?', buttons, 'info', true) ~= 2 then return end
+  end
 
   addTrail    = {}
   removeTrail = {}
 
   -- Only reset tree if main class changed
-  if activeClass ~= class then
+  if activeClass ~= class or startingNewBuild or changingBuild then
     activeClass = class
     startnid = startNodes[activeClass]
     startNode = nodes[startnid]
@@ -1056,7 +1068,7 @@ function changeActiveClass(class, aclass)
 
     for nid, node in pairs(nodes) do
       if node.active then
-        deactivateNode(nid)
+        deactivateNode(nid, autosave)
       end
     end
 
@@ -1065,19 +1077,56 @@ function changeActiveClass(class, aclass)
     ascendancyButton:changeStart(startnid)
 
     activeNodes = 0
+
+    character = {
+      str       = 0,
+      int       = 0,
+      dex       = 0,
+      stats     = {},
+      keystones = {},
+      keystoneCount = 0,
+    }
   end
 
   -- Probably don't need this check, but whatever
-  if ascendancyClass ~= aclass then
+  if ascendancyClass ~= aclass or startingNewBuild or changingBuild then
     ascendancyClass = aclass
     for nid, node in pairs(ascendancyNodes) do
-      deactivateNode(nid)
+      if node.active then
+        deactivateNode(nid, autosave)
+      end
     end
     activeAscendancy = 0
   end
 
+  -- If we were starting a new build, give it a name and do an export
+  if startingNewBuild then
+    currentBuild = getUniqueBuildName(class, aclass)
+    saveData = Graph.export(saveData, currentBuild, class, aclass, nodes)
+    startingNewBuild = false
+  end
+
   -- Always refill the batches
   refillBatches()
+end
+
+function changeActiveBuild(buildName)
+  currentBuild = buildName
+  activeClass, ascendancyClass, savedNodes = Graph.parse(saveData.builds[buildName].nodes)
+  changingBuild = true
+  changeActiveClass(activeClass, ascendancyClass)
+  for _, nid in ipairs(savedNodes) do
+    activateNode(nid)
+  end
+  changingBuild = false
+  refillBatches()
+end
+
+function startNewBuild()
+  -- Save current build
+  saveData = Graph.export(saveData, currentBuild, activeClass, ascendancyClass, nodes)
+  startingNewBuild = true
+  classPicker:activate()
 end
 
 function toggleNodes(nid, isTouch)
@@ -1110,4 +1159,17 @@ function toggleNodes(nid, isTouch)
     lastClicked = nid
     showNodeDialog(nid)
   end
+end
+
+function getUniqueBuildName(class, aclass)
+  local ogname = Node.Classes[class].ascendancies[aclass]
+  local name = ogname
+  local index = 2
+
+  while saveData.builds[name] ~= nil do
+    name = ogname..tostring(index)
+    index = index+1
+  end
+
+  return name
 end

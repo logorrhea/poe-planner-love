@@ -59,8 +59,25 @@ function findReachable(from, reachable, clicked)
   end
 end
 
-function Graph.import(charString)
-  local b64 = string.gsub(string.gsub(charString, '_', '/'), '-', '+')
+function Graph.import(saveData)
+  -- Update to new save format if necessary
+  if saveData.version == nil then
+    print('updating save data')
+    saveData = Graph.update(saveData)
+  else
+    print('save file already using most recent configuration')
+  end
+
+  -- Grab data about last viewed build
+  print(saveData.lastOpened)
+  local build = saveData.builds[saveData.lastOpened]
+  local charString = build.nodes
+
+  return Graph.parse(charString)
+end
+
+function Graph.parse(encoded)
+  local b64 = string.gsub(string.gsub(encoded, '_', '/'), '-', '+')
   local decoded = from_base64(b64)
 
   local class      = string.byte(decoded:sub(5, 5)) + 1
@@ -76,13 +93,25 @@ function Graph.import(charString)
     i = i + 2
   end
 
-  -- http://www.pathofexile.com/passive-skill-tree/AAAABAEBAMse8433uQ==
-  -- http://www.pathofexile.com/passive-skill-tree/AAAABAEAAPe5843LHg==
-
   return class, ascendancy, nids
 end
 
-function Graph.export(class, ascendancy, nodes)
+function Graph.update(build)
+  local data = {
+    version = VERSION,
+    lastOpened = build.name,
+    builds = {
+      [build.name] = {
+        name = build.name,
+        nodes = build.nodes,
+      }
+    }
+  }
+  love.filesystem.write('builds.lua', ser(data))
+  return data
+end
+
+function Graph.export(saveData, name, class, ascendancy, nodes)
   local charString = getCharacterString(class-1, ascendancy)
 
   for nid,node in pairs(nodes) do
@@ -93,22 +122,19 @@ function Graph.export(class, ascendancy, nodes)
 
   local encoded = string.gsub(string.gsub(to_base64(charString), '/', '_'), '+', '-')
 
-  -- local data = {
-  --   version = VERSION,
-  --   lastOpened = currentBuild,
-  --   builds = {
-  --     [currentBuild] = {
-  --       name = currentBuild,
-  --       nodes = encoded,
-  --     }
-  --   }
-  -- }
-  
-  -- love.filesystem.write('builds.lua', ser(data))
+  -- Update necessary information
+  saveData.version = VERSION
+  saveData.lastOpened = name
+  saveData.builds[name] = {
+    name = name,
+    nodes = encoded
+  }
 
-  local character = {name = 'test', nodes = encoded}
-  love.filesystem.write('builds.lua', ser(character))
-  return encoded
+  -- Write changes to file
+  love.filesystem.write('builds.lua', ser(saveData))
+
+  -- Return build code
+  return saveData
 end
 
 function getCharacterString(class, ascendancy)
