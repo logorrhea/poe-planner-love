@@ -125,6 +125,7 @@ function Graph.export(saveData, name, class, ascendancy, nodes)
   -- Update necessary information
   saveData.version = VERSION
   saveData.lastOpened = name
+  if saveData.builds == nil then saveData.builds = {} end
   saveData.builds[name] = {
     name = name,
     nodes = encoded
