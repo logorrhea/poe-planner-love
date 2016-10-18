@@ -4,8 +4,7 @@ local panel = {
   x = 0,
   y = -winHeight,
   status = 'inactive',
-  -- innerContent = 'stats',
-  innerContent = 'builds',
+  innerContent = 'stats',
   builds = {},
   width = love.window.toPixels(300),
   padding = love.window.toPixels(5)
@@ -151,6 +150,17 @@ function panel:draw(character)
                      love.window.getPixelScale(),
                      w/2,
                      h/2)
+
+  -- Draw stat button
+  local labelHeight = love.window.toPixels(30)
+  if suit.Label("Stats", {}, five, self.y+winHeight-labelHeight).hit then
+    self.innerContent = 'stats'
+  end
+
+  -- Draw builds button
+  if suit.Label("Builds", {}, self.width-love.window.toPixels(100), self.y+winHeight-labelHeight).hit then
+    self.innerContent = 'builds'
+  end
 end
 
 function panel:updateStatText(character)
