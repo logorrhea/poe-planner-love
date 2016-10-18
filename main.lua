@@ -370,20 +370,16 @@ function love.resize(w, h)
 end
 
 function love.draw()
-
   love.graphics.clear(255, 255, 255, 255)
 
   -- Set grayscale shader if classpickers are active
   if classPicker:isActive() or ascendancyClassPicker:isActive() then
     love.graphics.setShader(dimmer)
-  else
-    love.graphics.setColor(255, 255, 255, 240)
-    love.graphics.setShader()
   end
 
   -- Draw background image separate from transformations
-  love.graphics.draw(background)
   clearColor()
+  love.graphics.draw(background)
 
   camera:attach()
 

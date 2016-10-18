@@ -8,6 +8,7 @@ function love.conf(t)
   t.window.height = 768
   t.window.resizable = true
   t.window.highdpi = true
+  t.gammacorrect = true
 
   -- Disable unused packages
   t.modules.joystick = false
