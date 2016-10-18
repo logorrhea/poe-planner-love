@@ -123,6 +123,7 @@ function Graph.export(saveData, name, class, ascendancy, nodes)
   local encoded = string.gsub(string.gsub(to_base64(charString), '/', '_'), '+', '-')
 
   -- Update necessary information
+  saveData.version = VERSION
   saveData.lastOpened = name
   saveData.builds[name] = {
     name = name,

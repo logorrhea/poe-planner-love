@@ -125,6 +125,12 @@ function love.load()
     if ascendancyClass == 0 then
       ascendancyClass = 1
     end
+  else
+    activeClass = 1
+    ascendancyClass = 1
+    currentBuild = 'ascendant'
+    saveData.builds = {}
+    saveData = Graph.export(saveData, currentBuild, activeClass, ascendancyClass, {})
   end
   times.save = love.timer.getTime()
 
@@ -941,7 +947,8 @@ end
 
 function deactivateNode(nid, autosave)
   nodes[nid].active = false
-  autosave = autosave or true
+  if autosave == nil then autosave = true end
+  print('autosave? '..tostring(autosave))
 
   -- Remove node stats from character stats
   local node = nodes[nid]
@@ -1089,9 +1096,9 @@ function changeActiveClass(class, aclass)
     activeAscendancy = 0
   end
 
-  -- If we were starting a new build, give it a name
-  -- and do an export
+  -- If we were starting a new build, give it a name and do an export
   if startingNewBuild then
+    print('starting new build...')
     currentBuild = getUniqueBuildName(class, aclass)
     saveData = Graph.export(saveData, currentBuild, class, aclass, nodes)
     startingNewBuild = false
