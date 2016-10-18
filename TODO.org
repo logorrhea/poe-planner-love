@@ -1,0 +1,15 @@
+* PoE Skill Tree Planner
+** Multiple Builds
+*** DONE Allow for multiple builds
+CLOSED: [2016-10-18 Tue 09:29]
+*** DONE Allow quick-swapping between builds
+CLOSED: [2016-10-18 Tue 09:29]
+*** TODO Allow naming of builds
+** Ascendancy Support
+*** DONE Support ascendancy classes
+CLOSED: [2016-10-18 Tue 09:48]
+*** TODO Fix issue with ascendant "Path of XYZ" skill paths
+Seems to work fine when activating the nodes initially. It might be part
+of the serialization/de-serialization process to where the information is
+not being saved correctly? Should check the encoded string we generate against
+the official skill tree.
