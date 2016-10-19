@@ -366,7 +366,7 @@ function Node:drawConnections()
 
       if (addTrail ~= nil and addTrail[self.id] and addTrail[nid]) or (addTrail[self.id] and other.active) or (self.active and addTrail[nid]) then
         color = addConnector
-      elseif removeTrail ~= nil and removeTrail[self.id] and removeTrail[nid] then
+      elseif (removeTrail ~= nil and removeTrail[self.id] and removeTrail[nid]) or (removeTrail[self.id] and other.active) or (self.active and removeTrail[nid]) then
         color = removeConnector
       elseif (self.active or self.isAscendancyStart) and (other.active or other.isAscendancyStart) then
         color = activeConnector
