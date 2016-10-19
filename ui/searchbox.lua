@@ -1,6 +1,7 @@
 local searchbox = {
   name = 'Search Box',
-  search = '',
+  text = '',
+  prevtext = '',
   padding = 10,
   dims = vec(100, 20),
   state = 'inactive',
@@ -15,22 +16,15 @@ function searchbox:init()
   self:blinkTimer()
 end
 
-function searchbox:update()
+function searchbox:update(dt)
+  if self.prevtext ~= self.text then
+    self:resetTimers()
+  end
+  self.prevtext = self.text
 end
 
 function searchbox:draw()
-  -- Text box
-  love.graphics.setColor(255, 255, 255, 150)
-  love.graphics.rectangle('fill', self.pos.x, self.pos.y, self.dims.x, self.dims.y)
-  
-  -- Search text
-  love.graphics.setColor(0, 0, 0, 255)
-  local text = self.search
-  if self.cursor == true and self:isFocused() then
-    text = self.search..'_'
-  end
-  love.graphics.print(text, self.pos.x+self.padding/2, self.pos.y+self.padding/2)
-  clearColor()
+  suit.Input(self, self.pos.x, self.pos.y, self.dims.x, self.dims.y)
 end
 
 function searchbox:click(x, y)
@@ -57,12 +51,12 @@ end
 
 function searchbox:textinput(t)
   self:resetTimers()
-  self.search = self.search..t
+  self.text = self.text..t
 end
 
 function searchbox:backspace()
   self:resetTimers()
-  self.search = self.search:sub(1, -2)
+  self.text = self.text:sub(1, -2)
 end
 
 function searchbox:resetTimers()
@@ -77,7 +71,7 @@ end
 function searchbox:searchNodes()
   local rmatches = {}
   local amatches = {}
-  local search = string.lower(self.search)
+  local search = string.lower(self.text)
   if string.len(search) == 0 then goto nodeloopend end
 
   for _, node in ipairs(Tree.nodes) do

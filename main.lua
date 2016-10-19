@@ -103,6 +103,7 @@ local layers = {}
 saveData = {}
 currentBuild = nil
 startingNewBuild = false
+changingBuild = false
 
 times = {}
 function love.load()
@@ -125,6 +126,12 @@ function love.load()
     if ascendancyClass == 0 then
       ascendancyClass = 1
     end
+  else
+    activeClass = 1
+    ascendancyClass = 1
+    currentBuild = 'ascendant'
+    saveData.builds = {}
+    saveData = Graph.export(saveData, currentBuild, activeClass, ascendancyClass, {})
   end
   times.save = love.timer.getTime()
 
@@ -342,6 +349,7 @@ function love.load()
 end
 
 function love.update(dt)
+  searchBox:update(dt)
   Timer.update(dt)
   require('lib.lovebird').update()
 end
@@ -362,20 +370,16 @@ function love.resize(w, h)
 end
 
 function love.draw()
-
   love.graphics.clear(255, 255, 255, 255)
 
   -- Set grayscale shader if classpickers are active
   if classPicker:isActive() or ascendancyClassPicker:isActive() then
     love.graphics.setShader(dimmer)
-  else
-    love.graphics.setColor(255, 255, 255, 240)
-    love.graphics.setShader()
   end
 
   -- Draw background image separate from transformations
-  love.graphics.draw(background)
   clearColor()
+  love.graphics.draw(background)
 
   camera:attach()
 
@@ -503,9 +507,8 @@ function love.draw()
   love.graphics.print(string.format("%i/%i", activeNodes, maxActive), winWidth - love.window.toPixels(100), love.window.toPixels(10))
   love.graphics.print(string.format("%i/%i", activeAscendancy, maxAscendancy), winWidth - love.window.toPixels(100), love.window.toPixels(30))
 
-  suit.draw()
-
   searchBox:draw()
+  suit.draw()
 end
 
 function love.touchmoved(id, x, y, dx, dy, pressure)
@@ -647,6 +650,7 @@ function love.wheelmoved(x, y)
 end
 
 function love.keypressed(key, scancode, isRepeat)
+  suit.keypressed(key)
   if key == 'up' then
     camera:zoomIn()
     refillBatches()
@@ -675,7 +679,7 @@ function love.keypressed(key, scancode, isRepeat)
       menu:scrolltext(love.window.toPixels(125))
     end
   elseif scancode == 'backspace' and searchBox:isFocused() then
-    searchBox:backspace()
+    -- searchBox:backspace()
   else
     print('scancode: '..scancode)
   end
@@ -683,8 +687,9 @@ end
 
 function love.textinput(t)
   if searchBox:isFocused() then
-    searchBox:textinput(t)
+    -- searchBox:textinput(t)
   end
+  suit.textinput(t)
 end
 
 function checkIfNodeHovered(x, y)
@@ -941,7 +946,7 @@ end
 
 function deactivateNode(nid, autosave)
   nodes[nid].active = false
-  autosave = autosave or true
+  if autosave == nil then autosave = true end
 
   -- Remove node stats from character stats
   local node = nodes[nid]
@@ -1040,10 +1045,11 @@ end
 
 function changeActiveClass(class, aclass)
   -- Don't do anything if not new class
-  if not startingNewBuild and class == activeClass and aclass == ascendancyClass then return false end
+  local autosave = not startingNewBuild and not changingBuild
+  if autosave and class == activeClass and aclass == ascendancyClass then return false end
 
   -- Provide confirmation dialog; no need to confirm when starting a new build
-  if not startingNewBuild then
+  if autosave then
     local buttons = {"Cancel", "OK", escapebutton=1, enterbutton=2}
     if love.window.showMessageBox('Change Class?', 'Are you sure you want to change class and reset the skill tree?', buttons, 'info', true) ~= 2 then return end
   end
@@ -1052,7 +1058,7 @@ function changeActiveClass(class, aclass)
   removeTrail = {}
 
   -- Only reset tree if main class changed
-  if activeClass ~= class or startingNewBuild then
+  if activeClass ~= class or startingNewBuild or changingBuild then
     activeClass = class
     startnid = startNodes[activeClass]
     startNode = nodes[startnid]
@@ -1060,7 +1066,7 @@ function changeActiveClass(class, aclass)
 
     for nid, node in pairs(nodes) do
       if node.active then
-        deactivateNode(nid, not startingNewBuild)
+        deactivateNode(nid, autosave)
       end
     end
 
@@ -1081,16 +1087,17 @@ function changeActiveClass(class, aclass)
   end
 
   -- Probably don't need this check, but whatever
-  if ascendancyClass ~= aclass or startingNewBuild then
+  if ascendancyClass ~= aclass or startingNewBuild or changingBuild then
     ascendancyClass = aclass
     for nid, node in pairs(ascendancyNodes) do
-      deactivateNode(nid, not startingNewBuild)
+      if node.active then
+        deactivateNode(nid, autosave)
+      end
     end
     activeAscendancy = 0
   end
 
-  -- If we were starting a new build, give it a name
-  -- and do an export
+  -- If we were starting a new build, give it a name and do an export
   if startingNewBuild then
     currentBuild = getUniqueBuildName(class, aclass)
     saveData = Graph.export(saveData, currentBuild, class, aclass, nodes)
@@ -1098,6 +1105,18 @@ function changeActiveClass(class, aclass)
   end
 
   -- Always refill the batches
+  refillBatches()
+end
+
+function changeActiveBuild(buildName)
+  currentBuild = buildName
+  activeClass, ascendancyClass, savedNodes = Graph.parse(saveData.builds[buildName].nodes)
+  changingBuild = true
+  changeActiveClass(activeClass, ascendancyClass)
+  for _, nid in ipairs(savedNodes) do
+    activateNode(nid)
+  end
+  changingBuild = false
   refillBatches()
 end
 

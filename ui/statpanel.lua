@@ -2,11 +2,12 @@ local suit = require 'lib.suit'
 
 local panel = {
   x = 0,
-  y = -winWidth,
+  y = -winHeight,
   status = 'inactive',
-  -- innerContent = 'stats',
-  innerContent = 'builds',
-  builds = {}
+  innerContent = 'stats',
+  builds = {},
+  width = love.window.toPixels(300),
+  padding = love.window.toPixels(5)
 }
 
 local divider  = love.graphics.newImage('assets/LineConnectorNormal.png')
@@ -53,7 +54,7 @@ end
 function panel:hide()
   self.status = 'closing'
   local duration = 0.5
-  Timer.tween(duration, self, {y = -winWidth}, 'in-back')
+  Timer.tween(duration, self, {y = -winHeight}, 'in-back')
   Timer.after(duration, function()
     panel.status = 'inactive'
   end)
@@ -75,11 +76,11 @@ function panel:draw(character)
   local five = love.window.toPixels(5)
 
   love.graphics.setColor(1, 1, 1, 240)
-  love.graphics.rectangle('fill', self.x, self.y, love.window.toPixels(300), winHeight)
+  love.graphics.rectangle('fill', self.x, self.y, self.width, winHeight)
 
   -- Stat panel outline
   clearColor()
-  love.graphics.rectangle('line', self.x, self.y, love.window.toPixels(300), winHeight)
+  love.graphics.rectangle('line', self.x, self.y, self.width, winHeight)
 
   -- Character stats
   love.graphics.draw(charStatLabels, self.x+love.window.toPixels(155), self.y+love.window.toPixels(18))
@@ -111,13 +112,15 @@ function panel:draw(character)
   elseif self.innerContent == 'builds' then
     -- Show builds listing
     local y = love.window.toPixels(125)
+    love.graphics.setFont(font)
+    clearColor()
     for name, build in pairs(self.builds) do
       -- Build title
-      love.graphics.print(build.name, five, self.y+y)
+      if suit.Button(build.name, {}, five, self.y+y, self.width-self.padding*2, five*10).hit then
+        changeActiveBuild(build.name)
+      end
       -- Build link (might exclude this)
-      y = y + love.window.toPixels(20)
-      love.graphics.print(build.nodes, five, self.y+y)
-      y = y + love.window.toPixels(20)
+      y = y + five*10
     end
 
     -- Show new build button
@@ -132,8 +135,32 @@ function panel:draw(character)
 
   -- Draw left icon (click to close stats drawer)
   local w, h = leftIcon:getDimensions()
+  w, h = love.window.toPixels(w), love.window.toPixels(h)
+
+  local x1 = (self.width-h)/2
+  local y1 = self.y+winHeight-w-love.window.toPixels(10)
+
+  -- Draw toggle icon
   love.graphics.setColor(255, 255, 255, 255)
-  love.graphics.draw(leftIcon, self.x+love.window.toPixels(295)-love.window.toPixels(w), self.y+(winHeight-love.window.toPixels(h))/2, 0, love.window.getPixelScale(), love.window.getPixelScale())
+  love.graphics.draw(leftIcon,
+                     self.x+self.width/2,
+                     self.y+winHeight-w/2-love.window.toPixels(10),
+                     math.pi/2,
+                     love.window.getPixelScale(),
+                     love.window.getPixelScale(),
+                     w/2,
+                     h/2)
+
+  -- Draw stat button
+  local labelHeight = love.window.toPixels(30)
+  if suit.Label("Stats", {}, five, self.y+winHeight-labelHeight).hit then
+    self.innerContent = 'stats'
+  end
+
+  -- Draw builds button
+  if suit.Label("Builds", {}, self.width-love.window.toPixels(100), self.y+winHeight-labelHeight).hit then
+    self.innerContent = 'builds'
+  end
 end
 
 function panel:updateStatText(character)
@@ -217,23 +244,27 @@ function panel:containsMouse(x, y)
   if x == nil or y == nil then
     x, y = love.mouse.getPosition()
   end
-  return self:isActive() and x < love.window.toPixels(300)
+  return self:isActive() and x < self.width
 end
 
 function panel:isMouseInStatSection(x, y)
   if x == nil or y == nil then
     x, y = love.mouse.getPosition()
   end
-  return x < love.window.toPixels(300) and y > love.window.toPixels(125)
+  return x < self.width and y > love.window.toPixels(125)
 end
 
 function panel:isMouseOverToggleButton(x, y)
   love.graphics.draw(leftIcon, self.x+love.window.toPixels(295)-love.window.toPixels(w), (winHeight-love.window.toPixels(h))/2, 0, love.window.getPixelScale(), love.window.getPixelScale())
   local w, h = leftIcon:getDimensions()
-  local x2 = love.window.toPixels(300)
-  local x1 = x2 - love.window.toPixels(w)
-  local y1 = (winHeight - love.window.toPixels(h))/2
-  local y2 = (winHeight + love.window.toPixels(h))/2
+  w, h = love.window.toPixels(w), love.window.toPixels(h)
+
+  local x1 = (self.width-h)/2
+
+  local x1 = (self.width-h)/2
+  local x2 = (self.width+h)/2
+  local y2 = self.y+winHeight-love.window.toPixels(10)
+  local y1 = y2-w
 
   return x > x1 and x < x2 and y > y1 and y < y2
 end
