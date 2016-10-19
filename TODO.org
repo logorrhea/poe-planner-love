@@ -5,7 +5,9 @@ CLOSED: [2016-10-18 Tue 09:29]
 *** DONE Allow quick-swapping between builds
 CLOSED: [2016-10-18 Tue 09:29]
 *** TODO Allow naming of builds
-*** TODO Enable switching between build info and stat info
+*** DONE Enable switching between build info and stat info
+    CLOSED: [2016-10-18 Tue 20:00]
+*** TODO Allow for deletion of builds
 ** Ascendancy Support
 *** DONE Support ascendancy classes
 CLOSED: [2016-10-18 Tue 09:48]
