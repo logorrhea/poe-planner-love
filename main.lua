@@ -923,9 +923,8 @@ function drawDialogWindow()
   love.graphics.draw(dialogContentText, dialogPosition.x + five, dialogPosition.y + five*4)
 end
 
-function activateNode(nid, autosave)
+function activateNode(nid)
   nodes[nid].active = true
-  autosave = autosave or true
 
   -- Add node stats to character stats
   local node = nodes[nid]
@@ -938,15 +937,10 @@ function activateNode(nid, autosave)
       activeNodes = activeNodes + 1
     end
   end
-
-  if autosave then
-    saveData = Graph.export(saveData, currentBuild, activeClass, ascendancyClass, nodes)
-  end
 end
 
-function deactivateNode(nid, autosave)
+function deactivateNode(nid)
   nodes[nid].active = false
-  if autosave == nil then autosave = true end
 
   -- Remove node stats from character stats
   local node = nodes[nid]
@@ -958,10 +952,6 @@ function deactivateNode(nid, autosave)
     else
       activeNodes = activeNodes - 1
     end
-  end
-
-  if autosave then
-    saveData = Graph.export(saveData, currentBuild, activeClass, ascendancyClass, nodes)
   end
 end
 
@@ -1045,11 +1035,11 @@ end
 
 function changeActiveClass(class, aclass)
   -- Don't do anything if not new class
-  local autosave = not startingNewBuild and not changingBuild
-  if autosave and class == activeClass and aclass == ascendancyClass then return false end
+  local isClassChange = not startingNewBuild and not changingBuild
+  if isClassChange and class == activeClass and aclass == ascendancyClass then return false end
 
   -- Provide confirmation dialog; no need to confirm when starting a new build
-  if autosave then
+  if isClassChange then
     local buttons = {"Cancel", "OK", escapebutton=1, enterbutton=2}
     if love.window.showMessageBox('Change Class?', 'Are you sure you want to change class and reset the skill tree?', buttons, 'info', true) ~= 2 then return end
   end
@@ -1066,7 +1056,7 @@ function changeActiveClass(class, aclass)
 
     for nid, node in pairs(nodes) do
       if node.active then
-        deactivateNode(nid, autosave)
+        deactivateNode(nid)
       end
     end
 
@@ -1091,7 +1081,7 @@ function changeActiveClass(class, aclass)
     ascendancyClass = aclass
     for nid, node in pairs(ascendancyNodes) do
       if node.active then
-        deactivateNode(nid, autosave)
+        deactivateNode(nid)
       end
     end
     activeAscendancy = 0
@@ -1102,6 +1092,11 @@ function changeActiveClass(class, aclass)
     currentBuild = getUniqueBuildName(class, aclass)
     saveData = Graph.export(saveData, currentBuild, class, aclass, nodes)
     startingNewBuild = false
+  end
+
+  -- Save changes if performing a regular class change
+  if isClassChange then
+    saveData = Graph.export(saveData, currentBuild, activeClass, ascendancyClass, nodes)
   end
 
   -- Always refill the batches
@@ -1151,6 +1146,7 @@ function toggleNodes(nid, isTouch)
       deactivateNode(id)
     end
     removeTrail = {}
+    saveData = Graph.export(saveData, currentBuild, activeClass, ascendancyClass, nodes)
     refillBatches()
     lastClicked = nil
   else
