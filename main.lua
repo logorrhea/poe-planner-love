@@ -681,7 +681,7 @@ function love.keypressed(key, scancode, isRepeat)
   elseif scancode == 'backspace' and searchBox:isFocused() then
     -- searchBox:backspace()
   else
-    print('scancode: '..scancode)
+    -- print('scancode: '..scancode)
   end
 end
 

@@ -1,13 +1,16 @@
 local suit = require 'lib.suit'
+local strings = require 'lib.strings'
 
 local panel = {
   x = 0,
   y = -winHeight,
   status = 'inactive',
-  innerContent = 'stats',
+  innerContent = 'builds',
   builds = {},
   width = love.window.toPixels(300),
-  padding = love.window.toPixels(5)
+  padding = love.window.toPixels(5),
+  buildName = love.graphics.newText(headerFont, ''),
+  className = love.graphics.newText(font, '')
 }
 
 local divider  = love.graphics.newImage('assets/LineConnectorNormal.png')
@@ -22,7 +25,6 @@ local keystoneDescriptions = {}
 
 local plusbutton = love.graphics.newImage('assets/cross100x100.png')
 
-
 function panel:init(builds)
   self.statText = {
     maxY = love.window.toPixels(125),
@@ -34,6 +36,8 @@ function panel:init(builds)
   }
   -- self.target = target
   self.builds = builds
+
+  self:initIcons()
 end
 
 function panel:toggle()
@@ -115,12 +119,28 @@ function panel:draw(character)
     love.graphics.setFont(font)
     clearColor()
     for name, build in pairs(self.builds) do
-      -- Build title
-      if suit.Button(build.name, {}, five, self.y+y, self.width-self.padding*2, five*10).hit then
-        changeActiveBuild(build.name)
-      end
+      -- Build title and class strings
+      local c, a = Graph.getClassData(build.nodes)
+      self.buildName:set(build.name)
+      self.className:set(strings.capitalize(Node.Classes[c].ascendancies[a]))
+
+      -- Draw build title
+      love.graphics.draw(self.buildName, five, self.y+y)
+
+      -- Draw edit icon
+      love.graphics.draw(self.icons.edit.sheet, self.icons.edit.frames[1], five + self.buildName:getWidth(), self.y+y)
+
+      -- Draw class name
+      y = y + self.buildName:getHeight()
+      love.graphics.draw(self.className, five, self.y+y)
+      y = y + self.className:getHeight()
+
+
+      -- if suit.Button(build.name, {}, five, self.y+y, self.width-self.padding*2, five*10).hit then
+      --   changeActiveBuild(build.name)
+      -- end
       -- Build link (might exclude this)
-      y = y + five*10
+      -- y = y + five*10
     end
 
     -- Show new build button
@@ -288,6 +308,21 @@ end
 
 function panel:setBuilds(builds)
   self.builds = builds
+end
+
+function panel:initIcons()
+  local editsheet = love.graphics.newImage('icons/edit-button.png')
+  local w, h = editsheet:getDimensions()
+  self.icons = {
+    edit = {
+      sheet = editsheet,
+      frames = {
+        [1] = love.graphics.newQuad(0, 0, 32, 32, w, h),
+        [2] = love.graphics.newQuad(32, 0, 32, 32, w, h),
+        [3] = love.graphics.newQuad(64, 0, 32, 32, w, h),
+      }
+    }
+  }
 end
 
 return panel

@@ -62,18 +62,24 @@ end
 function Graph.import(saveData)
   -- Update to new save format if necessary
   if saveData.version == nil then
-    print('updating save data')
     saveData = Graph.update(saveData)
-  else
-    print('save file already using most recent configuration')
   end
 
   -- Grab data about last viewed build
-  print(saveData.lastOpened)
   local build = saveData.builds[saveData.lastOpened]
   local charString = build.nodes
 
   return Graph.parse(charString)
+end
+
+function Graph.getClassData(encoded)
+  local b64 = string.gsub(string.gsub(encoded, '_', '/'), '-', '+')
+  local decoded = from_base64(b64)
+
+  local class      = string.byte(decoded:sub(5, 5)) + 1
+  local ascendancy = string.byte(decoded:sub(6, 6))
+
+  return class, ascendancy
 end
 
 function Graph.parse(encoded)
