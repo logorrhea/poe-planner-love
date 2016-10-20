@@ -18,6 +18,7 @@ function suit.new(theme)
 
 		Button = require(BASE.."button"),
 		ImageButton = require(BASE.."imagebutton"),
+		SpritesheetButton = require(BASE.."spritesheetbutton"),
 		Label = require(BASE.."label"),
 		Checkbox = require(BASE.."checkbox"),
 		Input = require(BASE.."input"),

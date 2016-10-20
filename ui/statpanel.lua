@@ -128,7 +128,10 @@ function panel:draw(character)
       love.graphics.draw(self.buildName, five, self.y+y)
 
       -- Draw edit icon
-      love.graphics.draw(self.icons.edit.sheet, self.icons.edit.frames[1], five + self.buildName:getWidth(), self.y+y)
+      -- love.graphics.draw(self.icons.edit.sheet, self.icons.edit.frames[1], five + self.buildName:getWidth(), self.y+y)
+      if suit.SpritesheetButton(self.icons.edit.sheet, self.icons.edit.options, five+self.buildName:getWidth(), self.y+y).hit then
+        print('spritesheet button clicked: '..build.name)
+      end
 
       -- Draw class name
       y = y + self.buildName:getHeight()
@@ -316,10 +319,11 @@ function panel:initIcons()
   self.icons = {
     edit = {
       sheet = editsheet,
-      frames = {
-        [1] = love.graphics.newQuad(0, 0, 32, 32, w, h),
-        [2] = love.graphics.newQuad(32, 0, 32, 32, w, h),
-        [3] = love.graphics.newQuad(64, 0, 32, 32, w, h),
+      options = {
+        id = 'edit-button',
+        normal = love.graphics.newQuad(0, 0, 32, 32, w, h),
+        hovered = love.graphics.newQuad(32, 0, 32, 32, w, h),
+        active = love.graphics.newQuad(64, 0, 32, 32, w, h),
       }
     }
   }

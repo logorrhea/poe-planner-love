@@ -41,6 +41,7 @@ return setmetatable({
 	-- widgets
 	Button = function(...) return instance:Button(...) end,
 	ImageButton = function(...) return instance:ImageButton(...) end,
+	SpritesheetButton = function(...) return instance:SpritesheetButton(...) end,
 	Label = function(...) return instance:Label(...) end,
 	Checkbox = function(...) return instance:Checkbox(...) end,
 	Input = function(...) return instance:Input(...) end,
