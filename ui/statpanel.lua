@@ -34,9 +34,9 @@ function panel:init(builds)
       self.y = lume.clamp(self.y+dy, self.minY, self.maxY)
     end
   }
-  -- self.target = target
-  self.builds = builds
 
+  self.editing = nil
+  self.builds = builds
   self:initIcons()
 end
 
@@ -118,19 +118,48 @@ function panel:draw(character)
     local y = love.window.toPixels(125)
     love.graphics.setFont(font)
     clearColor()
-    for name, build in pairs(self.builds) do
+    for i, build in ipairs(self.builds) do
       -- Build title and class strings
       local c, a = Graph.getClassData(build.nodes)
       self.buildName:set(build.name)
       self.className:set(strings.capitalize(Node.Classes[c].ascendancies[a]))
 
       -- Draw build title
-      love.graphics.draw(self.buildName, five, self.y+y)
+      if self.editing ~= nil and self.editing.index == i then
+        local input = suit.Input(self.editing, {id = 'edit-build-name', font=headerFont}, five, self.y+y)
+      else
+        if suit.Label(build.name, {font=headerFont}, five, self.y+y).hit then
+          changeActiveBuild(i)
+        end
+      end
 
       -- Draw edit icon
-      -- love.graphics.draw(self.icons.edit.sheet, self.icons.edit.frames[1], five + self.buildName:getWidth(), self.y+y)
-      if suit.SpritesheetButton(self.icons.edit.sheet, self.icons.edit.options, five+self.buildName:getWidth(), self.y+y).hit then
-        print('spritesheet button clicked: '..build.name)
+      self.icons.edit.options.id = 'edit-button-'..tostring(i)
+      if suit.SpritesheetButton(self.icons.edit.sheet, self.icons.edit.options, love.window.toPixels(300-70-5), self.y+y).hit then
+        if self.editing == nil then
+          print("enable editing for "..i)
+          self.editing = {
+            index = i,
+            text = build.name
+          }
+        else
+          self.builds[i].name = self.editing.text
+          self.editing = nil
+          -- can we do this from here? probably need to rethink this whole graph.export function
+          -- i think we need a whole savedata class that keeps track of all this bullshit
+          saveData = Graph.export(saveData, currentBuild, activeClass, ascendancyClass, nodes)
+        end
+      end
+
+      -- Draw delete icon
+      if #self.builds > 1 then
+        self.icons.delete.options.id = 'delete-button-'..tostring(i)
+        if suit.SpritesheetButton(self.icons.delete.sheet, self.icons.delete.options, love.window.toPixels(300-32-5), self.y+y).hit then
+          local buttons = {"Cancel", "OK", escapebutton=1, enterbutton=2}
+          if love.window.showMessageBox('Delete Build?', 'Are you sure you want to delete "'..build.name..'"?', buttons, 'info', true) == 2 then
+            deleteBuild(i)
+          end
+        end
       end
 
       -- Draw class name
@@ -138,10 +167,6 @@ function panel:draw(character)
       love.graphics.draw(self.className, five, self.y+y)
       y = y + self.className:getHeight()
 
-
-      -- if suit.Button(build.name, {}, five, self.y+y, self.width-self.padding*2, five*10).hit then
-      --   changeActiveBuild(build.name)
-      -- end
       -- Build link (might exclude this)
       -- y = y + five*10
     end
@@ -322,9 +347,21 @@ function panel:initIcons()
       options = {
         id = 'edit-button',
         normal = love.graphics.newQuad(0, 0, 32, 32, w, h),
-        hovered = love.graphics.newQuad(32, 0, 32, 32, w, h),
-        active = love.graphics.newQuad(64, 0, 32, 32, w, h),
+        active = love.graphics.newQuad(32, 0, 32, 32, w, h),
+        hovered = love.graphics.newQuad(64, 0, 32, 32, w, h),
       }
+    }
+  }
+
+  local deletesheet = love.graphics.newImage('icons/delete-button.png')
+  w,h = deletesheet:getDimensions()
+  self.icons.delete = {
+    sheet = deletesheet,
+    options = {
+      id = 'delete-button',
+      normal = love.graphics.newQuad(0, 0, 32, 32, w, h),
+      active = love.graphics.newQuad(64, 0, 32, 32, w, h),
+      hovered = love.graphics.newQuad(32, 0, 32, 32, w, h),
     }
   }
 end

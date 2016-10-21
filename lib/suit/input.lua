@@ -12,6 +12,9 @@ return function(core, input, ...)
 	local opt, x,y,w,h = core.getOptionsAndSize(...)
 	opt.id = opt.id or input
 	opt.font = opt.font or love.graphics.getFont()
+  if opt.autofocus then
+    core.active = opt.id
+  end
 
 	local text_width = opt.font:getWidth(input.text)
 	w = w or text_width + 6

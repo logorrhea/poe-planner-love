@@ -1,5 +1,6 @@
 local searchbox = {
   name = 'Search Box',
+  data = {text = ''},
   text = '',
   prevtext = '',
   padding = 10,
@@ -17,14 +18,14 @@ function searchbox:init()
 end
 
 function searchbox:update(dt)
-  if self.prevtext ~= self.text then
+  if self.prevtext ~= self.data.text then
     self:resetTimers()
   end
-  self.prevtext = self.text
+  self.prevtext = self.data.text
 end
 
 function searchbox:draw()
-  suit.Input(self, self.pos.x, self.pos.y, self.dims.x, self.dims.y)
+  suit.Input(self.data, self.pos.x, self.pos.y, self.dims.x, self.dims.y)
 end
 
 function searchbox:click(x, y)
@@ -51,12 +52,12 @@ end
 
 function searchbox:textinput(t)
   self:resetTimers()
-  self.text = self.text..t
+  self.data.text = self.data.text..t
 end
 
 function searchbox:backspace()
   self:resetTimers()
-  self.text = self.text:sub(1, -2)
+  self.data.text = self.data.text:sub(1, -2)
 end
 
 function searchbox:resetTimers()
@@ -71,7 +72,7 @@ end
 function searchbox:searchNodes()
   local rmatches = {}
   local amatches = {}
-  local search = string.lower(self.text)
+  local search = string.lower(self.data.text)
   if string.len(search) == 0 then goto nodeloopend end
 
   for _, node in ipairs(Tree.nodes) do

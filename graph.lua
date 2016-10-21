@@ -48,6 +48,12 @@ function Graph.planRefund(rid)
   return unreachable
 end
 
+function Graph.getBuild(name)
+  return lume.chain(saveData.builds):filter(function(t) return t.name == name end)
+    :first()
+    :result()
+end
+
 function findReachable(from, reachable, clicked)
   reachable[from] = true
   local f = nodes[from]
@@ -61,11 +67,10 @@ end
 
 function Graph.import(saveData)
   -- Update to new save format if necessary
-  if saveData.version == nil then
+  if saveData.version == nil or saveData.version ~= VERSION then
     saveData = Graph.update(saveData)
   end
 
-  -- Grab data about last viewed build
   local build = saveData.builds[saveData.lastOpened]
   local charString = build.nodes
 
@@ -103,21 +108,46 @@ function Graph.parse(encoded)
 end
 
 function Graph.update(build)
-  local data = {
-    version = VERSION,
-    lastOpened = build.name,
-    builds = {
-      [build.name] = {
-        name = build.name,
-        nodes = build.nodes,
+  print(build.version)
+  local data = build
+  if build.version then
+
+    -- Change builds to ipairs
+    if build.version == '0.1.0' then
+      local newBuilds = {}
+      local i = 0
+      local lastOpened
+      for name, entry in pairs(build.builds) do
+        i = i + 1
+        newBuilds[i] = entry
+        if name == build.lastOpened then
+          lastOpened = i
+        end
+      end
+      data.builds = newBuilds
+      data.lastOpened = lastOpened
+    end
+
+    -- Update savedata version string
+    data.version = VERSION
+  else
+    data = {
+      version = VERSION,
+      lastOpened = build.name,
+      builds = {
+        [1] = {
+          name = build.name,
+          nodes = build.nodes,
+        }
       }
     }
-  }
+  end
+
   love.filesystem.write('builds.lua', ser(data))
   return data
 end
 
-function Graph.export(saveData, name, class, ascendancy, nodes)
+function Graph.export(saveData, buildId, class, ascendancy, nodes)
   local charString = getCharacterString(class-1, ascendancy)
 
   for nid,node in pairs(nodes) do
@@ -129,13 +159,8 @@ function Graph.export(saveData, name, class, ascendancy, nodes)
   local encoded = string.gsub(string.gsub(to_base64(charString), '/', '_'), '+', '-')
 
   -- Update necessary information
-  saveData.version = VERSION
-  saveData.lastOpened = name
-  if saveData.builds == nil then saveData.builds = {} end
-  saveData.builds[name] = {
-    name = name,
-    nodes = encoded
-  }
+  saveData.lastOpened = buildId
+  saveData.builds[buildId].nodes = encoded
 
   -- Write changes to file
   love.filesystem.write('builds.lua', ser(saveData))

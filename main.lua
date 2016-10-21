@@ -1,4 +1,4 @@
-VERSION = '0.1.0'
+VERSION = '0.1.1'
 
 local scaleFix = 2.5
 
@@ -129,7 +129,7 @@ function love.load()
   else
     activeClass = 1
     ascendancyClass = 1
-    currentBuild = 'ascendant'
+    currentBuild = 1
     saveData.builds = {}
     saveData = Graph.export(saveData, currentBuild, activeClass, ascendancyClass, {})
   end
@@ -1089,7 +1089,8 @@ function changeActiveClass(class, aclass)
 
   -- If we were starting a new build, give it a name and do an export
   if startingNewBuild then
-    currentBuild = getUniqueBuildName(class, aclass)
+    currentBuild = #saveData.builds+1
+    saveData.builds[currentBuild] = {name = getUniqueBuildName(class, aclass)}
     saveData = Graph.export(saveData, currentBuild, class, aclass, nodes)
     startingNewBuild = false
   end
@@ -1103,9 +1104,9 @@ function changeActiveClass(class, aclass)
   refillBatches()
 end
 
-function changeActiveBuild(buildName)
-  currentBuild = buildName
-  activeClass, ascendancyClass, savedNodes = Graph.parse(saveData.builds[buildName].nodes)
+function changeActiveBuild(buildId)
+  currentBuild = buildId
+  activeClass, ascendancyClass, savedNodes = Graph.parse(saveData.builds[buildId].nodes)
   changingBuild = true
   changeActiveClass(activeClass, ascendancyClass)
   for _, nid in ipairs(savedNodes) do
@@ -1113,6 +1114,12 @@ function changeActiveBuild(buildName)
   end
   changingBuild = false
   refillBatches()
+end
+
+function deleteBuild(buildId)
+  if #saveData.builds == 1 then return end
+  table.remove(saveData.builds, buildId)
+  changeActiveBuild(1)
 end
 
 function startNewBuild()
