@@ -4,10 +4,12 @@
 CLOSED: [2016-10-18 Tue 09:29]
 *** DONE Allow quick-swapping between builds
 CLOSED: [2016-10-18 Tue 09:29]
-*** TODO Allow naming of builds
+*** DONE Allow naming of builds
+CLOSED: [2016-10-22 Sat 09:07]
 *** DONE Enable switching between build info and stat info
     CLOSED: [2016-10-18 Tue 20:00]
-*** TODO Allow for deletion of builds
+*** DONE Allow for deletion of builds
+CLOSED: [2016-10-22 Sat 09:07]
 ** Ascendancy Support
 *** DONE Support ascendancy classes
 CLOSED: [2016-10-18 Tue 09:48]
@@ -32,4 +34,5 @@ CLOSED: [2016-10-18 Tue 12:31]
 Start with like a search icon or something. Once clicked, start drawing suit.Input.
 ** Mobile-related Issues
 *** TODO Disable touch-drag camera panning while changing classes
-*** TODO Fix zoom min/max on mobile
+*** DONE Fix zoom min/max on mobile
+CLOSED: [2016-10-22 Sat 09:06]
