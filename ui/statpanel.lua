@@ -135,7 +135,14 @@ function panel:draw(character)
 
       -- Draw edit icon
       self.icons.edit.options.id = 'edit-button-'..tostring(i)
-      if suit.SpritesheetButton(self.icons.edit.sheet, self.icons.edit.options, love.window.toPixels(300-70-5), self.y+y).hit then
+      if suit.SpritesheetButton(self.icons.edit.sheet,
+                                self.icons.edit.options,
+                                love.window.toPixels(300-70-5),
+                                self.y+y,
+                                0,
+                                love.window.getPixelScale(),
+                                love.window.getPixelScale()
+                               ).hit then
         if self.editing == nil then
           print("enable editing for "..i)
           self.editing = {
@@ -154,7 +161,13 @@ function panel:draw(character)
       -- Draw delete icon
       if #self.builds > 1 then
         self.icons.delete.options.id = 'delete-button-'..tostring(i)
-        if suit.SpritesheetButton(self.icons.delete.sheet, self.icons.delete.options, love.window.toPixels(300-32-5), self.y+y).hit then
+        if suit.SpritesheetButton(self.icons.delete.sheet,
+                                  self.icons.delete.options,
+                                  love.window.toPixels(300-32-5),
+                                  self.y+y,
+                                  0,
+                                  love.window.getPixelScale(),
+                                  love.window.getPixelScale()).hit then
           local buttons = {"Cancel", "OK", escapebutton=1, enterbutton=2}
           if love.window.showMessageBox('Delete Build?', 'Are you sure you want to delete "'..build.name..'"?', buttons, 'info', true) == 2 then
             deleteBuild(i)
@@ -169,7 +182,7 @@ function panel:draw(character)
     end
 
     -- Show new build button
-    if suit.ImageButton(plusbutton, {}, five, self.y+y, 0, 0.25, 0.25).hit then
+    if suit.ImageButton(plusbutton, {}, five, self.y+y, 0, 0.25*love.window.getPixelScale(), 0.25*love.window.getPixelScale()).hit then
       startNewBuild()
       self:hide()
     end

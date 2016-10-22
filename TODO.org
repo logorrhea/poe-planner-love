@@ -36,3 +36,4 @@ Start with like a search icon or something. Once clicked, start drawing suit.Inp
 *** TODO Disable touch-drag camera panning while changing classes
 *** DONE Fix zoom min/max on mobile
 CLOSED: [2016-10-22 Sat 09:06]
+*** TODO Make high-dpi versions of icons instead of scaling them
