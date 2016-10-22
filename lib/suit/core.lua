@@ -132,7 +132,6 @@ end
 
 function suit:grabKeyboardFocus(id)
 	if self:isActive(id) then
-    print(tostring(id)..' now has keyboard focus')
 		if love.system.getOS() == "Android" or love.system.getOS() == "iOS" then
 			if id == NONE then
 				love.keyboard.setTextInput( false )

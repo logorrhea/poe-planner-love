@@ -166,9 +166,6 @@ function panel:draw(character)
       y = y + self.buildName:getHeight()
       love.graphics.draw(self.className, five, self.y+y)
       y = y + self.className:getHeight()
-
-      -- Build link (might exclude this)
-      -- y = y + five*10
     end
 
     -- Show new build button
@@ -183,16 +180,13 @@ function panel:draw(character)
 
   -- Draw left icon (click to close stats drawer)
   local w, h = leftIcon:getDimensions()
-  w, h = love.window.toPixels(w), love.window.toPixels(h)
-
-  local x1 = (self.width-h)/2
-  local y1 = self.y+winHeight-w-love.window.toPixels(10)
+  local sw, sh = love.window.toPixels(w, h)
 
   -- Draw toggle icon
   love.graphics.setColor(255, 255, 255, 255)
   love.graphics.draw(leftIcon,
                      self.x+self.width/2,
-                     self.y+winHeight-w/2-love.window.toPixels(10),
+                     self.y+winHeight-sw/2-love.window.toPixels(10),
                      math.pi/2,
                      love.window.getPixelScale(),
                      love.window.getPixelScale(),
