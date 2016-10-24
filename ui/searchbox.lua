@@ -58,6 +58,8 @@ end
 function searchbox:draw()
   if self.state ~= 'inactive' then
     local _, _, w, h = self.icons.close.options.normal:getViewport()
+    w = love.window.toPixels(w)
+    h = love.window.toPixels(h)
     suit.Input(self.data, self.options, self.pos.x - w, self.pos.y, self.dims.x, self.dims.y)
     if suit.SpritesheetButton(self.icons.close.sheet,
                               self.icons.close.options,
@@ -71,6 +73,8 @@ function searchbox:draw()
     end
   else
     local _, _, w, h = self.icons.search.options.normal:getViewport()
+    w = love.window.toPixels(w)
+    h = love.window.toPixels(h)
     if suit.SpritesheetButton(self.icons.search.sheet,
                               self.icons.search.options,
                               winWidth - self.padding - w,
