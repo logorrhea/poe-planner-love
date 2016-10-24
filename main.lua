@@ -73,6 +73,8 @@ headerFont = love.graphics.newFont('fonts/fontin-bold-webfont.ttf', 20*love.wind
 headerFont:setFilter('nearest', 'nearest')
 font = love.graphics.newFont('fonts/fontin-bold-webfont.ttf', 14*love.window.getPixelScale())
 font:setFilter('nearest', 'nearest')
+reminderFont = love.graphics.newFont('fonts/fontin-italic-webfont.ttf', 14*love.window.getPixelScale())
+reminderFont:setFilter('nearest', 'nearest')
 
 -- Stat window images
 local statsShowing = false
@@ -83,6 +85,8 @@ local portrait
 local dialogWindowVisible = false
 local dialogHeaderText  = love.graphics.newText(headerFont, '')
 local dialogContentText = love.graphics.newText(font, '')
+local dialogReminderText = love.graphics.newText(reminderFont, '')
+local dialogFlavorText = love.graphics.newText(reminderFont, '')
 local dialogPosition    = {x = 0, y    = 0, w = love.window.toPixels(300), h = love.window.toPixels(150)}
 local statPanelLocation = {x = -love.window.toPixels(300), y = 0}
 local statTextLocation  = {
@@ -847,6 +851,7 @@ end
 
 function showNodeDialog(nid, x, y)
   local node = nodes[nid]
+  local five = love.window.toPixels(5)
 
   -- Update text and calculate dialog box position
   local contentText = ''
@@ -858,23 +863,48 @@ function showNodeDialog(nid, x, y)
   end
   dialogContentText:set(contentText)
 
+  -- Add all reminder texts to dialog
+  local reminderText = ''
+  if node.reminderText then
+    for _, reminder in ipairs(node.reminderText) do
+      reminderText = reminderText..'\n'..reminder
+    end
+  end
+  dialogReminderText:set(reminderText)
+
+  -- Add flavour text to dialog
+  local flavorText = ''
+  if node.flavourText then
+    for _, flavor in ipairs(node.flavourText) do
+      flavorText = flavorText..'\n'..flavor
+    end
+  end
+  dialogFlavorText:set(flavorText)
+
   -- Update dialog window dimensions based on new text
   local w1, h1 = dialogHeaderText:getDimensions()
   local w2, h2 = dialogContentText:getDimensions()
-  if w1 > w2 then
-    dialogPosition.w = w1
-  else
-    dialogPosition.w = w2
+  dialogPosition.w = math.max(w1, w2)
+  dialogPosition.h = five + h1 + h2
+  if reminderText ~= '' then
+    local w3, h3 = dialogReminderText:getDimensions()
+    dialogPosition.w = math.max(dialogPosition.w, w3)
+    dialogPosition.h = dialogPosition.h + h3
   end
-  dialogPosition.w = dialogPosition.w + 10
-  dialogPosition.h = 5*3 + h1 + h2
+  if flavorText ~= '' then
+    local w4, h4 = dialogFlavorText:getDimensions()
+    dialogPosition.w = math.max(dialogPosition.w, w4)
+    dialogPosition.h = dialogPosition.h + h4
+  end
+  dialogPosition.h = dialogPosition.h + five
+  dialogPosition.w = dialogPosition.w + five*2
 
   -- Get position of node in camera coords, and adjust it so that
   -- the whole window will always fit on the screen
   if x == nil or y == nil then
     x, y = camera:cameraCoords(node.position.x, node.position.y)
   end
-  x, y = adjustDialogPosition(x, y, dialogPosition.w, dialogPosition.h, 20)
+  x, y = adjustDialogPosition(x, y, dialogPosition.w, dialogPosition.h, five*4)
   dialogPosition.x, dialogPosition.y = x, y
 
   -- Set window to visible
@@ -913,14 +943,24 @@ function drawDialogWindow()
   local five = love.window.toPixels(5)
 
   -- Inner and outer rectangles
-  love.graphics.setColor(1, 1, 1, 240)
+  love.graphics.setColor(1, 1, 1, 250)
   love.graphics.rectangle('fill', dialogPosition.x, dialogPosition.y, dialogPosition.w, dialogPosition.h)
   clearColor()
   love.graphics.rectangle('line', dialogPosition.x, dialogPosition.y, dialogPosition.w, dialogPosition.h)
 
   -- Draw text
-  love.graphics.draw(dialogHeaderText, dialogPosition.x + five, dialogPosition.y + five)
-  love.graphics.draw(dialogContentText, dialogPosition.x + five, dialogPosition.y + five*4)
+  local x = dialogPosition.x + five
+  local y = dialogPosition.y + five
+  love.graphics.draw(dialogHeaderText, x, y)
+  y = y + dialogHeaderText:getHeight()
+  love.graphics.draw(dialogContentText, x, y)
+  y = y + dialogContentText:getHeight()
+  love.graphics.setColor(mutedTextColor)
+  love.graphics.draw(dialogReminderText, x, y)
+  y = y + dialogReminderText:getHeight()
+  love.graphics.setColor(flavorTextColor)
+  love.graphics.draw(dialogFlavorText, x, y)
+  clearColor()
 end
 
 function activateNode(nid)
@@ -937,6 +977,9 @@ function activateNode(nid)
       activeNodes = activeNodes + 1
     end
   end
+
+  -- Some nodes grant passive skill points
+  maxActive = maxActive + node.passivePointsGranted
 end
 
 function deactivateNode(nid)
@@ -953,6 +996,9 @@ function deactivateNode(nid)
       activeNodes = activeNodes - 1
     end
   end
+
+  -- Some nodes grant passive skill points
+  maxActive = maxActive - node.passivePointsGranted
 end
 
 function parseDescriptions(node, op)

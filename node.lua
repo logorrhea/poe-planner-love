@@ -216,6 +216,8 @@ function Node.create(data, group)
   node.isMultipleChoice       = data.isMultipleChoice
   node.isMultipleChoiceOption = data.isMultipleChoiceOption
   node.passivePointsGranted   = data.passivePointsGranted
+  node.reminderText           = data.reminderText
+  node.flavourText            = data.flavourText
 
   for i, c in ipairs(node.startPositionClasses) do
     node.startPositionClasses[i] = c+1
