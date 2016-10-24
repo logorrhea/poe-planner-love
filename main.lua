@@ -126,15 +126,32 @@ function love.load()
     local saveDataFunc = love.filesystem.load('builds.lua')
     saveData = saveDataFunc()
     currentBuild = saveData.lastOpened
-    activeClass, ascendancyClass, savedNodes = Graph.import(saveData)
-    if ascendancyClass == 0 then
+
+    -- I dunno :(
+    if currentBuild == nil then
+      activeClass = 1
       ascendancyClass = 1
+      currentBuild = 1
+      saveData.builds = {[1] = {name='ascendant', nodes=''}}
+      saveData = Graph.export(saveData, currentBuild, activeClass, ascendancyClass, {})
+    else
+      -- Correct lastOpened if in old format
+      if type(currentBuild) ~= 'number' then
+        currentBuild = Graph.getBuild(currentBuild, saveData)
+        saveData.lastOpened = currentBuild
+      end
+
+      activeClass, ascendancyClass, savedNodes = Graph.import(saveData)
+      if ascendancyClass == 0 then
+        ascendancyClass = 1
+      end
     end
+
   else
     activeClass = 1
     ascendancyClass = 1
     currentBuild = 1
-    saveData.builds = {}
+    saveData.builds = {[1] = {name='ascendant', nodes=''}}
     saveData = Graph.export(saveData, currentBuild, activeClass, ascendancyClass, {})
   end
   times.save = love.timer.getTime()
@@ -355,7 +372,7 @@ end
 function love.update(dt)
   searchBox:update(dt)
   Timer.update(dt)
-  require('lib.lovebird').update()
+  -- require('lib.lovebird').update()
 end
 
 function love.resize(w, h)

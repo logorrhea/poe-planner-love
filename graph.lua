@@ -48,10 +48,16 @@ function Graph.planRefund(rid)
   return unreachable
 end
 
-function Graph.getBuild(name)
-  return lume.chain(saveData.builds):filter(function(t) return t.name == name end)
-    :first()
-    :result()
+function Graph.getBuild(name, data)
+  local i = 1
+  for bname, build in pairs(data.builds) do
+    print(name..' =? '..build.name)
+    if name == build.name then
+      return i
+    end
+    i = i+1
+  end
+  return nil
 end
 
 function findReachable(from, reachable, clicked)
@@ -108,7 +114,6 @@ function Graph.parse(encoded)
 end
 
 function Graph.update(build)
-  print(build.version)
   local data = build
   if build.version then
 
