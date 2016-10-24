@@ -1,10 +1,12 @@
 local searchbox = {
   name = 'Search Box',
   data = {text = ''},
+  options = {font = headerFont},
   text = '',
   prevtext = '',
-  padding = 10,
-  dims = vec(100, 20),
+  padding = love.window.toPixels(10),
+  dims = vec(0, love.window.toPixels(30)),
+  maxDims = vec(love.window.toPixels(200), love.window.toPixels(30)),
   state = 'inactive',
   matches = {
     regular = {},
@@ -13,8 +15,37 @@ local searchbox = {
 }
 
 function searchbox:init()
-  self.pos = vec(winWidth - self.padding - self.dims.x, winHeight - self.padding - self.dims.y)
+  self.pos = vec(winWidth - self.padding - self.maxDims.x, winHeight - self.padding - self.maxDims.y)
   self:blinkTimer()
+
+  -- Init icons
+  self.icons = {}
+
+  -- Search icon
+  local search = love.graphics.newImage('icons/search.png')
+  local w, h = search:getDimensions()
+  self.icons.search = {
+    sheet = search,
+    options = {
+      id = 'search-open',
+      normal = love.graphics.newQuad(0, 0, 32, 32, w, h),
+      active = love.graphics.newQuad(32, 0, 32, 32, w, h),
+      hovered = love.graphics.newQuad(32, 0, 32, 32, w, h),
+    }
+  }
+
+  -- Close icon
+  local close = love.graphics.newImage('icons/delete-button.png')
+  w, h = close:getDimensions()
+  self.icons.close = {
+    sheet = close,
+    options = {
+      id = 'search-close',
+      normal = love.graphics.newQuad(0, 0, 32, 32, w, h),
+      active = love.graphics.newQuad(64, 0, 32, 32, w, h),
+      hovered = love.graphics.newQuad(32, 0, 32, 32, w, h),
+    }
+  }
 end
 
 function searchbox:update(dt)
@@ -25,7 +56,32 @@ function searchbox:update(dt)
 end
 
 function searchbox:draw()
-  suit.Input(self.data, self.pos.x, self.pos.y, self.dims.x, self.dims.y)
+  if self.state ~= 'inactive' then
+    local _, _, w, h = self.icons.close.options.normal:getViewport()
+    suit.Input(self.data, self.options, self.pos.x - w, self.pos.y, self.dims.x, self.dims.y)
+    if suit.SpritesheetButton(self.icons.close.sheet,
+                              self.icons.close.options,
+                              winWidth - self.padding - w,
+                              winHeight - self.padding - h,
+                              0,
+                              love.window.getPixelScale(),
+                              love.window.getPixelScale()
+                             ).hit then
+      self:hide()
+    end
+  else
+    local _, _, w, h = self.icons.search.options.normal:getViewport()
+    if suit.SpritesheetButton(self.icons.search.sheet,
+                              self.icons.search.options,
+                              winWidth - self.padding - w,
+                              winHeight - self.padding - h,
+                              0,
+                              love.window.getPixelScale(),
+                              love.window.getPixelScale()
+                             ).hit then
+      self:show()
+    end
+  end
 end
 
 function searchbox:click(x, y)
@@ -36,6 +92,21 @@ function searchbox:click(x, y)
     self.state = 'inactive'
     return false
   end
+end
+
+function searchbox:show()
+  self.state = 'opening'
+  Timer.tween(0.5, self.dims, {x = self.maxDims.x}, 'out-cubic', function()
+    self.state = 'active'
+  end)
+end
+
+function searchbox:hide()
+  self.state = 'closing'
+  Timer.tween(0.5, self.dims, {x = 3}, 'out-cubic', function()
+    self.data.text = ''
+    self.state = 'inactive'
+  end)
 end
 
 function searchbox:isActive()

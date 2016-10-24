@@ -76,6 +76,9 @@ font:setFilter('nearest', 'nearest')
 reminderFont = love.graphics.newFont('fonts/fontin-italic-webfont.ttf', 14*love.window.getPixelScale())
 reminderFont:setFilter('nearest', 'nearest')
 
+-- Change default font
+love.graphics.setFont(font)
+
 -- Stat window images
 local statsShowing = false
 local statsTransitioning = false
@@ -372,7 +375,7 @@ end
 function love.update(dt)
   searchBox:update(dt)
   Timer.update(dt)
-  -- require('lib.lovebird').update()
+  require('lib.lovebird').update()
 end
 
 function love.resize(w, h)
