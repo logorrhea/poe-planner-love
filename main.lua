@@ -997,7 +997,10 @@ function parseDescriptions(node, op)
       end
 
       if #found ~= i then
-        for n,s in desc:gmatch("(%d+)(%%? %a[%s%a]*)") do
+        for n,s in desc:gmatch("(%d+%.?%d*)(%%? %a[%s%a]*)") do
+          if DEBUG then
+            print('s: '..s, 'n: '..n)
+          end
           found[#found+1] = s
           local v = character.stats[s] or 0
           v = op(v, n)
