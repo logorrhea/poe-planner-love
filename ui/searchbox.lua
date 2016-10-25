@@ -60,7 +60,7 @@ function searchbox:draw()
     local _, _, w, h = self.icons.close.options.normal:getViewport()
     w = love.window.toPixels(w)
     h = love.window.toPixels(h)
-    suit.Input(self.data, self.options, self.pos.x - w, self.pos.y, self.dims.x, self.dims.y)
+    suit.Input(self.data, self.options, self.pos.x - w + (self.maxDims.x - self.dims.x), self.pos.y, self.dims.x, self.dims.y)
     if suit.SpritesheetButton(self.icons.close.sheet,
                               self.icons.close.options,
                               winWidth - self.padding - w,
