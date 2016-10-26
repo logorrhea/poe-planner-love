@@ -39,3 +39,6 @@ CLOSED: [2016-10-26 Wed 11:34]
 *** DONE Fix zoom min/max on mobile
 CLOSED: [2016-10-22 Sat 09:06]
 *** TODO Make high-dpi versions of icons instead of scaling them
+*** TODO Can't press "stats" or "builds" labels on mobile 
+seems to work fine on the emulator, but pressing them on the phone is nigh on impossible
+*** TODO Ditto for the new build button
