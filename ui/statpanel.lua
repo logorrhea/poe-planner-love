@@ -182,7 +182,12 @@ function panel:draw(character)
     end
 
     -- Show new build button
-    if suit.ImageButton(plusbutton, {}, five, self.y+y, 0, 0.25*love.window.getPixelScale(), 0.25*love.window.getPixelScale()).hit then
+    -- local OS = love.system.getOS()
+    local scale = 0.5*love.window.getPixelScale()
+    -- if OS == 'iOS' or OS == 'android' then
+    --   scale = scale * 2
+    -- end
+    if suit.ImageButton(plusbutton, {}, five, self.y+y, 0, scale, scale).hit then
       startNewBuild()
       self:hide()
     end
@@ -208,7 +213,8 @@ function panel:draw(character)
 
   -- Draw stat button
   local labelHeight = love.window.toPixels(30)
-  if suit.Label("Stats", {}, five, self.y+winHeight-labelHeight).hit then
+  scale = love.window.getPixelScale()
+  if suit.Label('Stats', {}, five, self.y+winHeight-labelHeight*scale, 0, scale, scale).hit then
     self.innerContent = 'stats'
   end
 
