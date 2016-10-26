@@ -538,11 +538,13 @@ end
 function love.touchmoved(id, x, y, dx, dy, pressure)
   local touches = love.touch.getTouches()
   if #touches == 1 then
-    -- scroll text
-    if not menu:mousemoved(x, y, dx, dy) then
-      -- camera pan
-      camera:move(-dx/camera.scale, -dy/camera.scale)
-      refillBatches()
+    if not classPicker:isActive() and not ascendancyClassPicker:isActive() then
+      -- scroll text
+      if not menu:mousemoved(x, y, dx, dy) then
+        -- camera pan
+        camera:move(-dx/camera.scale, -dy/camera.scale)
+        refillBatches()
+      end
     end
   elseif #touches == 2 then
     -- camera zoom

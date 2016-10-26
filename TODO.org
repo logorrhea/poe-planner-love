@@ -34,7 +34,8 @@ CLOSED: [2016-10-18 Tue 12:31]
 CLOSED: [2016-10-26 Wed 11:26]
 Start with like a search icon or something. Once clicked, start drawing suit.Input.
 ** Mobile-related Issues
-*** TODO Disable touch-drag camera panning while changing classes
+*** DONE Disable touch-drag camera panning while changing classes
+CLOSED: [2016-10-26 Wed 11:34]
 *** DONE Fix zoom min/max on mobile
 CLOSED: [2016-10-22 Sat 09:06]
 *** TODO Make high-dpi versions of icons instead of scaling them
