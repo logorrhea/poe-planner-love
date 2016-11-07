@@ -77,7 +77,8 @@ function Graph.import(saveData)
     saveData = Graph.update(saveData)
   end
 
-  local build = saveData.builds[saveData.lastOpened]
+  local lastOpened = saveData.lastOpened or 1
+  local build = saveData.builds[lastOpened]
   local charString = build.nodes
 
   return Graph.parse(charString)
