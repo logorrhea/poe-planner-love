@@ -973,13 +973,17 @@ function drawDialogWindow()
   -- Draw text
   local x = dialogPosition.x + five
   local y = dialogPosition.y + five
+
   love.graphics.draw(dialogHeaderText, x, y)
   y = y + dialogHeaderText:getHeight()
+
   love.graphics.draw(dialogContentText, x, y)
   y = y + dialogContentText:getHeight()
+
   love.graphics.setColor(mutedTextColor)
   love.graphics.draw(dialogReminderText, x, y)
   y = y + dialogReminderText:getHeight()
+
   love.graphics.setColor(flavorTextColor)
   love.graphics.draw(dialogFlavorText, x, y)
   clearColor()
