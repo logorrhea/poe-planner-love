@@ -212,14 +212,16 @@ function panel:draw(character)
                      h/2)
 
   -- Draw stat button
-  local labelHeight = love.window.toPixels(30)
+  local labelHeight = love.window.toPixels(headerFont:getHeight())
+  local padding = love.window.toPixels(5)
   scale = love.window.getPixelScale()
-  if suit.Label('Stats', {}, five, self.y+winHeight-labelHeight*scale, 0, scale, scale).hit then
+  print(scale)
+  if suit.Label('Stats', {font=headerFont}, padding, self.y+winHeight-labelHeight-padding).hit then
     self.innerContent = 'stats'
   end
 
   -- Draw builds button
-  if suit.Label("Builds", {}, self.width-love.window.toPixels(100), self.y+winHeight-labelHeight).hit then
+  if suit.Label("Builds", {font=headerFont}, self.width-love.window.toPixels(65), self.y+winHeight-labelHeight-padding).hit then
     self.innerContent = 'builds'
   end
 end
