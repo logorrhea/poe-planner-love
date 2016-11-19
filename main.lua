@@ -191,9 +191,10 @@ function love.load()
       local fileData = love.filesystem.newFileData('assets/'..fileName)
       local imageData = love.image.newImageData(fileData)
       local image = love.graphics.newImage(imageData)
-      if lume.find(Node.InactiveSkillFrames, name) then
+
+      if name == 'PSSkillFrame' then
         batches[name] = love.graphics.newSpriteBatch(image, nodeCount)
-      elseif lume.find(Node.ActiveSkillFrames, name) then
+      elseif name == 'PSSkillFrameActive' then
         batches[name] = love.graphics.newSpriteBatch(image, maxActive)
       elseif name == 'PSGroupBackground1' then
         batches[name] = love.graphics.newSpriteBatch(image, groupCount)
@@ -203,6 +204,12 @@ function love.load()
         batches[name] = love.graphics.newSpriteBatch(image, (#Node.Classes + groupCount)*2)
       elseif name == 'PSStartNodeBackgroundInactive' then
         batches[name] = love.graphics.newSpriteBatch(image, #Node.Classes)
+      elseif name == 'NotableFrameAllocated' or name == 'NotableFrameUnallocated' then
+        batches[name] = love.graphics.newSpriteBatch(image, 395)
+      elseif name == 'KeystoneFrameUnallocated' or name == 'KeystoneFrameAllocated' then
+        batches[name] = love.graphics.newSpriteBatch(image, 23)
+      elseif name == 'JewelFrameUnallocated' or name == 'JewelFrameAllocated' then
+        batches[name] = love.graphics.newSpriteBatch(image, 21)
       else
         batches[name] = love.graphics.newSpriteBatch(image, 10)
       end
