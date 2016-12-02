@@ -296,6 +296,8 @@ function Node:isVisible(tx, ty, w, h)
 end
 
 function Node:draw()
+  self:drawBatchConnections()
+
   if self.type ~= Node.NT_START then
     local sheet = self:getSheet()
     batches[sheet]:add(self.imageQuad, self.visibleQuad.left, self.visibleQuad.top)
@@ -358,6 +360,39 @@ function Node:drawFrame()
   end
 end
 
+function Node:drawBatchConnections()
+  for _, nid in pairs(self.out) do
+    local other = nodes[nid]
+    if other.type > 6 and self.type < 7 or self.type > 6 and other.type < 7 then
+      -- don't draw connections between regular and ascendancy nodes
+    else
+      local color = nil
+
+      -- 0 = inactive
+      -- 1 = add
+      -- 2 = active
+      -- 3 = remove
+      local y = 0
+      if (addTrail ~= nil and addTrail[self.id] and addTrail[nid]) or (addTrail[self.id] and other.active) or (self.active and addTrail[nid]) then
+        y = 1
+      elseif (removeTrail ~= nil and removeTrail[self.id] and removeTrail[nid]) or (removeTrail[self.id] and other.active) or (self.active and removeTrail[nid]) then
+        y = 3
+      elseif (self.active or self.isAscendancyStart) and (other.active or other.isAscendancyStart) then
+        y = 2
+      end
+
+      if (self.group.id ~= other.group.id) or (self.orbit ~= other.orbit) then
+        -- self:drawConnection(other)
+        self:drawBatchConnection(other, y)
+      else
+        self:drawArcedConnection(other)
+      end
+
+      clearColor()
+    end
+  end
+end
+
 function Node:drawConnections()
   for _, nid in pairs(self.out) do
     local other = nodes[nid]
@@ -379,7 +414,7 @@ function Node:drawConnections()
       love.graphics.setColor(color)
 
       if (self.group.id ~= other.group.id) or (self.orbit ~= other.orbit) then
-        self:drawConnection(other)
+        -- self:drawConnection(other)
       else
         self:drawArcedConnection(other)
       end
@@ -387,6 +422,17 @@ function Node:drawConnections()
       clearColor()
     end
   end
+end
+
+function Node:drawBatchConnection(other, y)
+  -- Place at center point between nodes, scale, and rotate? will require use of origin offset
+  -- Or place at one node, scale and rotate w/o use of offset?
+  local sy = 2/camera.scale
+  local sx = Node.distance(self.id, other.id)
+  local dx = other.position.x - self.position.x
+  local dy = other.position.y - self.position.y
+  local r = math.atan2(dy, dx)
+  batches['connectors']:add(spriteQuads['connectors'][y+1], self.position.x, self.position.y, r, sx, sy)
 end
 
 function Node:drawConnection(other)

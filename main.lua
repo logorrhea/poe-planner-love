@@ -270,6 +270,18 @@ function love.load()
   end
   times.nodes = love.timer.getTime()
 
+  -- Straight line connector spritebatches
+  local connectorSprite = love.graphics.newImage('assets/straight-connector.png')
+  connectorSprite:setFilter('nearest', 'nearest')
+  local x, y = connectorSprite:getDimensions()
+  batches['connectors'] = love.graphics.newSpriteBatch(connectorSprite, 1500)
+  spriteQuads['connectors'] = {
+    love.graphics.newQuad(0, 0, 1, 1, x, y),
+    love.graphics.newQuad(0, 1, 1, 1, x, y),
+    love.graphics.newQuad(0, 2, 1, 1, x, y),
+    love.graphics.newQuad(0, 3, 1, 1, x, y),
+  }
+
   -- Set better starting position
   startnid = startNodes[activeClass]
   startNode = nodes[startnid]
@@ -431,6 +443,9 @@ function love.draw()
   love.graphics.setLineWidth(1)
   clearColor()
 
+  -- Draw straight line sprite batch
+  love.graphics.draw(batches['connectors'])
+
   -- Draw the start node decorations first, they should be in the very back
   love.graphics.draw(batches['PSStartNodeBackgroundInactive'])
 
@@ -508,8 +523,12 @@ function love.draw()
   if DEBUG then
     -- print FPS counter in top-left
     local fps, timePerFrame = love.timer.getFPS(), 1000 * love.timer.getAverageDelta()
+    local stats = love.graphics.getStats()
+
     love.graphics.setColor(255, 255, 255, 255)
     love.graphics.print(string.format("Current FPS: %.2f | Average frame time: %.3f ms", fps, timePerFrame), winWidth - love.window.toPixels(400), love.window.toPixels(10))
+
+    love.graphics.print(string.format("Draw calls: %d", stats.drawcalls), winWidth - love.window.toPixels(400), love.window.toPixels(30))
 
     -- Print character URL below
     love.graphics.print(characterURL, winWidth-love.window.toPixels(400), love.window.toPixels(30))
@@ -742,10 +761,13 @@ function checkIfNodeHovered(x, y)
   -- Do route planning on hover, since desktop OS
   -- doesn't use the two-click method of activating nodes
   if hovered == nil then
-    lastClicked = nil
     addTrail = {}
     removeTrail = {}
     dialogWindowVisible = false
+    if lastClicked ~= nil then
+      refillLineBatch()
+    end
+    lastClicked = nil
   elseif hovered ~= lastClicked then
     if DEBUG then
       print(hovered..' hovered')
@@ -758,6 +780,7 @@ function checkIfNodeHovered(x, y)
     else
       addTrail = Graph.planShortestRoute(hovered) or {}
     end
+    refillLineBatch()
   end
 
   return hovered
@@ -876,6 +899,15 @@ function refillBatches()
     group:draw()
   end
 
+end
+
+-- Only refill the straight line connector spritebatch
+-- (for when we hover a node and need to highlight certain connections)
+function refillLineBatch()
+  batches['connectors']:clear()
+  for nid, node in pairs(visibleNodes) do
+    node:drawBatchConnections()
+  end
 end
 
 function showNodeDialog(nid, x, y)
@@ -1216,9 +1248,11 @@ function toggleNodes(nid, isTouch)
   if clicked.active then
     addTrail = {}
     removeTrail = Graph.planRefund(clicked.id)
+    refillLineBatch()
   else
     removeTrail = {}
     addTrail = Graph.planShortestRoute(clicked.id)
+    refillLineBatch()
   end
 
   if not isTouch or lastClicked == nid then
