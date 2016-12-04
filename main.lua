@@ -271,16 +271,26 @@ function love.load()
   times.nodes = love.timer.getTime()
 
   -- Straight line connector spritebatches
-  local connectorSprite = love.graphics.newImage('assets/straight-connector.png')
-  connectorSprite:setFilter('nearest', 'nearest')
-  local x, y = connectorSprite:getDimensions()
-  batches['connectors'] = love.graphics.newSpriteBatch(connectorSprite, 1500)
-  spriteQuads['connectors'] = {
-    love.graphics.newQuad(0, 0, 1, 1, x, y),
-    love.graphics.newQuad(0, 1, 1, 1, x, y),
-    love.graphics.newQuad(0, 2, 1, 1, x, y),
-    love.graphics.newQuad(0, 3, 1, 1, x, y),
-  }
+  local connectorSpriteInactive = love.graphics.newImage('assets/straight-connector-inactive.png')
+  local connectorSpriteActive = love.graphics.newImage('assets/straight-connector-active.png')
+  local connectorSpriteAdd = love.graphics.newImage('assets/straight-connector-add.png')
+  local connectorSpriteRemove = love.graphics.newImage('assets/straight-connector-remove.png')
+  connectorSpriteInactive:setFilter('nearest', 'nearest')
+  connectorSpriteActive:setFilter('nearest', 'nearest')
+  connectorSpriteAdd:setFilter('nearest', 'nearest')
+  connectorSpriteRemove:setFilter('nearest', 'nearest')
+
+  local x, y = connectorSpriteInactive:getDimensions()
+  batches['connector-inactive'] = love.graphics.newSpriteBatch(connectorSpriteInactive, 1500)
+  batches['connector-active'] = love.graphics.newSpriteBatch(connectorSpriteActive, 1500)
+  batches['connector-add'] = love.graphics.newSpriteBatch(connectorSpriteAdd, 500)
+  batches['connector-remove'] = love.graphics.newSpriteBatch(connectorSpriteRemove, 500)
+  -- spriteQuads['connectors'] = {
+  --   love.graphics.newQuad(0, 0, 1, 1, x, y),
+  --   love.graphics.newQuad(0, 1, 1, 1, x, y),
+  --   love.graphics.newQuad(0, 2, 1, 1, x, y),
+  --   love.graphics.newQuad(0, 3, 1, 1, x, y),
+  -- }
 
   -- Set better starting position
   startnid = startNodes[activeClass]
@@ -444,7 +454,10 @@ function love.draw()
   clearColor()
 
   -- Draw straight line sprite batch
-  love.graphics.draw(batches['connectors'])
+  love.graphics.draw(batches['connector-inactive'])
+  love.graphics.draw(batches['connector-active'])
+  love.graphics.draw(batches['connector-add'])
+  love.graphics.draw(batches['connector-remove'])
 
   -- Draw the start node decorations first, they should be in the very back
   love.graphics.draw(batches['PSStartNodeBackgroundInactive'])
@@ -904,7 +917,10 @@ end
 -- Only refill the straight line connector spritebatch
 -- (for when we hover a node and need to highlight certain connections)
 function refillLineBatch()
-  batches['connectors']:clear()
+  batches['connector-inactive']:clear()
+  batches['connector-active']:clear()
+  batches['connector-add']:clear()
+  batches['connector-remove']:clear()
   for nid, node in pairs(visibleNodes) do
     node:drawBatchConnections()
   end

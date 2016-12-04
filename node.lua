@@ -372,18 +372,23 @@ function Node:drawBatchConnections()
       -- 1 = add
       -- 2 = active
       -- 3 = remove
-      local y = 0
+      -- local y = 0
+      local batchName = 'connector-inactive'
       if (addTrail ~= nil and addTrail[self.id] and addTrail[nid]) or (addTrail[self.id] and other.active) or (self.active and addTrail[nid]) then
-        y = 1
+        -- y = 1
+        batchName = 'connector-add'
       elseif (removeTrail ~= nil and removeTrail[self.id] and removeTrail[nid]) or (removeTrail[self.id] and other.active) or (self.active and removeTrail[nid]) then
-        y = 3
+        -- y = 3
+        batchName = 'connector-active'
       elseif (self.active or self.isAscendancyStart) and (other.active or other.isAscendancyStart) then
-        y = 2
+        -- y = 2
+        batchName = 'connector-remove'
       end
 
       if (self.group.id ~= other.group.id) or (self.orbit ~= other.orbit) then
         -- self:drawConnection(other)
-        self:drawBatchConnection(other, y)
+        -- self:drawBatchConnection(other, y)
+        self:drawBatchConnection(other, batchName)
       else
         self:drawArcedConnection(other)
       end
@@ -424,7 +429,8 @@ function Node:drawConnections()
   end
 end
 
-function Node:drawBatchConnection(other, y)
+-- function Node:drawBatchConnection(other, y)
+function Node:drawBatchConnection(other, batchName)
   -- Place at center point between nodes, scale, and rotate? will require use of origin offset
   -- Or place at one node, scale and rotate w/o use of offset?
   local sy = 2/camera.scale
@@ -432,7 +438,7 @@ function Node:drawBatchConnection(other, y)
   local dx = other.position.x - self.position.x
   local dy = other.position.y - self.position.y
   local r = math.atan2(dy, dx)
-  batches['connectors']:add(spriteQuads['connectors'][y+1], self.position.x, self.position.y, r, sx, sy)
+  batches[batchName]:add(self.position.x, self.position.y, r, sx, sy)
 end
 
 function Node:drawConnection(other)

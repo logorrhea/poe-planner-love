@@ -8,6 +8,7 @@ function love.conf(t)
   t.window.height = 768
   t.window.resizable = true
   t.window.highdpi = true
+  t.window.msaa = 4
   t.gammacorrect = true
 
   -- Disable unused packages
@@ -15,4 +16,5 @@ function love.conf(t)
   t.modules.physics = false
   t.modules.thread = false
   t.modules.video = false
+
 end
