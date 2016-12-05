@@ -379,10 +379,10 @@ function Node:drawBatchConnections()
         batchName = 'connector-add'
       elseif (removeTrail ~= nil and removeTrail[self.id] and removeTrail[nid]) or (removeTrail[self.id] and other.active) or (self.active and removeTrail[nid]) then
         -- y = 3
-        batchName = 'connector-active'
+        batchName = 'connector-remove'
       elseif (self.active or self.isAscendancyStart) and (other.active or other.isAscendancyStart) then
         -- y = 2
-        batchName = 'connector-remove'
+        batchName = 'connector-active'
       end
 
       if (self.group.id ~= other.group.id) or (self.orbit ~= other.orbit) then
