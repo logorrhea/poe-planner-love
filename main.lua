@@ -400,6 +400,9 @@ function love.load()
 end
 
 function love.update(dt)
+  if not love.window.isVisible() then
+    love.timer.sleep(1/30)
+  end
   searchBox:update(dt)
   Timer.update(dt)
   require('lib.lovebird').update()
