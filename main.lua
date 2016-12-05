@@ -49,9 +49,6 @@ orig_r, orig_g, orig_b, orig_a = love.graphics.getColor()
 
 ascendancyTreeOrigins = {}
 
--- Load GUI layout(s)
-local guiButtons = {}
-
 -- track touch data
 local touchIds = {}
 local touches = {}
@@ -358,36 +355,6 @@ function love.load()
   refillBatches()
   times.refill = love.timer.getTime()
 
-  -- Show GUI
-  guiButtons.menuToggle = {
-    x     = love.window.toPixels(10),
-    y     = love.window.toPixels(10),
-    sx    = 0.1*love.window.getPixelScale(),
-    sy    = 0.1*love.window.getPixelScale(),
-    image = love.graphics.newImage('assets/menu.png'),
-    name = 'Menu Toggle',
-    click = function(t, mx, my)
-      local w, h = t.image:getDimensions()
-      w, h = w*t.sx, h*t.sy
-      local x1, y1 = t.x, t.y
-      local x2, y2 = t.x + w, t.y + h
-      return mx >= x1 and mx <= x2 and my >= y1 and my <= y2
-    end,
-    process = function()
-      statsShowing = true
-      Timer.tween(0.5, statPanelLocation, {x = 0}, 'out-back')
-    end,
-    trigger = function()
-        -- Slide in stats board
-        statsShowing = true
-        -- Timer.tween(0.5, statPanelLocation, {x = 0}, 'in-out-quad')
-        Timer.tween(0.5, statPanelLocation, {x = 0}, 'out-back')
-    end,
-    isActive = function()
-      return statsShowing == false
-    end,
-  }
-
   -- Dimming shader
   dimmer = love.graphics.newShader('shaders/dimmer.hlsl')
 
@@ -405,7 +372,7 @@ function love.update(dt)
   end
   searchBox:update(dt)
   Timer.update(dt)
-  require('lib.lovebird').update()
+  -- require('lib.lovebird').update()
 end
 
 function love.resize(w, h)

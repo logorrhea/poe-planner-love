@@ -215,7 +215,6 @@ function panel:draw(character)
   local labelHeight = love.window.toPixels(headerFont:getHeight())
   local padding = love.window.toPixels(5)
   scale = love.window.getPixelScale()
-  print(scale)
   if suit.Label('Stats', {font=headerFont}, padding, self.y+winHeight-labelHeight-padding).hit then
     self.innerContent = 'stats'
   end
