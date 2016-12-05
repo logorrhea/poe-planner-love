@@ -4,8 +4,7 @@ function love.conf(t)
 
   t.window.title = 'PoE Skill Tree Planner'
   t.window.icon = 'logo.png'
-  -- t.window.width = 1024
-  t.window.width = 450
+  t.window.width = 1024
   t.window.height = 768
   t.window.resizable = true
   t.window.highdpi = true

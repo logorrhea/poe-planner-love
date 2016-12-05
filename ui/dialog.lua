@@ -4,7 +4,7 @@ local dialog = {
   status = 'inactive',
   width = love.window.toPixels(600),
   height = love.window.toPixels(300),
-  maxWidth = 600,
+  maxWidth = 500,
 
   headerText = love.graphics.newText(headerFont, ''),
   contentText = love.graphics.newText(font, ''),
@@ -24,6 +24,7 @@ function dialog:init()
   if (padding*2 + self.maxWidth) > w then
     self.maxWidth = w - padding*2
   end
+  self.width = self.maxWidth
   print(self.maxWidth)
 end
 
@@ -42,7 +43,7 @@ function dialog:show(node, x, y)
 
   local padding = love.window.toPixels(10)
   local w, h = love.graphics.getDimensions()
-  local width = self.maxWidth
+  local width = 0
   local text = ''
   local height = 0
 
@@ -96,18 +97,46 @@ function dialog:show(node, x, y)
     self.flavorText:set('')
   end
 
-  -- Update window dimensions based on new text
-  -- @TODO
+  -- Add padding and store width/height
   self.width = width + 2*padding
   self.height = height + 2*padding
 
-  -- Calculate position based on node position and screen size
-  x, y = camera:cameraCoords(node.position.x, node.position.y)
-  -- x, y = adjustDialogPosition(x, y, dialogPosition.w, dialogPosition.h, five*4)
+
+  -- Calculate position if none provided (would just always calculate,
+  -- but calcs are different for ascendancy nodes)
+  if x == nil or y == nil then
+    x, y = camera:cameraCoords(node.position.x, node.position.y)
+  end
   self.position.x = x
   self.position.y = y
 
+  -- Adjust position based on node position and screen size
+  self:adjustPosition()
+
   self.status = 'active'
+end
+
+function dialog:adjustPosition()
+  local offset = love.window.toPixels(20)
+  local x, y = self.position.x, self.position.y
+  local w, h = love.graphics.getDimensions()
+
+  if x < w/2 and y < h/2 then     -- Upper-left
+    x, y = x + offset, y + offset
+  elseif x > w/2 and y < h/2 then -- Upper-right
+    x, y = x - self.width - offset, y + offset
+  elseif x < w/2 and y > h/2 then -- Lower-left
+    x, y = x + offset, y - self.height - offset
+  else                            -- Lower-right
+    x, y = x - self.width - offset, y - self.height - offset
+  end
+
+  if (x + self.width) > w or x < 0 then
+    x = w/2 - self.width/2
+  end
+
+  self.position.x = x
+  self.position.y = y
 end
 
 function dialog:draw()

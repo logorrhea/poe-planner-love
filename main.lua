@@ -85,12 +85,6 @@ local statsTransitioning = false
 local portrait
 
 -- Dialog Window stuff
-local dialogWindowVisible = false
-local dialogHeaderText  = love.graphics.newText(headerFont, '')
-local dialogContentText = love.graphics.newText(font, '')
-local dialogReminderText = love.graphics.newText(reminderFont, '')
-local dialogFlavorText = love.graphics.newText(reminderFont, '')
-local dialogPosition    = {x = 0, y    = 0, w = love.window.toPixels(300), h = love.window.toPixels(150)}
 local statPanelLocation = {x = -love.window.toPixels(300), y = 0}
 local statTextLocation  = {
   maxY = love.window.toPixels(125),
@@ -562,10 +556,6 @@ function love.draw()
     dialog:draw()
   end
 
-  if dialogWindowVisible then
-    drawDialogWindow()
-  end
-
   if classPicker:isActive() then
     classPicker:draw()
   end
@@ -622,7 +612,6 @@ function love.touchmoved(id, x, y, dx, dy, pressure)
 end
 
 function love.mousepressed(x, y, button, isTouch)
-  dialogWindowVisible = false
   dialog:hide()
   clickCoords.x, clickCoords.y = x, y
   menu:mousepressed(x, y)
@@ -703,7 +692,6 @@ function love.mousemoved(x, y, dx, dy, isTouch)
         lastClicked = nil
         addTrail = {}
         removeTrail = {}
-        dialogWindowVisible = false
         dialog:hide()
       end
     end
@@ -776,7 +764,6 @@ function checkIfNodeHovered(x, y)
       local r = Node.Radii[node.type] * camera.scale
       if dx * dx + dy * dy <= r * r then
         hovered = nid
-        -- showNodeDialog(nid)
         dialog:show(nodes[nid])
       end
     end
@@ -787,7 +774,6 @@ function checkIfNodeHovered(x, y)
   if hovered == nil then
     addTrail = {}
     removeTrail = {}
-    dialogWindowVisible = false
     dialog:hide()
     if lastClicked ~= nil then
       refillLineBatch()
@@ -834,8 +820,7 @@ function checkIfAscendancyNodeHovered(x, y, button, isTouch)
       if dx * dx + dy * dy <= r * r then
         if not node.isAscendancyStart then
           hovered = nid
-          -- showNodeDialog(nid, wx, wy)
-          dialog:show(nodes[nid])
+          dialog:show(nodes[nid], wx, wy)
         end
       end
     end
@@ -845,7 +830,6 @@ function checkIfAscendancyNodeHovered(x, y, button, isTouch)
     lastClicked = nil
     addTrail = {}
     removeTrail = {}
-    dialogWindowVisible = false
     dialog:hide()
   elseif hovered ~= lastClicked then
     if DEBUG then
@@ -940,122 +924,8 @@ function refillLineBatch()
   end
 end
 
-function showNodeDialog(nid, x, y)
-  local node = nodes[nid]
-  local five = love.window.toPixels(5)
-
-  -- Update text and calculate dialog box position
-  local contentText = ''
-  dialogHeaderText:set(node.name)
-
-  -- Add all description texts to dialog
-  for _, desc in ipairs(node.descriptions) do
-    contentText = contentText .. '\n' .. desc
-  end
-  dialogContentText:set(contentText)
-
-  -- Add all reminder texts to dialog
-  local reminderText = ''
-  if node.reminderText then
-    for _, reminder in ipairs(node.reminderText) do
-      reminderText = reminderText..'\n'..reminder
-    end
-  end
-  dialogReminderText:set(reminderText)
-
-  -- Add flavour text to dialog
-  local flavorText = ''
-  if node.flavourText then
-    for _, flavor in ipairs(node.flavourText) do
-      flavorText = flavorText..'\n'..flavor
-    end
-  end
-  dialogFlavorText:set(flavorText)
-
-  -- Update dialog window dimensions based on new text
-  local w1, h1 = dialogHeaderText:getDimensions()
-  local w2, h2 = dialogContentText:getDimensions()
-  dialogPosition.w = math.max(w1, w2)
-  dialogPosition.h = five + h1 + h2
-  if reminderText ~= '' then
-    local w3, h3 = dialogReminderText:getDimensions()
-    dialogPosition.w = math.max(dialogPosition.w, w3)
-    dialogPosition.h = dialogPosition.h + h3
-  end
-  if flavorText ~= '' then
-    local w4, h4 = dialogFlavorText:getDimensions()
-    dialogPosition.w = math.max(dialogPosition.w, w4)
-    dialogPosition.h = dialogPosition.h + h4
-  end
-  dialogPosition.h = dialogPosition.h + five
-  dialogPosition.w = dialogPosition.w + five*2
-
-  -- Get position of node in camera coords, and adjust it so that
-  -- the whole window will always fit on the screen
-  if x == nil or y == nil then
-    x, y = camera:cameraCoords(node.position.x, node.position.y)
-  end
-  x, y = adjustDialogPosition(x, y, dialogPosition.w, dialogPosition.h, five*4)
-  dialogPosition.x, dialogPosition.y = x, y
-
-  -- Set window to visible
-  dialogWindowVisible = true
-end
-
-function adjustDialogPosition(x, y, w, h, offset)
-  local dx, dy = x, y
-  local hx, hy = winWidth/2, winHeight/2
-
-  if x < hx and y < hy then         -- Upper-left quadrant
-    dx, dy = x + offset, y + offset
-  elseif x > hx and y < hy then     -- Upper-right quadrant
-    dx, dy = x - w - offset, y + offset
-  elseif x < hx and y > hy then     -- Lower-left quadrant
-    dx, dy = x + offset, y - h - offset
-  else                              -- Lower-right quadrant
-    dx, dy = x - w - offset, y - h - offset
-  end
-
-  -- Some of the dialog boxes are super-wide
-  if dx + w > winWidth then
-    dx = winWidth - w - offset
-  elseif dx - w < 0 then
-    dx = offset
-  end
-
-  return dx, dy
-end
-
 function dist(v1, v2)
   return math.sqrt((v2.x - v1.x)*(v2.x - v1.x) + (v2.y - v1.y)*(v2.y - v1.y))
-end
-
-function drawDialogWindow()
-  local five = love.window.toPixels(5)
-
-  -- Inner and outer rectangles
-  love.graphics.setColor(1, 1, 1, 250)
-  love.graphics.rectangle('fill', dialogPosition.x, dialogPosition.y, dialogPosition.w, dialogPosition.h)
-  clearColor()
-  love.graphics.rectangle('line', dialogPosition.x, dialogPosition.y, dialogPosition.w, dialogPosition.h)
-
-  -- Draw text
-  local x = dialogPosition.x + five
-  local y = dialogPosition.y + five
-
-  love.graphics.draw(dialogHeaderText, x, y)
-  y = y + dialogHeaderText:getHeight()
-
-  love.graphics.draw(dialogContentText, x, y)
-  y = y + dialogContentText:getHeight()
-
-  love.graphics.setColor(mutedTextColor)
-  love.graphics.draw(dialogReminderText, x, y)
-  y = y + dialogReminderText:getHeight()
-
-  love.graphics.setColor(flavorTextColor)
-  love.graphics.draw(dialogFlavorText, x, y)
-  clearColor()
 end
 
 function activateNode(nid)
@@ -1304,7 +1174,6 @@ function toggleNodes(nid, isTouch)
     lastClicked = nil
   else
     lastClicked = nid
-    -- showNodeDialog(nid)
     dialog:show(nodes[nid])
   end
 end
