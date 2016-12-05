@@ -328,6 +328,10 @@ function love.load()
   searchBox = require 'ui.searchbox'
   searchBox:init()
 
+  -- Node details dialog
+  dialog = require 'ui.dialog'
+  dialog:init()
+
   -- Set up click/touch handler layers
   layers[1] = ascendancyClassPicker
   layers[2] = classPicker
@@ -554,6 +558,10 @@ function love.draw()
     portrait:draw()
   end
 
+  if dialog:isActive() then
+    dialog:draw()
+  end
+
   if dialogWindowVisible then
     drawDialogWindow()
   end
@@ -615,6 +623,7 @@ end
 
 function love.mousepressed(x, y, button, isTouch)
   dialogWindowVisible = false
+  dialog:hide()
   clickCoords.x, clickCoords.y = x, y
   menu:mousepressed(x, y)
 end
@@ -695,6 +704,7 @@ function love.mousemoved(x, y, dx, dy, isTouch)
         addTrail = {}
         removeTrail = {}
         dialogWindowVisible = false
+        dialog:hide()
       end
     end
   end
@@ -766,7 +776,8 @@ function checkIfNodeHovered(x, y)
       local r = Node.Radii[node.type] * camera.scale
       if dx * dx + dy * dy <= r * r then
         hovered = nid
-        showNodeDialog(nid)
+        -- showNodeDialog(nid)
+        dialog:show(nodes[nid])
       end
     end
   end
@@ -777,6 +788,7 @@ function checkIfNodeHovered(x, y)
     addTrail = {}
     removeTrail = {}
     dialogWindowVisible = false
+    dialog:hide()
     if lastClicked ~= nil then
       refillLineBatch()
     end
@@ -822,7 +834,8 @@ function checkIfAscendancyNodeHovered(x, y, button, isTouch)
       if dx * dx + dy * dy <= r * r then
         if not node.isAscendancyStart then
           hovered = nid
-          showNodeDialog(nid, wx, wy)
+          -- showNodeDialog(nid, wx, wy)
+          dialog:show(nodes[nid])
         end
       end
     end
@@ -833,6 +846,7 @@ function checkIfAscendancyNodeHovered(x, y, button, isTouch)
     addTrail = {}
     removeTrail = {}
     dialogWindowVisible = false
+    dialog:hide()
   elseif hovered ~= lastClicked then
     if DEBUG then
       print(hovered..' hovered')
@@ -1290,7 +1304,8 @@ function toggleNodes(nid, isTouch)
     lastClicked = nil
   else
     lastClicked = nid
-    showNodeDialog(nid)
+    -- showNodeDialog(nid)
+    dialog:show(nodes[nid])
   end
 end
 
