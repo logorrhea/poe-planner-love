@@ -42,3 +42,17 @@ CLOSED: [2016-10-22 Sat 09:06]
 *** TODO Can't press "stats" or "builds" labels on mobile 
 seems to work fine on the emulator, but pressing them on the phone is nigh on impossible
 *** TODO Ditto for the new build button
+** Bugz
+*** TODO Can pan camera out way past skill tree
+*** TODO Definitely bugs with initializing the save file
+*** TODO Slight visual bugs with the sprites
+    - Maybe we can simply change the filter mode?
+    - Might also try scaling the inner node icons down just a tad to make sure they
+    are properly hidden behind the frame.
+** Changes
+*** TODO Change input boxes back to custom implementation
+    Consider moving all UI back to custom, but definitely at least the input boxes. They
+    are glitchy on mobile and don't have some of the functionality I'd like.
+*** TODO Change everything about the "Add Build (plus icon)" button.
+    It is poop.
+*** TODO Edit button should change to save icon when editing.
