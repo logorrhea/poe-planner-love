@@ -745,9 +745,7 @@ function checkIfNodeHovered(x, y)
     addTrail = {}
     removeTrail = {}
     dialog:hide()
-    if lastClicked ~= nil then
-      refillLineBatch()
-    end
+    refillLineBatch()
     lastClicked = nil
   elseif hovered ~= lastClicked then
     if DEBUG then
