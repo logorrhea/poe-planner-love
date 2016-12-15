@@ -419,7 +419,9 @@ function Node:drawConnections()
       love.graphics.setColor(color)
 
       if (self.group.id ~= other.group.id) or (self.orbit ~= other.orbit) then
-        -- self:drawConnection(other)
+        if self:isAscendancy() then
+          self:drawConnection(other)
+        end
       else
         self:drawArcedConnection(other)
       end
