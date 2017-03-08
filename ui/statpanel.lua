@@ -144,7 +144,9 @@ function panel:draw(character)
                                 love.window.getPixelScale()
                                ).hit then
         if self.editing == nil then
-          print("enable editing for "..i)
+          if DEBUG then
+            print("enable editing for "..i)
+          end
           self.editing = {
             index = i,
             text = build.name
