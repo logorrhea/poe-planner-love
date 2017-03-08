@@ -80,6 +80,9 @@ function Graph.import(saveData)
   end
 
   local lastOpened = saveData.lastOpened or 1
+  -- if type(lastOpened) == 'string' then
+  --   lastOpened = 1
+  -- end
   local build = saveData.builds[lastOpened]
   local charString = build.nodes
 
