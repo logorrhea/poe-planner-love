@@ -25,7 +25,7 @@ function dialog:init()
     self.maxWidth = w - padding*2
   end
   self.width = self.maxWidth
-  print(self.maxWidth)
+  -- print(self.maxWidth)
 end
 
 function dialog:isActive()

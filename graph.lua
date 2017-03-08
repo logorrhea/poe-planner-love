@@ -51,7 +51,9 @@ end
 function Graph.getBuild(name, data)
   local i = 1
   for bname, build in pairs(data.builds) do
-    print(name..' =? '..build.name)
+    if DEBUG then
+      print(name..' =? '..build.name)
+    end
     if name == build.name then
       return i
     end
@@ -80,6 +82,9 @@ function Graph.import(saveData)
   local lastOpened = saveData.lastOpened or 1
   local build = saveData.builds[lastOpened]
   local charString = build.nodes
+
+  print(charString)
+
 
   return Graph.parse(charString)
 end
@@ -249,7 +254,9 @@ function getRouteFromTiers(found, tiers, tid)
       end
     end
     if n == nil then
-      print('Something went wrong...')
+      if DEBUG then
+        print('Something went wrong...')
+      end
       return route
     else
       route[n] = true
