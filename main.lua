@@ -142,10 +142,13 @@ function love.load()
     end
 
   else
+
+    -- No save file detected, create fresh one
     activeClass = 1
     ascendancyClass = 1
     currentBuild = 1
     saveData.builds = {[1] = {name='ascendant', nodes=''}}
+    saveData.version = VERSION
     saveData = Graph.export(saveData, currentBuild, activeClass, ascendancyClass, {})
   end
   times.save = love.timer.getTime()
@@ -991,8 +994,10 @@ function parseDescriptions(node, op)
       end
 
       if #found ~= i then
-        print('Still not found :(')
-        print(desc)
+        if DEBUG then
+          print('Still not found :(')
+          print(desc)
+        end
       end
 
     end
