@@ -83,9 +83,6 @@ function Graph.import(saveData)
   local build = saveData.builds[lastOpened]
   local charString = build.nodes
 
-  print(charString)
-
-
   return Graph.parse(charString)
 end
 
@@ -121,7 +118,7 @@ end
 
 function Graph.update(build)
   local data = build
-  if build.version then
+  if build ~= nil and build.version ~= nil then
 
     -- Change builds to ipairs
     if build.version == '0.1.0' then
