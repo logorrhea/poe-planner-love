@@ -1,9 +1,9 @@
 local searchbox = {
   name = 'Search Box',
-  data = {text = ''},
+  data = {text = '', prevtext = '', cursor = false},
   options = {font = headerFont},
-  text = '',
-  prevtext = '',
+  -- text = '',
+  -- prevtext = '',
   padding = love.window.toPixels(10),
   dims = vec(0, love.window.toPixels(30)),
   maxDims = vec(love.window.toPixels(200), love.window.toPixels(30)),
@@ -56,7 +56,27 @@ function searchbox:update(dt)
 end
 
 function searchbox:draw()
+
   if self.state ~= 'inactive' then
+
+    -- Move all this shit up 100px for testing
+    love.graphics.push()
+    love.graphics.translate(0, -love.window.toPixels(100))
+    -- Black box
+    love.graphics.setColor(50, 50, 50, 255)
+    love.graphics.rectangle('fill', self.pos.x - w + (self.maxDims.x - self.dims.x), self.pos.y, self.dims.x, self.dims.y)
+
+    -- Search text
+    clearColor()
+    local text = self.data.text
+    if self.cursor == true and self:isFocused() then
+      text = text .. '_'
+    end
+    love.graphics.print(text, self.pos.x + self.padding/2, self.pos.y+self.padding/2)
+    clearColor()
+    love.graphics.pop()
+    -- Done w/ test stuff
+
     local _, _, w, h = self.icons.close.options.normal:getViewport()
     w = love.window.toPixels(w)
     h = love.window.toPixels(h)
