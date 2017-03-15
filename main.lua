@@ -717,7 +717,7 @@ function love.keypressed(key, scancode, isRepeat)
       menu:scrolltext(love.window.toPixels(125))
     end
   elseif scancode == 'backspace' and searchBox:isFocused() then
-    -- searchBox:backspace()
+    searchBox:backspace()
   else
     -- print('scancode: '..scancode)
   end
@@ -725,7 +725,7 @@ end
 
 function love.textinput(t)
   if searchBox:isFocused() then
-    -- searchBox:textinput(t)
+    searchBox:textinput(t)
   end
   suit.textinput(t)
 end

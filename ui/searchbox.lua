@@ -60,8 +60,8 @@ function searchbox:draw()
   if self.state ~= 'inactive' then
 
     -- Move all this shit up 100px for testing
-    love.graphics.push()
-    love.graphics.translate(0, -love.window.toPixels(100))
+    -- love.graphics.push()
+    -- love.graphics.translate(0, -love.window.toPixels(100))
     -- Black box
     love.graphics.setColor(50, 50, 50, 255)
     love.graphics.rectangle('fill', self.pos.x - w + (self.maxDims.x - self.dims.x), self.pos.y, self.dims.x, self.dims.y)
@@ -74,13 +74,13 @@ function searchbox:draw()
     end
     love.graphics.print(text, self.pos.x + self.padding/2, self.pos.y+self.padding/2)
     clearColor()
-    love.graphics.pop()
+    -- love.graphics.pop()
     -- Done w/ test stuff
 
     local _, _, w, h = self.icons.close.options.normal:getViewport()
     w = love.window.toPixels(w)
     h = love.window.toPixels(h)
-    suit.Input(self.data, self.options, self.pos.x - w + (self.maxDims.x - self.dims.x), self.pos.y, self.dims.x, self.dims.y)
+    -- suit.Input(self.data, self.options, self.pos.x - w + (self.maxDims.x - self.dims.x), self.pos.y, self.dims.x, self.dims.y)
     if suit.SpritesheetButton(self.icons.close.sheet,
                               self.icons.close.options,
                               winWidth - self.padding - w,
@@ -113,7 +113,10 @@ function searchbox:click(x, y)
     self.state = 'focused'
     return true
   else
-    self.state = 'inactive'
+    -- self.state = 'inactive'
+    if self.state ~= 'inactive' then
+      self.state = 'active'
+    end
     return false
   end
 end
@@ -121,7 +124,7 @@ end
 function searchbox:show()
   self.state = 'opening'
   Timer.tween(0.5, self.dims, {x = self.maxDims.x}, 'out-cubic', function()
-    self.state = 'active'
+    self.state = 'focused'
   end)
 end
 
