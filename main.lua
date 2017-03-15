@@ -370,9 +370,10 @@ function love.load()
 end
 
 function love.update(dt)
-  if not love.window.isVisible() then
+  if not love.window.hasFocus() then
     love.timer.sleep(1/30)
   end
+
   searchBox:update(dt)
   Timer.update(dt)
   -- require('lib.lovebird').update()
@@ -394,6 +395,7 @@ function love.resize(w, h)
 end
 
 function love.draw()
+
   love.graphics.clear(255, 255, 255, 255)
 
   -- Set grayscale shader if classpickers are active
