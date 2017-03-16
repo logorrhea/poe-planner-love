@@ -710,6 +710,8 @@ function love.keypressed(key, scancode, isRepeat)
   elseif key == 'escape' then
     if menu:isActive() then
       menu:toggle()
+    elseif searchBox:isActive() then
+      searchBox:hide()
     else
       saveData = Graph.export(saveData, currentBuild, activeClass, ascendancyClass, nodes)
       love.event.quit()

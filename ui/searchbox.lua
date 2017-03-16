@@ -2,8 +2,6 @@ local searchbox = {
   name = 'Search Box',
   data = {text = '', prevtext = '', cursor = false},
   options = {font = headerFont},
-  -- text = '',
-  -- prevtext = '',
   padding = love.window.toPixels(10),
   dims = vec(0, love.window.toPixels(30)),
   maxDims = vec(love.window.toPixels(200), love.window.toPixels(30)),
@@ -49,10 +47,10 @@ function searchbox:init()
 end
 
 function searchbox:update(dt)
-  if self.prevtext ~= self.data.text then
+  if self.data.prevtext ~= self.data.text then
     self:resetTimers()
   end
-  self.prevtext = self.data.text
+  self.data.prevtext = self.data.text
 end
 
 function searchbox:draw()
@@ -140,7 +138,7 @@ function searchbox:hide()
 end
 
 function searchbox:isActive()
-  return true
+  return self.state ~= 'inactive'
 end
 
 function searchbox:isFocused()
@@ -164,7 +162,7 @@ end
 function searchbox:resetTimers()
   if self.timer ~= nil then Timer.cancel(self.timer) end
   self.cursor = false
-  self.timer = Timer.after(1.0, function()
+  self.timer = Timer.after(0.3, function()
     self:searchNodes()
     self:blinkTimer()
   end)
