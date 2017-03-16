@@ -15,7 +15,7 @@ function toggle:init(target)
     options = {
       id = 'search-menu',
       normal = love.graphics.newQuad(0, 0, w/3, w/3, w, h),
-      active = love.graphics.newQuad(w*2/3, 0, w/3, w/3, w, h),
+      active = love.graphics.newQuad(w/3, 0, w/3, w/3, w, h),
       hovered = love.graphics.newQuad(w/3, 0, w/3, w/3, w, h),
     }
   }
