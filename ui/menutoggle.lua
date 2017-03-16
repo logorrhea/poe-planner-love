@@ -1,32 +1,46 @@
 local toggle = {
-  x = love.window.toPixels(10),
-  y = love.window.toPixels(20),
-  sx = 0.1*love.window.getPixelScale(),
-  sy = 0.1*love.window.getPixelScale(),
-  image = love.graphics.newImage('assets/menu.png'),
+  x = 10,
+  y = 20,
   name = 'Menu Toggle',
   status = 'active',
 }
 
 function toggle:init(target)
   self.target = target
+
+  local menu = love.graphics.newImage('icons/menu.png')
+  w, h = menu:getDimensions()
+  self.icon = {
+    sheet = menu,
+    options = {
+      id = 'search-menu',
+      normal = love.graphics.newQuad(0, 0, w/3, w/3, w, h),
+      active = love.graphics.newQuad(w*2/3, 0, w/3, w/3, w, h),
+      hovered = love.graphics.newQuad(w/3, 0, w/3, w/3, w, h),
+    }
+  }
 end
 
 function toggle:click(mx, my)
-  local w, h = self.image:getDimensions()
-  w, h = w*self.sx, h*self.sy
-  local x1, y1 = self.x, self.y
-  local x2, y2 = self.x + w, self.y + h
-  if mx >= x1 and mx <= x2 and my >= y1 and my <= y2 then
-    self.target:toggle()
-    return true
-  else
-    return false
-  end
+  -- stub
 end
 
 function toggle:draw()
-  love.graphics.draw(self.image, self.x, self.y, 0, self.sx, self.sy)
+  if not self.target:isActive() then
+    local _, _, w, h = self.icon.options.normal:getViewport()
+    w, h = love.window.toPixels(w, h)
+    local x, y = love.window.toPixels(self.x, self.y)
+    if suit.SpritesheetButton(self.icon.sheet,
+                              self.icon.options,
+                              x,
+                              y,
+                              0,
+                              love.window.getPixelScale(),
+                              love.window.getPixelScale()
+                             ).hit then
+      self.target:toggle()
+    end
+  end
 end
 
 function toggle:isActive()

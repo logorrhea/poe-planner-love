@@ -15,7 +15,7 @@ local searchbox = {
 }
 
 function searchbox:init()
-  self.pos = vec(winWidth - self.padding - self.maxDims.x, winHeight - self.padding - self.maxDims.y)
+  self:resize()
   self:blinkTimer()
 
   -- Init icons
@@ -59,12 +59,18 @@ function searchbox:draw()
 
   if self.state ~= 'inactive' then
 
+    -- Need icon dimensions for drawing the search box
+    local _, _, w, h = self.icons.close.options.normal:getViewport()
+    w = love.window.toPixels(w)
+    h = love.window.toPixels(h)
+
     -- Move all this shit up 100px for testing
     -- love.graphics.push()
     -- love.graphics.translate(0, -love.window.toPixels(100))
     -- Black box
     love.graphics.setColor(50, 50, 50, 255)
-    love.graphics.rectangle('fill', self.pos.x - w + (self.maxDims.x - self.dims.x), self.pos.y, self.dims.x, self.dims.y)
+    local x = self.pos.x - w + (self.maxDims.x - self.dims.x)
+    love.graphics.rectangle('fill', x, self.pos.y, self.dims.x, self.dims.y)
 
     -- Search text
     clearColor()
@@ -72,14 +78,11 @@ function searchbox:draw()
     if self.cursor == true and self:isFocused() then
       text = text .. '_'
     end
-    love.graphics.print(text, self.pos.x + self.padding/2, self.pos.y+self.padding/2)
+    love.graphics.print(text, x + self.padding/2, self.pos.y+self.padding/2)
     clearColor()
     -- love.graphics.pop()
     -- Done w/ test stuff
 
-    local _, _, w, h = self.icons.close.options.normal:getViewport()
-    w = love.window.toPixels(w)
-    h = love.window.toPixels(h)
     -- suit.Input(self.data, self.options, self.pos.x - w + (self.maxDims.x - self.dims.x), self.pos.y, self.dims.x, self.dims.y)
     if suit.SpritesheetButton(self.icons.close.sheet,
                               self.icons.close.options,
@@ -215,6 +218,10 @@ function searchbox:blinkTimer()
   self.timer = Timer.every(0.5, function()
     self.cursor = not self.cursor
   end)
+end
+
+function searchbox:resize()
+  self.pos = vec(winWidth - self.padding - self.maxDims.x, winHeight - self.padding - self.maxDims.y)
 end
 
 return searchbox

@@ -392,6 +392,8 @@ function love.resize(w, h)
   -- Reset centers on class picker
   ascendancyClassPicker:setCenters()
   classPicker:setCenters()
+
+  searchBox:resize()
 end
 
 function love.draw()
@@ -706,8 +708,12 @@ function love.keypressed(key, scancode, isRepeat)
       menu:toggle()
     end
   elseif key == 'escape' then
-    saveData = Graph.export(saveData, currentBuild, activeClass, ascendancyClass, nodes)
-    love.event.quit()
+    if menu:isActive() then
+      menu:toggle()
+    else
+      saveData = Graph.export(saveData, currentBuild, activeClass, ascendancyClass, nodes)
+      love.event.quit()
+    end
   elseif scancode == 'pagedown' then
     if menu:isActive() then
       menu:scrolltext(-love.window.toPixels(125))
