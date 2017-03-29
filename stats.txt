@@ -1,0 +1,477 @@
+% increased Warcry Cooldown Recovery Speed
+% increased Damage while Leeching
+% more chance to Evade Melee Attacks during Onslaught
+% chance to Dodge Spell Damage
+% to all Elemental Resistances
+% increased Attack Speed with Claws
+% increased Attack Speed
+% increased Knockback Distance
+% Elemental Resistance
+% of your Reserved Mana to you and nearby Allies
+% increased Block Recovery
+% less Elemental Damage
+% or lower Life when Hit by your Skills
+% increased Physical Damage with Attacks
+% increased Damage per Enemy Killed by you or your Totems Recently
+% increased Attack Speed if you haven
+% increased Armour while you have Fortify
+% increased Accuracy Rating with Maces
+% chance to Explode
+% chance to Avoid Elemental Status Ailments
+% of Maximum Life Regenerated per second while you have Fortify
+% increased Spell Damage
+% increased Cold Damage
+% to Critical Strike Multiplier with Daggers
+% increased Taunt Duration
+% chance to Poison the Enemy
+% to Critical Strike Multiplier against Bleeding Enemies
+% increased Wand Damage per Power Charge
+% chance to avoid Freeze
+% Fire Resistance
+% increased Damage against Rare and Unique Enemies
+additional Trap placed at a time
+% increased Stun Threshold
+% increased Radius of Area Skills for 
+% more Damage if you
+% increased Attack Speed with Daggers
+% increased Melee Physical Damage
+% reduced Mana Cost of Skills
+% reduced Flask Charges used
+% reduced Effect of Curses on You
+% increased Chaos Damage
+% increased Damage per Endurance Charge
+% to Critical Strike Multiplier with Wands
+% of Wand Physical Damage Added as Fire Damage
+% increased Elemental Damage during Flask Effect
+% of Damage is taken from Mana before Life
+% chance to double Stun Duration
+% Elemental Resistances if you Detonated Mines Recently
+% reduced Reflected Physical Damage taken
+% increased Attack Damage if you
+% increased Stun Recovery
+% increased Damage to you and Allies
+% increased Damage for each Trap and Mine you have
+% chance to create a Smoke Cloud when you place a Mine or throw a Trap
+% of Physical Damage gained as Extra Chaos Damage against Bleeding Enemies
+% increased Mine Laying Speed if you Detonated Mines Recently
+% additional Block Chance with Staves
+Life gained for each Enemy hit by your Attacks
+% increased Attack Speed with One Handed Weapons
+% chance to gain Onslaught for x seconds on Kill
+% increased Attack Damage during Onslaught
+% of Damage Leeched as Life
+% reduced Damage taken from Damage Over Time
+% to Critical Strike Multiplier against Enemies that are affected by Elemental Status Ailments
+% increased Attack and Cast Speed while affected by Auras you Cast
+% increased Stun Duration with Two Handed Melee Weapons on Enemies
+% chance to Shock additional Totems summoned at a time
+% increased Attack and Cast Speed while on Consecrated Ground
+% chance to cause Bleeding
+% of maximum Life Regenerated per second per Endurance Charge
+% increased Global Critical Strike Chance while wielding a Staff
+% chance for your Flasks to not consume Charges
+% reduced Elemental Damage while on Consecrated Ground
+% Chance to Block
+% to Critical Strike Multiplier per Power Charge
+% additional Physical Damage Reduction for each Zombie you own
+% increased maximum Energy Shield
+% increased Critical Strike Chance against Enemies that are affected by no Elemental Status Ailments
+% increased Physical Damage
+% increased Physical Damage per Hit you've Blocked Recently
+% reduced Extra Damage from Critical Strikes
+% increased Frenzy Charge Duration
+% chance to Poison on Hit
+% more chance to Evade Projectile Attacks during Onslaught
+% of Physical Attack Damage Leeched as Mana
+% increased Attack Speed with One Handed Melee Weapons
+% of Energy Shield Regenerated per second
+???? for each Enemy you ????
+% increased Lightning Damage with Weapons
+% reduced Enemy Stun Threshold with Bows
+% chance to gain a Frenzy Charge on Kill with Main Hand
+% faster start of Energy Shield Recharge
+% chance to Blind Enemies on Hit
+% increased Melee Attack Speed
+% increased Movement Speed while on Full Energy Shield
+% increased Cast Speed with Chaos Skills
+% increased maximum Life
+% increased Accuracy Rating while Dual Wielding
+% increased Energy Shield from equipped Shield
+% increased effect of Flasks
+% increased Attack Speed while using a Flask
+Totems have 50% of your Armour
+% increased Attack Speed while holding a Shield
+% increased Weapon Critical Strike Chance while Dual Wielding
+% increased Cast Speed if you've Attacked Recently
+% increased Spell Damage if you've Cast a Spell Recently
+to Armour
+% to Critical Strike Chance
+% to Chaos Resistance
+% increased Damage with Two Handed Weapons
+% of Physical Damage Dealt with Claws Leeched as Mana
+% increased Damage of each Damage Type for which you have a matching Golem
+% increased Critical Strike Chance against Bleeding Enemies
+% increased Attack Speed with Staves
+% to Critical Strike Multiplier with Claws
+% more maximum Energy Shield
+% chance to Dodge Spell Damage while Phasing
+% chance to Freeze
+% increased Critical Strike Chance with Totem Skills
+% to Chaos Resistance while using a Flask
+Gain Elemental Conflux for 4 seconds when you kill a Rare or Unique Enemy
+% increased Critical Strike Chance with Wands
+% increased Mana Regeneration Rate
+% more Critical Strike Chance against Enemies that are on Full Life
+to Maximum number of Spectres
+% more chance to Evade Attacks while not on full Energy Shield
+% increased Attack and Cast Speed if Energy Shield Recharge has started Recently
+to Maximum Endurance Charges
+% chance for you and your Totems to each gain an Endurance Charge
+% of Overkill Damage is Leeched as Life
+% increased Physical Weapon Damage while Dual Wielding
+% increased Physical Damage if you
+% increased Damage
+% increased Area of Effect for each Mine
+% Life per second
+% increased Mine Detonation Radius
+% increased Movement Speed for each Hit you've Blocked Recently
+% increased Radius of Curse Skills
+% increased Attack Damage
+% additional Chance to Block Spells with Shields
+% increased Physical Attack Damage while holding a Shield
+% increased Melee Physical Damage while holding a Shield
+% Physical Damage Reduction
+% increased Mine Duration
+% of maximum Mana and Energy Shield Regenerated per second while on Consecrated Ground
+% increased Armour and Evasion while you have Fortify
+to Maximum Power Charges
+% of Physical Damage as Extra Chaos Damage
+% increased Physical Damage with Maces
+% increased Elemental Damage
+to maximum Life
+% increased Damage against Frozen
+% of Life Regenerated per second if you
+% increased Duration of Elemental Status Ailments on Enemies
+% increased Area of Effect radius for Traps
+% of Maximum Mana when you use a Skill
+% of Damage Leeched as Mana
+to Evasion Rating
+% increased Mine Arming Speed
+% to Critical Strike Multiplier with Bows
+% of Attack Damage Leeched as Mana
+% chance when Placing Mines to Place an additional Mine
+% increased Accuracy Rating with Axes
+% increased Physical Damage with Axes
+% to Global Critical Strike Multiplier while wielding a Staff
+Totems Reflect % of their maximum Life as Fire Damage to\nnearby Enemies when Hit
+Skills Chain +1 times
+additional Remote Mine placed at a time
+% chance to gain a Power Charge on Critical Strike
+% chance to gain Phasing for x seconds on Kill
+% of Life and Mana when you use a Warcry
+% increased Armour
+% to maximum Fire Resistance
+% of their Maximum Life when they Block
+% increased Damage while affected by Auras you Cast
+% increased Movement Speed if you haven
+% increased Attack and Cast Speed for each corpse consumed recently
+% increased Energy Shield Recharge Rate
+% Lightning Resistance
+% increased Global Critical Strike Chance 
+??? if you ???
+% increased Attack Speed with Axes
+% increased Damage with Wands
+% increased Chill Duration on Enemies
+% increased Evasion Rating and Armour
+% chance to Dodge Attacks
+% of Damage dealt by your Totems is Leeched to you as Life
+% increased Critical Strike Chance with One Handed Melee Weapons
+% increased Damage if you
+% to Critical Strike Multiplier with Swords
+% less Damage to surrounding targets
+% increased Mine Damage
+% reduced Elemental Damage taken during Flask effect
+% increased Damage during Flask effect
+% increased Totem Damage
+% increased Area of Effect
+% increased Flask Charges
+% increased Warcry Duration
+% increased Onslaught Effect
+% of Block Chance applied to Spells
+% increased Attack and Cast Speed while you have a Totem
+% increased Curse Duration
+% reduced Mana Reserved
+% chance to Fortify on Melee hit
+% of maximum Mana per second to maximum Mana Leech rate
+??? seconds ???
+% increased Critical Strike Chance with Staves
+% chance to gain an Endurance Charge on Kill with Off Hand
+% less Mana Reserved
+% increased Damage if you have consumed a corpse recently
+% increased Trap Damage
+% chance to Recover 
+% Critical Strike Chance per Power Charge
+% to Cold Resistance
+% chance to Freeze Enemies which are Chilled
+% less Damage against other targets
+% to Lightning Resistance
+% increased Damage against Enemies that are on Low Life
+% to Critical Strike Multiplier with Maces
+% chance to Avoid being Ignited
+% chance to Avoid being Frozen
+% increased Lightning Damage
+% reduced Enemy Stun Threshold with Maces
+% of Damage Leeched as Life if you
+% additional Chance to Block with Shields
+% of Wand Physical Damage Added as Lightning Damage
+% chance to gain a Power
+% increased Evasion Rating
+% additional Block Chance
+% increased Movement Speed
+% increased Totem Life
+% increased maximum Mana
+% of your Reserved Life to you and nearby Allies
+% increased Critical Strike Chance with Mines
+additional Remote Mines placed at a time
+% of Physical Damage Dealt with Claws Leeched as Life
+% reduced Damage taken of that Element
+% increased Damage of that Element
+% increased Skill Effect Duration if you
+% reduced Reflected Elemental Damage taken
+% of your maximum Life per second while you have a Totem
+% increased Damage with One Handed Weapons
+???seconds on Kill???
+% more Critical Strike Chance against Enemies that are on Low Life
+% increased Attack Speed with Bows
+???% of???
+Bleeding Enemies you Kill Explode, dealing 10% of\ntheir Maximum Life as Physical Damage
+Accuracy Rating
+% increased Physical and Fire Damage
+% increased Burning Damage
+% chance to gain a Power Charge when you Block
+% increased Physical Damage with Two Handed Melee Weapons
+% increased damage while you have Fortify
+% additional Block Chance if you were Damaged by a Hit Recently
+% chance to create a Smoke Cloud when Hit
+% increased Damage for each Trap
+% chance to Poison on Hit against Bleeding Enemies
+% to Melee Critical Strike Multiplier
+% increased Movement Speed while Phasing
+% chance to Avoid being Stunned
+Mines cannot be Damaged for 5 seconds after being Placed
+Traps cannot be Damaged for 5 seconds after being Thrown
+% increased effect of Fortify on You
+% increased Melee Critical Strike Chance
+% reduced Elemental Damage taken while at Maximum Endurance Charges
+to Maximum number of Golems
+% increased Accuracy Rating with Staves
+% increased Attack Speed with Swords
+% increased Effect of Buffs granted by your Elemental Golems
+% more Damage to targets
+% less Totem Damage per Totem
+% increased Attack Damage per Frenzy Charge
+% increased Fire Damage
+Enemies can have 1 additional Curse
+Nearby Enemies have 25% reduced Life Regeneration rate
+% increased Damage to targets
+% increased Attack and Cast Speed to you and Allies
+% of Attack Damage Leeched as Life
+% chance to gain an Endurance Charge when you gain a Power Charge
+% increased Attack and Cast Speed if you
+% increased Mana Recovery from Flasks
+% chance to gain a Power Charge on non
+% reduced Physical Damage taken while at maximum Endurance Charges
+% increased Movement Speed while using a Flask
+% chance to Ignite
+to Accuracy Rating
+% chance to gain a Power Charge when your Trap is triggered by an Enemy
+Your Minions spread Caustic Cloud on Death, dealing 10% of their maximum Life as Chaos Damage per second
+% increased Spell Damage per Power Charge
+% increased Accuracy Rating with Bows
+% chance to gain a Power Charge on Hit against Enemies that are on Full Life
+% increased Damage while you have Fortify
+% increased Attack Speed with Wands
+% reduced Damage taken from Traps and Mines
+to Melee Weapon and Unarmed range
+% increased Damage against Bleeding Enemies
+% chance to Avoid being Shocked
+% increased Strength
+% chance to gain an Endurance Charge when you are Hit
+% increased Physical Damage with Staves
+% increased Flask effect duration
+% chance for Flasks to gain a Charge when you deal a Critical Strike
+% increased Attack and Cast Speed
+% increased Accuracy Rating with One Handed Melee Weapons
+% of Wand Physical Damage Added as Cold Damage
+% increased Critical Strike Chance with Swords
+% increased Cold Damage with Weapons
+% increased Attack Speed with Off Hand
+% increased Stun Duration with Bows on Enemies
+% increased Critical Strike Chance with Bows
+% chance to Maim on Hit against Poisoned Enemies
+Life gained on Kill
+% increased Life Leeched per second
+% reduced Damage taken from Blinded Enemies
+% increased Melee Damage
+to Maximum number of Zombies
+% chance to gain a Power Charge when you place a Totem
+% increased Damage against Blinded Enemies
+% increased Ignite Duration on Enemies
+% of Energy Shield Regenerated per second
+% increased Fire Damage with Weapons
+% increased Accuracy Rating with Wands
+% increased Flask Recovery Speed
+% increased Critical Strike Chance with Claws
+% of Physical Damage as Extra Fire Damage
+% increased Damage when not on Low Life
+Mana gained for each Enemy hit by your Attacks
+% of Damage taken gained as Mana when Hit
+% to Critical Strike Multiplier for Spells
+% increased Critical Strike Chance with Daggers
+% increased Freeze Duration on Enemies
+% to maximum Lightning Resistance
+% Chance for Traps to Trigger an additional time
+% of Enemy Elemental Resistances
+% to Critical Strike Multiplier with Mines
+% to Critical Strike Multiplier with Traps
+% to Fire Resistance
+???second every??? 
+additional Traps placed at a time
+% increased Damage with Poison
+additional Corpses
+% increased Flask Charges gained
+% additional Block Chance for 
+% increased Mana Leeched per second
+% increased Radius of Area Skills
+???second every??? 
+Enemies near your Totems deal 8% less Damage
+% increased Mine Laying Speed
+% increased effect of Offering spells
+% increased Elemental Damage with Maces
+% increased Light Radius
+% increased Cast Speed for Curses
+% chance to gain a Frenzy Charge on Kill
+% chance to Taunt on Hit
+% increased Recovery Rate of Life
+% increased Damage if you Detonated Mines Recently
+% increased Physical Damage with Claws
+% increased Attack Speed while you have Fortify
+% increased Cast Speed while Dual Wielding
+% increased Attack
+% increased Poison Duration
+% Cold Resistance
+% increased Elemental Damage with Wands
+% chance to Avoid interruption from Stuns while Casting
+% increased Totem Placement speed
+% increased Cast Speed
+% more Physical Damage while at maximum Frenzy Charges
+% increased Projectile Speed
+% increased Accuracy Rating with Claws
+% of Fire Damage Leeched as Life
+% increased Physical Damage with One Handed Melee Weapons
+% of Maximum Life Regenerated per second to you and Allies
+% Physical Damage Reduction to you and Allies
+% Elemental Resistances
+% increased Attack Speed with Maces
+% chance of Projectiles Piercing
+% chance to Knock Enemies Back on hit
+% chance to gain an Endurance Charge on Melee Critical Strike
+% increased Physical Damage with Wands
+% increased Critical Strike Chance against Enemies affected by Elemental Status Ailments
+% increased Arrow Speed
+% reduced Damage taken from Taunted Enemies
+% increased Armour and Evasion Rating when on Low Life
+% of Damage Leeched as Life and Mana if you've Killed Recently
+% increased Evasion Rating while you have Onslaught
+???seconds???
+% to Critical Strike Multiplier against Enemies that are on Full Life
+% increased Projectile Damage
+% increased Shock Duration on Enemies
+% chance to Maim on Hit against Bleeding Enemies
+% reduced Damage taken from Bleeding Enemies
+% of Physical Attack Damage Leeched as Life
+% increased Critical Strike Chance with Maces
+% increased Physical Damage with Daggers
+% to Critical Strike Multiplier with Totem Skills
+% increased Power Charge Duration
+% increased effect of Non
+% chance to Avoid being Chilled
+% increased Damage taken
+% reduced Enemy Stun Threshold to Maximum number of Skeletons
+% reduced Mana Cost of Skills while on Full Energy Shield
+% Elemental Resistances while holding a Shield
+% increased Blind duration
+% increased Attack Speed with Two Handed Melee Weapons
+% increased Critical Strike Chance for Spells
+% increased Trap Throwing Speed
+% increased Skill Effect Duration
+6% reduced Damage taken if you've Killed Recently
+to Dexterity
+% of Maximum Mana as Extra Maximum Energy Shield
+% increased Effect of your Curses
+% increased Defences from equipped Shield
+% increased Endurance
+% increased Physical Damage over Time
+additional Totem Summoned at a time
+% chance to gain a Power Charge when your Mine is Detonated targeting an Enemy
+% increased Accuracy Rating
+% increased Elemental Damage with Weapons
+% increased Fortify duration
+% increased Attack Damage with Main Hand
+% increased Physical Damage with Bows
+% of Life Regenerated per second
+% to maximum Cold Resistance
+% of Physical Damage as Extra Damage of a random Element
+% increased damage against Burning Enemies
+% increased Endurance Charge Duration
+% increased Attack Speed per Frenzy Charge
+% more Damage
+% additional Block Chance while Dual Wielding
+% increased Attack Speed while Dual Wielding
+Gain 15% of Physical Damage as Extra Fire Damage if you've Killed Recently
+% chance to gain a Frenzy Charge when your Trap is triggered by an Enemy
+Mana gained when you Block
+% increased Area Damage
+% increased Trap Trigger Radius
+to Maximum Frenzy Charges
+% increased Physical Damage
+% increased Critical Strike Chance
+% increased Attack Damage against Bleeding Enemies
+% increased Melee Damage while you have Fortify
+% reduced Elemental Damage taken
+% increased Radius of Aura Skills
+to Maximum number of Golems
+% increased Cooldown Recovery Speed for throwing Traps
+% increased Attack Speed if you
+% increased Elemental Damage for 
+% increased Damage over Time
+% increased Stun Duration on Enemies
+% increased Accuracy Rating with Daggers
+% additional chance to Pierce targets at the start of their movement
+% chance to Gain a Power Charge if you or your Totems kill an Enemy
+% of maximum Life per second to maximum Life Leech rate
+% additional Physical Damage Reduction
+% chance to cause Bleeding on Hit with Attacks
+% increased Accuracy Rating with Two Handed Melee Weapons
+Mana gained on Kill
+% increased Stun Duration against Enemies that are on Low Life
+% additional chance to Dodge Attacks
+% increased Physical Damage with Swords
+% increased Accuracy Rating with Swords seconds when you Kill an Enemy
+% increased Critical Strike Chance with Traps
+to maximum Energy Shield
+% increased Life Recovery from Flasks
+% of Damage as Life
+% increased Evasion Rating per Frenzy Charge
+to maximum Mana
+% increased Totem Duration
+% additional Block Chance while Dual Wielding or holding a Shield
+% increased Radius of Area Skills if you
+% increased Damage while you have a Totem
+% to Critical Strike Multiplier
+% more chance to Evade while on full Energy Shield
+% increased Damage while not on full Energy Shield
+% increased Stun Duration against Enemies that are on Full Life
+% increased Movement Speed per Frenzy Charge
+% increased Physical Melee Damage while you have Fortify
+% increased Mana Regeneration if you
