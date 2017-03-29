@@ -394,6 +394,8 @@ function love.resize(w, h)
   classPicker:setCenters()
 
   searchBox:resize()
+
+  menu:resize()
 end
 
 function love.draw()

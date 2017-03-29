@@ -7,8 +7,6 @@ local panel = {
   status = 'inactive',
   innerContent = 'builds',
   builds = {},
-  width = love.window.toPixels(300),
-  padding = love.window.toPixels(5),
   buildName = love.graphics.newText(headerFont, ''),
   className = love.graphics.newText(font, '')
 }
@@ -35,9 +33,21 @@ function panel:init(builds)
     end
   }
 
+  self:resize()
   self.editing = nil
   self.builds = builds
   self:initIcons()
+end
+
+function panel:resize()
+  local w, h = love.graphics.getDimensions()
+
+  if h > w then
+    self.width = w
+  else
+    local minWidth = love.window.toPixels(300)
+    self.width = w/3 > minWidth and w/3 or minWidth
+  end
 end
 
 function panel:toggle()
@@ -91,7 +101,9 @@ function panel:draw(character)
   love.graphics.draw(charStatText, self.x+love.window.toPixels(155)+charStatLabels:getWidth()*2, self.y+love.window.toPixels(18))
 
   -- Draw divider
-  love.graphics.draw(divider, self.x+five, self.y+love.window.toPixels(115), 0, love.window.toPixels(0.394), 1.0)
+  local w, h = divider:getDimensions()
+  local sx = (self.width - five*2)/w
+  love.graphics.draw(divider, self.x+five, self.y+love.window.toPixels(115), 0, sx, 1.0)
 
   -- Set stat panel scissor
   love.graphics.setScissor(self.x+five, self.y+love.window.toPixels(125), love.window.toPixels(285), winHeight-love.window.toPixels(125))
@@ -137,7 +149,7 @@ function panel:draw(character)
       self.icons.edit.options.id = 'edit-button-'..tostring(i)
       if suit.SpritesheetButton(self.icons.edit.sheet,
                                 self.icons.edit.options,
-                                love.window.toPixels(300-70-5),
+                                self.width - love.window.toPixels(75),
                                 self.y+y,
                                 0,
                                 love.window.getPixelScale(),
@@ -165,7 +177,7 @@ function panel:draw(character)
         self.icons.delete.options.id = 'delete-button-'..tostring(i)
         if suit.SpritesheetButton(self.icons.delete.sheet,
                                   self.icons.delete.options,
-                                  love.window.toPixels(300-32-5),
+                                  self.width - love.window.toPixels(37),
                                   self.y+y,
                                   0,
                                   love.window.getPixelScale(),
@@ -184,11 +196,7 @@ function panel:draw(character)
     end
 
     -- Show new build button
-    -- local OS = love.system.getOS()
     local scale = 0.5*love.window.getPixelScale()
-    -- if OS == 'iOS' or OS == 'android' then
-    --   scale = scale * 2
-    -- end
     if suit.ImageButton(plusbutton, {}, five, self.y+y, 0, scale, scale).hit then
       startNewBuild()
       self:hide()
