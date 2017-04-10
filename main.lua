@@ -376,9 +376,7 @@ function love.update(dt)
 
   searchBox:update(dt)
   Timer.update(dt)
-  if DEBUG then
-    require('lib.lovebird').update()
-  end
+  require('lib.lovebird').update()
 end
 
 function love.resize(w, h)
@@ -396,8 +394,6 @@ function love.resize(w, h)
   classPicker:setCenters()
 
   searchBox:resize()
-
-  menu:resize()
 end
 
 function love.draw()
@@ -427,7 +423,7 @@ function love.draw()
   love.graphics.setColor(inactiveConnector)
   love.graphics.setLineWidth(3/camera.scale)
   for nid, node in pairs(visibleNodes) do
-    node:drawConnections()
+    -- node:drawConnections()
   end
   love.graphics.setLineWidth(1)
   clearColor()
@@ -437,6 +433,12 @@ function love.draw()
   love.graphics.draw(batches['connector-active'])
   love.graphics.draw(batches['connector-add'])
   love.graphics.draw(batches['connector-remove'])
+
+  for i=1,4 do
+    for _,name in ipairs(Node.ConnectionTypes) do
+      love.graphics.draw(batches['Orbit'..i..name])
+    end
+  end
 
   -- Draw the start node decorations first, they should be in the very back
   love.graphics.draw(batches['PSStartNodeBackgroundInactive'])
@@ -549,7 +551,10 @@ function love.draw()
   love.graphics.print(string.format("%i/%i", activeNodes, maxActive), winWidth - love.window.toPixels(100), love.window.toPixels(10))
   love.graphics.print(string.format("%i/%i", activeAscendancy, maxAscendancy), winWidth - love.window.toPixels(100), love.window.toPixels(30))
 
-  searchBox:draw()
+  if not menu:isActive() then
+    searchBox:draw()
+  end
+
   suit.draw()
 end
 
@@ -993,22 +998,17 @@ function parseDescriptions(node, op)
       end
 
       if #found ~= i then
-        for p,n,s in desc:gmatch("([%a%s]*)(%d+%.?%d*)(%%? %a[%s%a]*)") do
+        for n,s in desc:gmatch("(%d+%.?%d*)(%%? %a[%s%a]*)") do
           if DEBUG then
-            print('p: '..p, 's: '..s, 'n: '..n)
-            print(desc)
+            print('s: '..s, 'n: '..n)
           end
-
-          local label = p..s
-
-          found[#found+1] = label
-          local v = character.stats[label] or 0
-
+          found[#found+1] = s
+          local v = character.stats[s] or 0
           v = op(v, n)
           if v == 0 then
             v = nil
           end
-          character.stats[label] = v
+          character.stats[s] = v
         end
       end
 

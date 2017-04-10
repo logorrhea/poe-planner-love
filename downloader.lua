@@ -1,7 +1,7 @@
 local http = require 'socket.http'
 local json = require 'lib.dkjson'
 local ser = require 'lib.ser'
--- local magick = require 'magick'
+local magick = require 'magick'
 local os = require 'os'
 local fs = love.filesystem
 
@@ -15,13 +15,15 @@ function Downloader.getLuaTree()
   local tree, err
 
   -- Check for cached file first
-  local needNewVersion = true
+  local needNewVersion = false
   if fs.exists('passive-skill-tree.lua') then
     local lastModified = fs.getLastModified('passive-skill-tree.lua')
     local systemTime = os.time()
-    if systemTime - lastModified < Downloader.cacheLimit then
-      needNewVersion = false
+    if systemTime - lastModified > Downloader.cacheLimit then
+      needNewVersion = true
     end
+  else
+    needNewVersion = true
   end
 
   -- If cached version is too old, get a new one

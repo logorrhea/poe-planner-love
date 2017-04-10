@@ -158,6 +158,7 @@ Node.Classes = {
   },
 }
 
+Node.ConnectionTypes = {'Normal', 'Intermediate', 'Active'}
 
 
 function Node.arc(node)
@@ -258,6 +259,7 @@ function Node.create(data, group)
 
   -- Compute position now, rather than on-the-fly later
   -- since the nodes aren't moving anywhere
+  node.arc = Node.arc(node)
   node.position = Node.nodePosition(node)
 
   -- Escape single quotes in node descriptions
@@ -377,6 +379,7 @@ function Node:drawBatchConnections()
       -- 3 = remove
       -- local y = 0
       local batchName = 'connector-inactive'
+
       if (addTrail ~= nil and addTrail[self.id] and addTrail[nid]) or (addTrail[self.id] and other.active) or (self.active and addTrail[nid]) then
         -- y = 1
         batchName = 'connector-add'
@@ -393,7 +396,15 @@ function Node:drawBatchConnections()
         -- self:drawBatchConnection(other, y)
         self:drawBatchConnection(other, batchName)
       else
-        self:drawArcedConnection(other)
+        -- make arced connections batched, too
+        -- can we use the provided orbit images?
+        -- print(batchName)
+        if self.orbit > 1 then
+          batchName = 'Orbit'..(self.orbit-1)..'Active'
+          -- print(batchName)
+          self:drawBatchArcedConnection(other, batchName)
+        end
+        -- self:drawArcedConnection(other)
       end
 
       clearColor()
@@ -423,7 +434,7 @@ function Node:drawConnections()
 
       if (self.group.id ~= other.group.id) or (self.orbit ~= other.orbit) then
         if self:isAscendancy() then
-          self:drawConnection(other)
+          -- self:drawConnection(other)
         end
       else
         self:drawArcedConnection(other)
@@ -434,7 +445,7 @@ function Node:drawConnections()
   end
 end
 
--- function Node:drawBatchConnection(other, y)
+
 function Node:drawBatchConnection(other, batchName)
   -- Place at center point between nodes, scale, and rotate? will require use of origin offset
   -- Or place at one node, scale and rotate w/o use of offset?
@@ -444,6 +455,13 @@ function Node:drawBatchConnection(other, batchName)
   local dy = other.position.y - self.position.y
   local r = math.atan2(dy, dx)
   batches[batchName]:add(self.position.x, self.position.y, r, sx, sy)
+end
+
+function Node:drawBatchArcedConnection(other, batchName)
+  local w, h = batches[batchName]:getTexture():getDimensions()
+  local mx, my = (self.position.x + other.position.x)/2, (self.position.y + other.position.y)/2
+  -- print(self.arc, other.arc)
+  batches[batchName]:add(mx, my, self.arc, 1, 1, w/2, h/2)
 end
 
 function Node:drawConnection(other)
