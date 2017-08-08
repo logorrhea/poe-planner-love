@@ -1,3 +1,5 @@
+-- Reddit thread relevant to fall of oriath updates: https://www.reddit.com/r/pathofexile/comments/6fwqu3/300_skill_tree_changes_compared_to_260/
+
 VERSION = '0.1.1'
 
 local scaleFix = 2.5
@@ -16,7 +18,7 @@ suit  = require 'lib.suit'
 
 
 
-require 'downloader'
+-- require 'downloader'
 require 'node'
 require 'group'
 require 'colors'
@@ -108,8 +110,9 @@ function love.load()
   times.start = love.timer.getTime()
 
   -- Get tree data. Will download new version if necessary
+  -- local data = Downloader.getLuaTree()
   -- Tree = Downloader.getLuaTree()
-  -- local data = Downloader.processNodes(Tree)
+  -- Tree = Downloader.processNodes(Tree)
   Tree = require 'passive-skill-tree'
   times.tree = love.timer.getTime()
 
@@ -183,6 +186,7 @@ function love.load()
       fileName = fileName:gsub(".gif", ".png") -- this needs a better solution, probably
 
       local fileData = love.filesystem.newFileData('assets/'..fileName)
+      -- print(fileName)
       local imageData = love.image.newImageData(fileData)
       local image = love.graphics.newImage(imageData)
 
@@ -279,12 +283,12 @@ function love.load()
   batches['connector-active'] = love.graphics.newSpriteBatch(connectorSpriteActive, 1500)
   batches['connector-add'] = love.graphics.newSpriteBatch(connectorSpriteAdd, 500)
   batches['connector-remove'] = love.graphics.newSpriteBatch(connectorSpriteRemove, 500)
-  -- spriteQuads['connectors'] = {
-  --   love.graphics.newQuad(0, 0, 1, 1, x, y),
-  --   love.graphics.newQuad(0, 1, 1, 1, x, y),
-  --   love.graphics.newQuad(0, 2, 1, 1, x, y),
-  --   love.graphics.newQuad(0, 3, 1, 1, x, y),
-  -- }
+  spriteQuads['connectors'] = {
+    love.graphics.newQuad(0, 0, 1, 1, x, y),
+    love.graphics.newQuad(0, 1, 1, 1, x, y),
+    love.graphics.newQuad(0, 2, 1, 1, x, y),
+    love.graphics.newQuad(0, 3, 1, 1, x, y),
+  }
 
   -- Set better starting position
   startnid = startNodes[activeClass]
@@ -423,7 +427,7 @@ function love.draw()
   love.graphics.setColor(inactiveConnector)
   love.graphics.setLineWidth(3/camera.scale)
   for nid, node in pairs(visibleNodes) do
-    -- node:drawConnections()
+    node:drawConnections()
   end
   love.graphics.setLineWidth(1)
   clearColor()
@@ -434,11 +438,11 @@ function love.draw()
   love.graphics.draw(batches['connector-add'])
   love.graphics.draw(batches['connector-remove'])
 
-  for i=1,4 do
-    for _,name in ipairs(Node.ConnectionTypes) do
-      love.graphics.draw(batches['Orbit'..i..name])
-    end
-  end
+  -- for i=1,4 do
+  --   for _,name in ipairs(Node.ConnectionTypes) do
+  --     love.graphics.draw(batches['Orbit'..i..name])
+  --   end
+  -- end
 
   -- Draw the start node decorations first, they should be in the very back
   love.graphics.draw(batches['PSStartNodeBackgroundInactive'])

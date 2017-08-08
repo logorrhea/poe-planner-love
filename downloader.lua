@@ -46,9 +46,16 @@ function Downloader.getLuaTree()
 
     -- Download new versions of the assets
     -- Make sure assets directory exists
-    if not fs.exists('assets') then
-      fs.createDirectory('assets')
+    print('creating asset directory')
+    local saveDir = fs.getSaveDirectory()
+    if not fs.exists(saveDir..'/assets') then
+      if not fs.createDirectory('assets') then
+        print('ERROR: UNABLE TO CREATE ASSETS DIRECTORY')
+      end
+    else
+      print('error: assets directory exists already?')
     end
+
     Downloader.downloadAssets(tree)
     Downloader.downloadSkillSprites(tree)
     Downloader.convertNonPng()
