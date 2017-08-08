@@ -12,7 +12,7 @@ function love.conf(t)
   t.window.msaa = 4
   t.gammacorrect = true
 
-	t.window.display = 2
+	t.window.display = 1
 
   -- Disable unused packages
   t.modules.joystick = false
