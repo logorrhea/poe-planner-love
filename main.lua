@@ -110,9 +110,7 @@ function love.load()
   times.start = love.timer.getTime()
 
   -- Get tree data. Will download new version if necessary
-  -- local data = Downloader.getLuaTree()
   -- Tree = Downloader.getLuaTree()
-  -- Tree = Downloader.processNodes(Tree)
   Tree = require 'passive-skill-tree'
   times.tree = love.timer.getTime()
 
@@ -716,7 +714,7 @@ function love.keypressed(key, scancode, isRepeat)
     end
   elseif key == 'f1' then
     DEBUG = not DEBUG
-  elseif scancode == '[' then
+  elseif scancode == '[' or scancode == '`' then
     if not ascendancyClassPicker:isActive() and not classPicker:isActive() and not menu:isTransitioning() then
       menu:toggle()
     end
