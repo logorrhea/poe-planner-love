@@ -293,6 +293,19 @@ function love.load()
   startNode = nodes[startnid]
   camera:lookAt(startNode.position.x, startNode.position.y)
 
+  -- Fancy class background batches
+  for i=1,7 do
+    local name = Node.Classes[i].bg
+    if name ~= 'none' then
+      local sprite = love.graphics.newImage('assets/'..name..'.png')
+      local x, y = startNode.position.x, startNode.position.y
+      local ox, oy = Node.Classes[i].bg_pos.x, Node.Classes[i].bg_pos.y
+      batches[name] = love.graphics.newSpriteBatch(sprite, 1, 'static')
+      print(x, y, 0, 1, 1, ox, oy)
+      batches[name]:add(x, y, 0, 1, 1, ox, oy)
+    end
+  end
+
   -- Create ascendancy button and panel
   ascendancyButton = require 'ui.ascendancybutton'
   ascendancyButton:init(Tree, startnid)
@@ -415,6 +428,13 @@ function love.draw()
 
   -- Store the translation info, for profit
   local cx, cy = winWidth/(2*camera.scale), winHeight/(2*camera.scale)
+
+  -- Draw fancy class background if applicable
+  if Node.Classes[activeClass].bg ~= 'none' then
+    -- love.graphics.draw(batches[Node.Classes[activeClass].bg])
+    local image = batches[Node.Classes[activeClass].bg]:getTexture()
+    love.graphics.draw(image, startNode.position.x, startNode.position.y, 0, 1, 1, Node.Classes[activeClass].bg_pos.x, Node.Classes[activeClass].bg_pos.y)
+  end
 
   -- Draw group backgrounds
   love.graphics.draw(batches['PSGroupBackground1'])
@@ -724,8 +744,14 @@ function love.keypressed(key, scancode, isRepeat)
     elseif searchBox:isActive() then
       searchBox:hide()
     else
-      saveData = Graph.export(saveData, currentBuild, activeClass, ascendancyClass, nodes)
-      love.event.quit()
+      -- This shit don't work, yo
+      local buttons = {[1]="Cancel", [2]="OK", enterbutton=1}
+      local result = love.window.showMessageBox('Exit?', 'Are you sure you want to quit?', buttons)
+      -- print(result)
+      if result == 2 then
+        saveData = Graph.export(saveData, currentBuild, activeClass, ascendancyClass, nodes)
+        love.event.quit()
+      end
     end
   elseif scancode == 'pagedown' then
     if menu:isActive() then

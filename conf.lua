@@ -11,8 +11,9 @@ function love.conf(t)
   t.window.highdpi = true
   t.window.msaa = 4
   t.gammacorrect = true
-
 	t.window.display = 1
+
+  t.console = true
 
   -- Disable unused packages
   t.modules.joystick = false

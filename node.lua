@@ -98,6 +98,7 @@ Node.Classes = {
   [1] = {
     name = 'scion',
     frame = 'centerscion',
+    bg = 'none',
     ascendancies = {
       'ascendant',
     }
@@ -105,6 +106,11 @@ Node.Classes = {
   [2] = {
     name = 'marauder',
     frame = 'centermarauder',
+    bg = 'BackgroundStr',
+    bg_pos = {
+      x = 660,
+      y = 475
+    },
     ascendancies = {
       'juggernaut',
       'berserker',
@@ -114,6 +120,11 @@ Node.Classes = {
   [3] = {
     name = 'ranger',
     frame = 'centerranger',
+    bg = 'BackgroundDex',
+    bg_pos = {
+      x = 325,
+      y = 475
+    },
     ascendancies = {
       'raider',
       'deadeye',
@@ -123,6 +134,11 @@ Node.Classes = {
   [4] = {
     name = 'witch',
     frame = 'centerwitch',
+    bg = 'BackgroundInt',
+    bg_pos = {
+      x = 600,
+      y = 255
+    },
     ascendancies = {
       'occultist',
       'elementalist',
@@ -132,6 +148,11 @@ Node.Classes = {
   [5] = {
     name = 'duelist',
     frame = 'centerduelist',
+    bg = 'BackgroundStrDex',
+    bg_pos = {
+      x = 760,
+      y = 550
+    },
     ascendancies = {
       'slayer',
       'gladiator',
@@ -141,6 +162,11 @@ Node.Classes = {
   [6] = {
     name = 'templar',
     frame = 'centertemplar',
+    bg = 'BackgroundStrInt',
+    bg_pos = {
+      x = 355,
+      y = 615
+    },
     ascendancies = {
       'inquisitor',
       'hierophant',
@@ -150,6 +176,11 @@ Node.Classes = {
   [7] = {
     name = 'shadow',
     frame = 'centershadow',
+    bg = 'BackgroundDexInt',
+    bg_pos = {
+      x = 440,
+      y = 830
+    },
     ascendancies = {
       'assassin',
       'trickster',
