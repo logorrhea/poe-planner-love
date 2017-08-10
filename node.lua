@@ -465,7 +465,7 @@ function Node:drawConnections()
 
       if (self.group.id ~= other.group.id) or (self.orbit ~= other.orbit) then
         if self:isAscendancy() then
-          -- self:drawConnection(other)
+          self:drawConnection(other)
         end
       else
         self:drawArcedConnection(other)
