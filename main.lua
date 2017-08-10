@@ -184,7 +184,6 @@ function love.load()
       fileName = fileName:gsub(".gif", ".png") -- this needs a better solution, probably
 
       local fileData = love.filesystem.newFileData('assets/'..fileName)
-      -- print(fileName)
       local imageData = love.image.newImageData(fileData)
       local image = love.graphics.newImage(imageData)
 
@@ -301,7 +300,6 @@ function love.load()
       local x, y = startNode.position.x, startNode.position.y
       local ox, oy = Node.Classes[i].bg_pos.x, Node.Classes[i].bg_pos.y
       batches[name] = love.graphics.newSpriteBatch(sprite, 1, 'static')
-      print(x, y, 0, 1, 1, ox, oy)
       batches[name]:add(x, y, 0, 1, 1, ox, oy)
     end
   end
@@ -336,6 +334,10 @@ function love.load()
   -- Search box
   searchBox = require 'ui.searchbox'
   searchBox:init()
+
+  -- Keyboard shortcut legend
+  legend = require 'ui.legend'
+  legend:init()
 
   -- Node details dialog
   dialog = require 'ui.dialog'
@@ -578,6 +580,10 @@ function love.draw()
   end
 
   suit.draw()
+
+  if love.keyboard.isScancodeDown('/') and (love.keyboard.isScancodeDown('rshift') or love.keyboard.isScancodeDown('lshift')) then
+    legend:draw()
+  end
 end
 
 function love.touchmoved(id, x, y, dx, dy, pressure)
@@ -744,14 +750,15 @@ function love.keypressed(key, scancode, isRepeat)
     elseif searchBox:isActive() then
       searchBox:hide()
     else
-      -- This shit don't work, yo
-      local buttons = {[1]="Cancel", [2]="OK", enterbutton=1}
-      local result = love.window.showMessageBox('Exit?', 'Are you sure you want to quit?', buttons)
+      -- local buttons = {'Cancel', 'OK'}
+      -- local result = love.window.showMessageBox('Exit?', 'Are you sure you want to quit?', buttons)
       -- print(result)
-      if result == 2 then
+      -- This shit don't work, yo
+      -- SDL bug apparently? Esc key feedback is unreliable
+      -- if result == 2 then
         saveData = Graph.export(saveData, currentBuild, activeClass, ascendancyClass, nodes)
         love.event.quit()
-      end
+      -- end
     end
   elseif scancode == 'pagedown' then
     if menu:isActive() then
