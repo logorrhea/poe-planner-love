@@ -1,7 +1,7 @@
 local http = require 'socket.http'
 local json = require 'lib.dkjson'
 local ser = require 'lib.ser'
-local magick = require 'magick'
+-- local magick = require 'magick'
 local os = require 'os'
 local fs = love.filesystem
 
@@ -13,6 +13,7 @@ Downloader.cacheLimit = 60*60*24*7 -- one day
 
 function Downloader.getLuaTree()
   local tree, err
+  local saveDir = fs.getSaveDirectory()
 
   -- Check for cached file first
   local needNewVersion = false
@@ -25,6 +26,7 @@ function Downloader.getLuaTree()
   else
     needNewVersion = true
   end
+  needNewVersion = true
 
   -- If cached version is too old, get a new one
   if needNewVersion then
@@ -42,12 +44,11 @@ function Downloader.getLuaTree()
     end
 
     -- Serialize tree into lua file
-    fs.write('passive-skill-tree.lua', ser(tree))
+    fs.write(saveDir..'/passive-skill-tree.lua', ser(tree))
 
     -- Download new versions of the assets
     -- Make sure assets directory exists
     print('creating asset directory')
-    local saveDir = fs.getSaveDirectory()
     if not fs.exists(saveDir..'/assets') then
       if not fs.createDirectory('assets') then
         print('ERROR: UNABLE TO CREATE ASSETS DIRECTORY')
@@ -58,7 +59,7 @@ function Downloader.getLuaTree()
 
     Downloader.downloadAssets(tree)
     Downloader.downloadSkillSprites(tree)
-    Downloader.convertNonPng()
+    -- Downloader.convertNonPng()
   else
     -- Otherwise read existing cached version
     tree = require 'passive-skill-tree'

@@ -18,7 +18,7 @@ suit  = require 'lib.suit'
 
 
 
--- require 'downloader'
+require 'downloader'
 require 'node'
 require 'group'
 require 'colors'
