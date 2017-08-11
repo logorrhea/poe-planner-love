@@ -740,6 +740,14 @@ function love.keypressed(key, scancode, isRepeat)
     end
   elseif key == 'f1' then
     DEBUG = not DEBUG
+  elseif scancode == '[' then
+    if menu:isActive() then
+      menu.innerContent = 'stats'
+    end
+  elseif scancode == ']' then
+    if menu:isActive() then
+      menu.innerContent = 'builds'
+    end
   elseif scancode == '[' or scancode == '`' then
     if not ascendancyClassPicker:isActive() and not classPicker:isActive() and not menu:isTransitioning() then
       menu:toggle()
