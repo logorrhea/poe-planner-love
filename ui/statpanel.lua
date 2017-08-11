@@ -33,6 +33,15 @@ function panel:init(builds)
     end
   }
 
+  self.buildPanel = {
+    y = love.window.toPixels(125),
+    maxY = love.window.toPixels(125),
+    minY = love.window.toPixels(125),
+    yadj = function(self, dy)
+      self.y = lume.clamp(self.y+dy, self.minY, self.maxY)
+    end
+  }
+
   self:resize()
   self.editing = nil
   self.builds = builds
@@ -106,7 +115,8 @@ function panel:draw(character)
   love.graphics.draw(divider, self.x+five, self.y+love.window.toPixels(115), 0, sx, 1.0)
 
   -- Set stat panel scissor
-  love.graphics.setScissor(self.x+five, self.y+love.window.toPixels(125), love.window.toPixels(285), winHeight-love.window.toPixels(125))
+  local min_y, max_y = self.y+love.window.toPixels(125), winHeight-love.window.toPixels(125)
+  love.graphics.setScissor(self.x+five, min_y, love.window.toPixels(285), max_y)
 
   if self.innerContent == 'stats' then
     -- Draw keystone node text
@@ -127,64 +137,67 @@ function panel:draw(character)
     love.graphics.draw(generalStatText, self.x+five+generalStatLabels:getWidth()*1.5, self.y+y)
   elseif self.innerContent == 'builds' then
     -- Show builds listing
-    local y = love.window.toPixels(125)
+    local y = self.buildPanel.y
     love.graphics.setFont(font)
     clearColor()
     for i, build in ipairs(self.builds) do
-      -- Build title and class strings
-      local c, a = Graph.getClassData(build.nodes)
-      self.buildName:set(build.name)
-      self.className:set(strings.capitalize(Node.Classes[c].ascendancies[a]))
+      -- gotta check this manually, cause the scissor doesn't work with suit
+      if y >= min_y and y <= max_y then
+        -- Build title and class strings
+        local c, a = Graph.getClassData(build.nodes)
+        self.buildName:set(build.name)
+        self.className:set(strings.capitalize(Node.Classes[c].ascendancies[a]))
 
-      -- Draw build title
-      if self.editing ~= nil and self.editing.index == i then
-        local input = suit.Input(self.editing, {id = 'edit-build-name', font=headerFont}, five, self.y+y)
-      else
-        if suit.Label(build.name, {font=headerFont}, five, self.y+y).hit then
-          changeActiveBuild(i)
-        end
-      end
-
-      -- Draw edit icon
-      self.icons.edit.options.id = 'edit-button-'..tostring(i)
-      if suit.SpritesheetButton(self.icons.edit.sheet,
-                                self.icons.edit.options,
-                                self.width - love.window.toPixels(75),
-                                self.y+y,
-                                0,
-                                love.window.getPixelScale(),
-                                love.window.getPixelScale()
-                               ).hit then
-        if self.editing == nil then
-          if DEBUG then
-            print("enable editing for "..i)
-          end
-          self.editing = {
-            index = i,
-            text = build.name
-          }
+        -- Draw build title
+        if self.editing ~= nil and self.editing.index == i then
+          local input = suit.Input(self.editing, {id = 'edit-build-name', font=headerFont}, five, self.y+y)
         else
-          self.builds[i].name = self.editing.text
-          self.editing = nil
-          -- can we do this from here? probably need to rethink this whole graph.export function
-          -- i think we need a whole savedata class that keeps track of all this bullshit
-          saveData = Graph.export(saveData, currentBuild, activeClass, ascendancyClass, nodes)
+          if suit.Label(build.name, {font=headerFont}, five, self.y+y).hit then
+            changeActiveBuild(i)
+          end
         end
-      end
 
-      -- Draw delete icon
-      if #self.builds > 1 then
-        self.icons.delete.options.id = 'delete-button-'..tostring(i)
-        if suit.SpritesheetButton(self.icons.delete.sheet,
-                                  self.icons.delete.options,
-                                  self.width - love.window.toPixels(37),
+        -- Draw edit icon
+        self.icons.edit.options.id = 'edit-button-'..tostring(i)
+        if suit.SpritesheetButton(self.icons.edit.sheet,
+                                  self.icons.edit.options,
+                                  self.width - love.window.toPixels(75),
                                   self.y+y,
                                   0,
                                   love.window.getPixelScale(),
-                                  love.window.getPixelScale()).hit then
-          local buttons = {"Cancel", "OK", escapebutton=1, enterbutton=2}
-          if love.window.showMessageBox('Delete Build?', 'Are you sure you want to delete "'..build.name..'"?', buttons, 'info', true) == 2 then
-            deleteBuild(i)
+                                  love.window.getPixelScale()
+                                ).hit then
+          if self.editing == nil then
+            if DEBUG then
+              print("enable editing for "..i)
+            end
+            self.editing = {
+              index = i,
+              text = build.name
+            }
+          else
+            self.builds[i].name = self.editing.text
+            self.editing = nil
+            -- can we do this from here? probably need to rethink this whole graph.export function
+            -- i think we need a whole savedata class that keeps track of all this bullshit
+            saveData = Graph.export(saveData, currentBuild, activeClass, ascendancyClass, nodes)
+          end
+        end
+
+        -- Draw delete icon
+        if #self.builds > 1 then
+          self.icons.delete.options.id = 'delete-button-'..tostring(i)
+          if suit.SpritesheetButton(self.icons.delete.sheet,
+                                    self.icons.delete.options,
+                                    self.width - love.window.toPixels(37),
+                                    self.y+y,
+                                    0,
+                                    love.window.getPixelScale(),
+                                    love.window.getPixelScale()).hit then
+            local buttons = {"Cancel", "OK", escapebutton=1, enterbutton=2}
+            if love.window.showMessageBox('Delete Build?', 'Are you sure you want to delete "'..build.name..'"?', buttons, 'info', true) == 2 then
+              deleteBuild(i)
+            end
           end
         end
       end
