@@ -276,10 +276,10 @@ function love.load()
   connectorSpriteRemove:setFilter('nearest', 'nearest')
 
   local x, y = connectorSpriteInactive:getDimensions()
-  batches['connector-inactive'] = love.graphics.newSpriteBatch(connectorSpriteInactive, 1500)
-  batches['connector-active'] = love.graphics.newSpriteBatch(connectorSpriteActive, 1500)
-  batches['connector-add'] = love.graphics.newSpriteBatch(connectorSpriteAdd, 500)
-  batches['connector-remove'] = love.graphics.newSpriteBatch(connectorSpriteRemove, 500)
+  batches['connector-inactive'] = love.graphics.newSpriteBatch(connectorSpriteInactive, 15000)
+  batches['connector-active'] = love.graphics.newSpriteBatch(connectorSpriteActive, 15000)
+  batches['connector-add'] = love.graphics.newSpriteBatch(connectorSpriteAdd, 5000)
+  batches['connector-remove'] = love.graphics.newSpriteBatch(connectorSpriteRemove, 5000)
   spriteQuads['connectors'] = {
     love.graphics.newQuad(0, 0, 1, 1, x, y),
     love.graphics.newQuad(0, 1, 1, 1, x, y),
@@ -443,26 +443,12 @@ function love.draw()
   love.graphics.draw(batches['PSGroupBackground2'])
   love.graphics.draw(batches['PSGroupBackground3'])
 
-  -- Draw connections
-  love.graphics.setColor(inactiveConnector)
-  love.graphics.setLineWidth(3/camera.scale)
-  for nid, node in pairs(visibleNodes) do
-    node:drawConnections()
-  end
-  love.graphics.setLineWidth(1)
-  clearColor()
-
-  -- Draw straight line sprite batch
+  -- Draw line sprite batch
+  -- Now includes straight and curved lines for non-ascendancy nodes
   love.graphics.draw(batches['connector-inactive'])
   love.graphics.draw(batches['connector-active'])
   love.graphics.draw(batches['connector-add'])
   love.graphics.draw(batches['connector-remove'])
-
-  -- for i=1,4 do
-  --   for _,name in ipairs(Node.ConnectionTypes) do
-  --     love.graphics.draw(batches['Orbit'..i..name])
-  --   end
-  -- end
 
   -- Draw the start node decorations first, they should be in the very back
   love.graphics.draw(batches['PSStartNodeBackgroundInactive'])

@@ -423,19 +423,11 @@ function Node:drawBatchConnections()
       end
 
       if (self.group.id ~= other.group.id) or (self.orbit ~= other.orbit) then
-        -- self:drawConnection(other)
-        -- self:drawBatchConnection(other, y)
         self:drawBatchConnection(other, batchName)
       else
-        -- make arced connections batched, too
-        -- can we use the provided orbit images?
-        -- print(batchName)
         if self.orbit > 1 then
-          batchName = 'Orbit'..(self.orbit-1)..'Active'
-          -- print(batchName)
           self:drawBatchArcedConnection(other, batchName)
         end
-        -- self:drawArcedConnection(other)
       end
 
       clearColor()
@@ -489,10 +481,48 @@ function Node:drawBatchConnection(other, batchName)
 end
 
 function Node:drawBatchArcedConnection(other, batchName)
-  local w, h = batches[batchName]:getTexture():getDimensions()
-  local mx, my = (self.position.x + other.position.x)/2, (self.position.y + other.position.y)/2
-  -- print(self.arc, other.arc)
-  batches[batchName]:add(mx, my, self.arc, 1, 1, w/2, h/2)
+  local startAngle = Node.arc(self)
+  local endAngle = Node.arc(other)
+
+  if startAngle > endAngle then
+    startAngle, endAngle = endAngle, startAngle
+  end
+  local delta = endAngle - startAngle
+
+  if delta > math.pi then
+    local c = 2*math.pi - delta
+    endAngle = startAngle
+    startAngle = endAngle + c
+    delta = c
+  end
+
+  local center = {x = self.group.position.x, y = self.group.position.y}
+  local radius = Node.OrbitRadii[self.orbit]
+  local steps = math.ceil(30*(delta/(math.pi*2)))
+  local stepSize = delta/steps
+
+  local points = {}
+  local radians = 0
+  endAngle = endAngle - math.pi/2
+  for i=0,steps do
+    radians = endAngle - stepSize*i
+    table.insert(points, radius*math.cos(radians)+center.x)
+    table.insert(points, radius*math.sin(radians)+center.y)
+  end
+
+  if steps < 0 or #points < 0 then
+    return
+  end
+
+  local x1, y1 = points[1], points[2]
+  local line_width = 4/camera.scale
+  for i=3, #points-1, 2 do
+    local x2, y2 = points[i], points[i+1]
+    local distance = lume.distance(x1, y1, x2, y2)
+    local angle = lume.angle(x1, y1, x2, y2)
+    batches[batchName]:add(x1, y1, angle, distance+line_width/2, line_width)
+    x1, y1 = x2, y2
+  end
 end
 
 function Node:drawConnection(other)
