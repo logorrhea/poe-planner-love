@@ -255,10 +255,6 @@ function Node.create(data, group)
     node.startPositionClasses[i] = c+1
   end
 
-  -- Set nodes to active for now, until we get further along. it's too hard
-  -- to see everything otherwise
-  -- node.active = false
-
   -- Set node type
   if #node.startPositionClasses ~= 0 then
     node.type = Node.NT_START
