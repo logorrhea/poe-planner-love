@@ -956,7 +956,9 @@ function activateNode(nid)
   menu:updateStatText(character)
   if not node.isAscendancyStart then
     if node:isAscendancy() then
-      activeAscendancy = activeAscendancy + 1
+      if not node.isMultipleChoice then
+        activeAscendancy = activeAscendancy + 1
+      end
     else
       activeNodes = activeNodes + 1
     end
@@ -975,7 +977,9 @@ function deactivateNode(nid)
   menu:updateStatText(character)
   if not node.isAscendancyStart then
     if node:isAscendancy() then
-      activeAscendancy = activeAscendancy - 1
+      if not node.isMultipleChoice then
+        activeAscendancy = activeAscendancy - 1
+      end
     else
       activeNodes = activeNodes - 1
     end
