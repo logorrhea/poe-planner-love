@@ -290,9 +290,9 @@ function Node.create(data, group)
   node.position = Node.nodePosition(node)
 
   -- Escape single quotes in node descriptions
-  for i, desc in ipairs(node.descriptions) do
-    node.descriptions[i] = string.gsub(desc, "'", "")
-  end
+  -- for i, desc in ipairs(node.descriptions) do
+  --   node.descriptions[i] = string.gsub(desc, "'", "")
+  -- end
 
   return node
 end

@@ -999,9 +999,10 @@ function parseDescriptions(node, op)
     end
   else
     for i, desc in ipairs(node.descriptions) do
-      for n,s in desc:gmatch("(%d+) (%a[%s%a]*)") do
+      for n,s in desc:gmatch("^[+]?(%d+) (%a[%s%a]*)") do
         found[#found+1] = s
         if DEBUG then
+          print('here')
           print('s: '..s, 'n: '..n)
         end
         n = tonumber(n)
@@ -1031,7 +1032,7 @@ function parseDescriptions(node, op)
       end
 
       if #found ~= i then
-        for n,s in desc:gmatch("(%d+%.?%d*)(%%? %a[%s%a]*)") do
+        for n,s in desc:gmatch("^[+]?(%d+%.?%d*)(%%? %a[%s%a-']*)") do
           if DEBUG then
             print('s: '..s, 'n: '..n)
           end
