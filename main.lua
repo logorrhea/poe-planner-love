@@ -999,7 +999,7 @@ function parseDescriptions(node, op)
     end
   else
     for i, desc in ipairs(node.descriptions) do
-      for n,s in desc:gmatch("^[+]?(%d+) (%a[%s%a]*)") do
+      for n,s in desc:gmatch("+?(%d+) (%a[%s%a]*)") do
         found[#found+1] = s
         if DEBUG then
           print('here')
@@ -1032,17 +1032,23 @@ function parseDescriptions(node, op)
       end
 
       if #found ~= i then
-        for n,s in desc:gmatch("^[+]?(%d+%.?%d*)(%%? %a[%s%a-']*)") do
+        for p,n,s in desc:gmatch("([%a%s]*)(%d+%.?%d*)(%%? %a[%s%a]*)") do
           if DEBUG then
-            print('s: '..s, 'n: '..n)
+            print('p: '..p, 's: '..s, 'n: '..n)
+            print(desc)
           end
-          found[#found+1] = s
-          local v = character.stats[s] or 0
+
+          local label = p..s
+
+          found[#found+1] = label
+          local v = character.stats[label] or 0
+
           v = op(v, n)
           if v == 0 then
             v = nil
           end
-          character.stats[s] = v
+
+          character.stats[label] = v
         end
       end
 
