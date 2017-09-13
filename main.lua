@@ -1032,7 +1032,7 @@ function parseDescriptions(node, op)
       end
 
       if #found ~= i then
-        for p,n,s in desc:gmatch("([%a%s]*)(%d+%.?%d*)(%%? %a[%s%a]*)") do
+        for p,n,s in desc:gmatch("([%a%s,]*)(%d+%.?%d*)(%%? %a[%s%a]*)") do
           if DEBUG then
             print('p: '..p, 's: '..s, 'n: '..n)
             print(desc)
