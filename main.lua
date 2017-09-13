@@ -375,6 +375,10 @@ function love.load()
   dialog = require 'ui.dialog'
   dialog:init()
 
+  -- Message box modal
+  modal = require 'ui.modal'
+  modal:init()
+
   -- Set up click/touch handler layers
   layers[1] = ascendancyClassPicker
   layers[2] = classPicker
@@ -382,6 +386,7 @@ function love.load()
   layers[4] = menu
   layers[5] = menuToggle
   layers[6] = searchBox
+  layers[7] = modal
 
   -- Activate nodes saved in user data
   for _, nid in ipairs(savedNodes) do
@@ -595,6 +600,10 @@ function love.draw()
     searchBox:draw()
   end
 
+  if modal:isActive() then
+    modal:draw()
+  end
+
   suit.draw()
 
   if love.keyboard.isScancodeDown('/') and (love.keyboard.isScancodeDown('rshift') or love.keyboard.isScancodeDown('lshift')) then
@@ -769,7 +778,9 @@ function love.keypressed(key, scancode, isRepeat)
       menu:toggle()
     end
   elseif key == 'escape' then
-    if menu:isActive() then
+    if modal:isActive() then
+      modal:setInactive()
+    elseif menu:isActive() then
       menu:toggle()
     elseif searchBox:isActive() then
       searchBox:hide()
@@ -781,7 +792,8 @@ function love.keypressed(key, scancode, isRepeat)
       -- SDL bug apparently? Esc key feedback is unreliable
       -- if result == 2 then
         saveData = Graph.export(saveData, currentBuild, activeClass, ascendancyClass, nodes)
-        love.event.quit()
+        -- love.event.quit()
+        modal:setActive(love.event.quit)
       -- end
     end
   elseif scancode == 'pagedown' then
@@ -794,8 +806,12 @@ function love.keypressed(key, scancode, isRepeat)
     end
   elseif scancode == 'backspace' and searchBox:isFocused() then
     searchBox:backspace()
+  elseif scancode == 'return' then
+    if modal:isActive() then
+      modal:confirm()
+    end
   else
-    -- print('scancode: '..scancode)
+    print('scancode: '..scancode)
   end
 end
 
