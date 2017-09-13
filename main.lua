@@ -24,6 +24,43 @@ require 'group'
 require 'colors'
 require 'graph'
 
+local unusedImages = {
+  'Fade_Corner',
+  'Fade_Side',
+
+  'groups-3',
+
+  'JewelFrameCanAllocate',
+  'KeystoneFrameCanAllocate',
+
+  'Line_Deco_Highlighted',
+  'Line_Deco',
+
+  'LineConnectorActive',
+  'LineConnectorIntermediate',
+  'LineConnectorNormal',
+
+  'NotableFrameCanAllocate',
+
+  'PSOrbit1Normal',
+  'Orbit1Active',
+  'Orbit1Intermediate',
+  'Orbit2Normal',
+  'Orbit2Active',
+  'Orbit2Intermediate',
+  'Orbit3Normal',
+  'Orbit3Active',
+  'Orbit3Intermediate',
+  'Orbit4Normal',
+  'Orbit4Active',
+  'Orbit4Intermediate',
+
+  'PassiveSkillScreenAscendancyFrameLargeCanAllocate',
+  'PassiveSkillScreenAscendancyFrameSmallCanAllocate',
+
+  'Skill_Frame_CanAllocate',
+}
+
 DEBUG = false
 pinches = {nil, nil}
 
@@ -177,38 +214,42 @@ function love.load()
     end
 
     if filePath ~= nil then
-      local fileName = nil
-      for match in filePath:gmatch("[^/%.]+%.[^/%.]+") do
-        fileName = match
-      end
-      fileName = fileName:gsub(".gif", ".png") -- this needs a better solution, probably
+      if not table.icontains(unusedImages, name) then
 
-      local fileData = love.filesystem.newFileData('assets/'..fileName)
-      local imageData = love.image.newImageData(fileData)
-      local image = love.graphics.newImage(imageData)
+        local fileName = nil
+        for match in filePath:gmatch("[^/%.]+%.[^/%.]+") do
+          fileName = match
+        end
+        fileName = fileName:gsub(".gif", ".png") -- this needs a better solution, probably
 
-      if name == 'PSSkillFrame' then
-        batches[name] = love.graphics.newSpriteBatch(image, nodeCount)
-      elseif name == 'PSSkillFrameActive' then
-        batches[name] = love.graphics.newSpriteBatch(image, maxActive)
-      elseif name == 'PSGroupBackground1' then
-        batches[name] = love.graphics.newSpriteBatch(image, groupCount)
-      elseif name == 'PSGroupBackground2' then
-        batches[name] = love.graphics.newSpriteBatch(image, groupCount)
-      elseif name == 'PSGroupBackground3' then
-        batches[name] = love.graphics.newSpriteBatch(image, (#Node.Classes + groupCount)*2)
-      elseif name == 'PSStartNodeBackgroundInactive' then
-        batches[name] = love.graphics.newSpriteBatch(image, #Node.Classes)
-      elseif name == 'NotableFrameAllocated' or name == 'NotableFrameUnallocated' then
-        batches[name] = love.graphics.newSpriteBatch(image, 395)
-      elseif name == 'KeystoneFrameUnallocated' or name == 'KeystoneFrameAllocated' then
-        batches[name] = love.graphics.newSpriteBatch(image, 23)
-      elseif name == 'JewelFrameUnallocated' or name == 'JewelFrameAllocated' then
-        batches[name] = love.graphics.newSpriteBatch(image, 21)
-      else
-        batches[name] = love.graphics.newSpriteBatch(image, 10)
-      end
-    end
+        local fileData = love.filesystem.newFileData('assets/'..fileName)
+        local imageData = love.image.newImageData(fileData)
+        local image = love.graphics.newImage(imageData)
+
+        if name == 'PSSkillFrame' then
+          batches[name] = love.graphics.newSpriteBatch(image, nodeCount)
+        elseif name == 'PSSkillFrameActive' then
+          batches[name] = love.graphics.newSpriteBatch(image, maxActive)
+        elseif name == 'PSGroupBackground1' then
+          batches[name] = love.graphics.newSpriteBatch(image, groupCount)
+        elseif name == 'PSGroupBackground2' then
+          batches[name] = love.graphics.newSpriteBatch(image, groupCount)
+        elseif name == 'PSGroupBackground3' then
+          batches[name] = love.graphics.newSpriteBatch(image, (#Node.Classes + groupCount)*2)
+        elseif name == 'PSStartNodeBackgroundInactive' then
+          batches[name] = love.graphics.newSpriteBatch(image, #Node.Classes)
+        elseif name == 'NotableFrameAllocated' or name == 'NotableFrameUnallocated' then
+          batches[name] = love.graphics.newSpriteBatch(image, 395)
+        elseif name == 'KeystoneFrameUnallocated' or name == 'KeystoneFrameAllocated' then
+          batches[name] = love.graphics.newSpriteBatch(image, 23)
+        elseif name == 'JewelFrameUnallocated' or name == 'JewelFrameAllocated' then
+          batches[name] = love.graphics.newSpriteBatch(image, 21)
+        else
+          batches[name] = love.graphics.newSpriteBatch(image, 10)
+        end
+
+      end -- end table.icontains
+    end -- end if filepath
 
   end
   times.batches = love.timer.getTime()
