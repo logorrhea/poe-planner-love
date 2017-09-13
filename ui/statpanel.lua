@@ -37,6 +37,7 @@ function panel:init(builds)
     y = love.window.toPixels(125),
     maxY = love.window.toPixels(125),
     minY = love.window.toPixels(125),
+    lastCheck = nil, -- last # of builds for which the height was checked
     yadj = function(self, dy)
       self.y = lume.clamp(self.y+dy, self.minY, self.maxY)
     end
@@ -208,6 +209,15 @@ function panel:draw(character)
       y = y + self.className:getHeight()
     end
 
+    -- Update height of build panel if necessary
+    if self.buildPanel.lastCheck == nil or self.buildPanel.lastCheck ~= #self.builds then
+      self.buildPanel.lastCheck = #self.builds
+      local diff = (winHeight - love.window.toPixels(125)) - y
+      if diff < 0 then
+        self.buildPanel.minY = diff
+      end
+    end
+
     -- Show new build button
     local scale = 0.5*love.window.getPixelScale()
     if suit.ImageButton(plusbutton, {}, five, self.y+y, 0, scale, scale).hit then
@@ -316,7 +326,7 @@ function panel:mousemoved(x, y, dx, dy)
   if not self:isActive() then
     return false
   elseif self.scrolling then
-    self:scrolltext(dy)
+    self:scrollContent(dy)
     return true
   elseif self.mouseOnToggle then
     return true
@@ -354,8 +364,12 @@ function panel:isMouseOverToggleButton(x, y)
   return x > x1 and x < x2 and y > y1 and y < y2
 end
 
-function panel:scrolltext(dy)
-  self.statText:yadj(dy)
+function panel:scrollContent(dy)
+  if self.innerContent == 'stats' then
+    self.statText:yadj(dy)
+  else
+    self.buildPanel:yadj(dy)
+  end
 end
 
 function panel:click(x, y)
