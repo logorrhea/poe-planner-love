@@ -334,16 +334,7 @@ function love.load()
   camera:lookAt(startNode.position.x, startNode.position.y)
 
   -- Fancy class background batches
-  for i=1,7 do
-    local name = Node.Classes[i].bg
-    if name ~= 'none' then
-      local sprite = love.graphics.newImage('assets/'..name..'.png')
-      local x, y = startNode.position.x, startNode.position.y
-      local ox, oy = Node.Classes[i].bg_pos.x, Node.Classes[i].bg_pos.y
-      batches[name] = love.graphics.newSpriteBatch(sprite, 1, 'static')
-      batches[name]:add(x, y, 0, 1, 1, ox, oy)
-    end
-  end
+  setFancyBackground()
 
   -- Create ascendancy button and panel
   ascendancyButton = require 'ui.ascendancybutton'
@@ -434,7 +425,7 @@ function love.update(dt)
 
   searchBox:update(dt)
   Timer.update(dt)
-  require('lib.lovebird').update()
+  -- require('lib.lovebird').update()
 end
 
 function love.resize(w, h)
@@ -473,10 +464,8 @@ function love.draw()
   local cx, cy = winWidth/(2*camera.scale), winHeight/(2*camera.scale)
 
   -- Draw fancy class background if applicable
-  if Node.Classes[activeClass].bg ~= 'none' then
-    -- love.graphics.draw(batches[Node.Classes[activeClass].bg])
-    local image = batches[Node.Classes[activeClass].bg]:getTexture()
-    love.graphics.draw(image, startNode.position.x, startNode.position.y, 0, 1, 1, Node.Classes[activeClass].bg_pos.x, Node.Classes[activeClass].bg_pos.y)
+  if fancyBackground ~= nil then
+    love.graphics.draw(fancyBackground, startNode.position.x, startNode.position.y, 0, 1, 1, Node.Classes[activeClass].bg_pos.x, Node.Classes[activeClass].bg_pos.y)
   end
 
   -- Draw group backgrounds
@@ -1140,6 +1129,7 @@ function changeActiveClass(class, aclass)
     startnid = startNodes[activeClass]
     startNode = nodes[startnid]
     portrait:updatePortrait(classPicker:getPortrait(activeClass))
+    setFancyBackground()
 
     for nid, node in pairs(nodes) do
       if node.active then
@@ -1262,4 +1252,13 @@ function getUniqueBuildName(class, aclass)
   end
 
   return name
+end
+
+function setFancyBackground()
+  if Node.Classes[activeClass].bg ~= 'none' then
+    local name = Node.Classes[activeClass].bg
+    fancyBackground = love.graphics.newImage('assets/'..name..'.png')
+  else
+    fancyBackground = nil
+  end
 end
