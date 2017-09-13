@@ -700,7 +700,7 @@ end
 
 function love.wheelmoved(x, y)
   if menu:isActive() and menu:isMouseInStatSection() then
-    menu:scrolltext(y*love.window.toPixels(5))
+    menu:scrollContent(y*love.window.toPixels(5))
   else
     if y > 0 then
       camera:zoomIn()
@@ -756,11 +756,11 @@ function love.keypressed(key, scancode, isRepeat)
     end
   elseif scancode == 'pagedown' then
     if menu:isActive() then
-      menu:scrolltext(-love.window.toPixels(125))
+      menu:scrollContent(-love.window.toPixels(125))
     end
   elseif scancode == 'pageup' then
     if menu:isActive() then
-      menu:scrolltext(love.window.toPixels(125))
+      menu:scrollContent(love.window.toPixels(125))
     end
   elseif scancode == 'backspace' and searchBox:isFocused() then
     searchBox:backspace()
