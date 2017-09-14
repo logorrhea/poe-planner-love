@@ -701,6 +701,9 @@ end
 function love.mousemoved(x, y, dx, dy, isTouch)
   if isTouch then return end
 
+  -- Bail if modal is active
+  if modal:isActive() then return end
+
   -- Bail if either classpicker is active
   if classPicker:isActive() or ascendancyClassPicker:isActive() then return end
 
