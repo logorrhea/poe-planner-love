@@ -3,30 +3,22 @@
 ---
 local modal = {
   state = 'inactive',
-  bodyText = "Click OK or press 'Enter' to confirm. Click Cancel or press 'Escape' to cancel and close this window.",
-  -- text = love.graphics.newText(font, "Click OK or press 'Enter' to confirm. Click Cancel or press 'Escape' to cancel and close this window."),
-  titleText = love.graphics.newText(headerFont, 'Close PoE Planner?'),
+  titleText = love.graphics.newText(headerFont, ''),
   cancelText = love.graphics.newText(font, 'Cancel'),
   confirmText = love.graphics.newText(font, 'OK'),
-
   w = 300,
-
   button_width_pad = love.window.toPixels(10)*3,
   button_height_pad = love.window.toPixels(10),
 }
+
+local five = love.window.toPixels(5)
+local ten = 2*five
+
 modal.name = 'Message Box Modal'
 
 function modal:init()
-  local five = love.window.toPixels(5)
-  local ten = 2*five
-
-  local width, wrappedtext = font:getWrap(self.bodyText, self.w - 2*ten)
-  self.text = love.graphics.newText(font, table.concat(wrappedtext, "\n"))
-
-  self.button_width = math.max(self.cancelText:getWidth(), self.confirmText:getWidth()) + self.button_width_pad
-  self.button_height = math.max(self.cancelText:getHeight(), self.confirmText:getHeight()) + self.button_height_pad
-
-  self.h = ten * 4 + self.button_height + self.text:getHeight() + self.titleText:getHeight()
+  self:setTitle('Close PoE Planner?')
+  self:setText("Click OK or press 'Enter' to confirm. Click Cancel or press 'Escape' to cancel and close this window.")
 end
 
 function modal:isExclusive()
@@ -68,9 +60,6 @@ function modal:confirm()
 end
 
 function modal:draw()
-  local five = love.window.toPixels(5)
-  local ten = 2*five
-
   local w, h = love.graphics.getDimensions()
   local x, y = (w-self.w)/2, (h-self.h)/2
 
@@ -130,5 +119,23 @@ function modal:click(mx, my)
   return false
 end
 
+function modal:setTitle(text)
+  local width, wrappedtext = headerFont:getWrap(text, self.w - 2*ten)
+  self.titleText:set(table.concat(wrappedtext, "\n"))
+  self:updateHeights()
+end
+
+function modal:setText(text)
+  local width, wrappedtext = font:getWrap(text, self.w - 2*ten)
+  self.text = love.graphics.newText(font, table.concat(wrappedtext, "\n"))
+  self:updateHeights()
+end
+
+function modal:updateHeights()
+  self.button_width = math.max(self.cancelText:getWidth(), self.confirmText:getWidth()) + self.button_width_pad
+  self.button_height = math.max(self.cancelText:getHeight(), self.confirmText:getHeight()) + self.button_height_pad
+
+  self.h = ten * 4 + self.button_height + self.text:getHeight() + self.titleText:getHeight()
+end
 
 return modal

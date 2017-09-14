@@ -795,9 +795,12 @@ function love.keypressed(key, scancode, isRepeat)
       -- This shit don't work, yo
       -- SDL bug apparently? Esc key feedback is unreliable
       -- if result == 2 then
-        saveData = Graph.export(saveData, currentBuild, activeClass, ascendancyClass, nodes)
         -- love.event.quit()
-        modal:setActive(love.event.quit)
+        modal:setTitle('Close PoE Planner?')
+        modal:setActive(function()
+          saveData = Graph.export(saveData, currentBuild, activeClass, ascendancyClass, nodes)
+          love.event.quit()
+        end)
       -- end
     end
   elseif scancode == 'pagedown' then
@@ -1138,9 +1141,27 @@ function changeActiveClass(class, aclass)
 
   -- Provide confirmation dialog; no need to confirm when starting a new build
   if isClassChange then
-    local buttons = {"Cancel", "OK", escapebutton=1, enterbutton=2}
-    if love.window.showMessageBox('Change Class?', 'Are you sure you want to change class and reset the skill tree?', buttons, 'info', true) ~= 2 then return end
+    -- local buttons = {"Cancel", "OK", escapebutton=1, enterbutton=2}
+    -- if love.window.showMessageBox('Change Class?', 'Are you sure you want to change class and reset the skill tree?', buttons, 'info', true) ~= 2 then return end
+    modal:setTitle('Change class and reset the skill tree?')
+    modal:setActive(function()
+      doChangeActiveClass(class, aclass)
+    end)
   end
+end
+
+function doChangeActiveClass(class, aclass)
+  -- -- Don't do anything if not new class
+  -- local isClassChange = not startingNewBuild and not changingBuild
+  -- if isClassChange and class == activeClass and aclass == ascendancyClass then return false end
+
+  -- -- Provide confirmation dialog; no need to confirm when starting a new build
+  -- if isClassChange then
+  --   local buttons = {"Cancel", "OK", escapebutton=1, enterbutton=2}
+  --   if love.window.showMessageBox('Change Class?', 'Are you sure you want to change class and reset the skill tree?', buttons, 'info', true) ~= 2 then return end
+  --   modal:changeTitleText('Change class and reset the skill tree?')
+  --   modal:setActive()
+  -- end
 
   addTrail    = {}
   removeTrail = {}
