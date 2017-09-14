@@ -2,4 +2,4 @@ love:
 	love .
 
 build:
-	zip -r -X poe-planner.love . -x ".*" -x "*/.*" -x "Makefile" -x "TODO.org"
+	7z a -r -tzip poe-planner.love . "-x!.*" "-x!*/.*" "-x!Makefile" "-x!TODO.org" "-x!pretty.json" "-x!stats.txt" "-x!stat-screen-sample.png" "-x!*.love"
