@@ -101,5 +101,34 @@ function modal:draw()
 
 end
 
+-- Check if user clicked on either button
+function modal:click(mx, my)
+  if not self:isActive() then return false end
+
+  local ten = love.window.toPixels(10)
+  local w, h = love.graphics.getDimensions()
+  local x, y = w/2, (h+self.h)/2 - ten - self.button_height
+
+  -- Check left button (OK)
+  if mx > x - ten/2 - self.button_width and
+     mx < x - ten/2 and
+     my > y and
+     my < y + self.button_height then
+    self.cb()
+    return true
+  end
+
+  -- Check right button (Cancel)
+  if mx > x + ten/2 and
+     mx < x + ten/2 + self.button_width and
+     my > y and
+     my < y + self.button_height then
+    self:setInactive()
+    return true
+  end
+
+  return false
+end
+
 
 return modal

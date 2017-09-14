@@ -22,6 +22,7 @@ function toggle:init(target)
 end
 
 function toggle:click(mx, my)
+  return false
   -- stub
 end
 
