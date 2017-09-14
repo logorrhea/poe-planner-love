@@ -765,10 +765,6 @@ function love.keypressed(key, scancode, isRepeat)
   elseif key == 'down' then
     camera:zoomOut()
     refillBatches()
-  elseif key == 'p' then
-    if lastClicked then
-      graphSearchThread = Graph.planShortestRoute(lastClicked)
-    end
   elseif key == 'f1' then
     DEBUG = not DEBUG
   elseif scancode == '[' then
@@ -779,7 +775,7 @@ function love.keypressed(key, scancode, isRepeat)
     if menu:isActive() then
       menu.innerContent = 'builds'
     end
-  elseif scancode == '[' or scancode == '`' then
+  elseif scancode == '`' then
     if not ascendancyClassPicker:isActive() and not classPicker:isActive() and not menu:isTransitioning() then
       menu:toggle()
     end
@@ -791,19 +787,11 @@ function love.keypressed(key, scancode, isRepeat)
     elseif searchBox:isActive() then
       searchBox:hide()
     else
-      -- local buttons = {'Cancel', 'OK'}
-      -- local result = love.window.showMessageBox('Exit?', 'Are you sure you want to quit?', buttons)
-      -- print(result)
-      -- This shit don't work, yo
-      -- SDL bug apparently? Esc key feedback is unreliable
-      -- if result == 2 then
-        -- love.event.quit()
-        modal:setTitle('Close PoE Planner?')
-        modal:setActive(function()
-          saveData = Graph.export(saveData, currentBuild, activeClass, ascendancyClass, nodes)
-          love.event.quit()
-        end)
-      -- end
+      modal:setTitle('Close PoE Planner?')
+      modal:setActive(function()
+        saveData = Graph.export(saveData, currentBuild, activeClass, ascendancyClass, nodes)
+        love.event.quit()
+      end)
     end
   elseif scancode == 'pagedown' then
     if menu:isActive() then
