@@ -13,7 +13,7 @@ function love.conf(t)
   t.gammacorrect = true
 	t.window.display = 1
 
-  t.console = true
+  -- t.console = true
 
   -- Disable unused packages
   t.modules.joystick = false
