@@ -144,7 +144,7 @@ function panel:draw(character)
     love.graphics.draw(generalStatText, self.x+five+generalStatLabels:getWidth()*1.5, self.y+y)
   elseif self.innerContent == 'builds' then
     -- Show builds listing
-    local y = self.buildPanel.y
+    local y = self.buildPanel.y + five
     love.graphics.setFont(font)
     clearColor()
     for i, build in ipairs(self.builds) do
