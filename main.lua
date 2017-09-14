@@ -447,6 +447,7 @@ function love.resize(w, h)
   ascendancyClassPicker:setCenters()
   classPicker:setCenters()
 
+  menu:resize()
   searchBox:resize()
 end
 
@@ -811,7 +812,9 @@ function love.keypressed(key, scancode, isRepeat)
       modal:confirm()
     end
   else
-    print('scancode: '..scancode)
+    if DEBUG then
+      print('scancode: '..scancode)
+    end
   end
 end
 

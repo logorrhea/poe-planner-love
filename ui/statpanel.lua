@@ -8,7 +8,7 @@ local panel = {
   innerContent = 'builds',
   builds = {},
   buildName = love.graphics.newText(headerFont, ''),
-  className = love.graphics.newText(font, '')
+  className = love.graphics.newText(font, ''),
 }
 
 local divider  = love.graphics.newImage('assets/LineConnectorNormal.png')
@@ -51,12 +51,12 @@ end
 
 function panel:resize()
   local w, h = love.graphics.getDimensions()
+  local minWidth, maxWidth = love.window.toPixels(300), love.window.toPixels(400)
 
   if h > w then
-    self.width = w
+    self.width = math.min(math.max(w, minWidth), maxWidth)
   else
-    local minWidth = love.window.toPixels(300)
-    self.width = w/3 > minWidth and w/3 or minWidth
+    self.width = math.min(math.max(w/3, love.window.toPixels(300)), maxWidth)
   end
 end
 
@@ -116,8 +116,14 @@ function panel:draw(character)
   love.graphics.draw(divider, self.x+five, self.y+love.window.toPixels(115), 0, sx, 1.0)
 
   -- Set stat panel scissor
-  local min_y, max_y = self.y+love.window.toPixels(125), winHeight-love.window.toPixels(125)
-  love.graphics.setScissor(self.x+five, min_y, love.window.toPixels(285), max_y)
+  local min_y = self.y + love.window.toPixels(125)
+  local max_y = winHeight - love.window.toPixels(leftIcon:getWidth() + 20)
+  if DEBUG then
+    love.graphics.setColor(255, 0, 0, 100)
+    love.graphics.rectangle('fill', self.x+five, min_y, love.window.toPixels(self.width)-2*five, max_y-min_y)
+    clearColor()
+  end
+  love.graphics.setScissor(self.x+five, min_y, love.window.toPixels(self.width)-2*five, max_y-min_y)
 
   if self.innerContent == 'stats' then
     -- Draw keystone node text
