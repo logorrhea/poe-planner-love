@@ -132,9 +132,9 @@ function modal:setText(text)
 end
 
 function modal:updateHeights()
+  if self.text == nil or self.titleText == nil then return end
   self.button_width = math.max(self.cancelText:getWidth(), self.confirmText:getWidth()) + self.button_width_pad
   self.button_height = math.max(self.cancelText:getHeight(), self.confirmText:getHeight()) + self.button_height_pad
-
   self.h = ten * 4 + self.button_height + self.text:getHeight() + self.titleText:getHeight()
 end
 

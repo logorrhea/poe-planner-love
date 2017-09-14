@@ -201,10 +201,10 @@ function panel:draw(character)
                                     0,
                                     love.window.getPixelScale(),
                                     love.window.getPixelScale()).hit then
-            local buttons = {"Cancel", "OK", escapebutton=1, enterbutton=2}
-            if love.window.showMessageBox('Delete Build?', 'Are you sure you want to delete "'..build.name..'"?', buttons, 'info', true) == 2 then
+            modal:setTitle('Delete Build '..build.name..'?')
+            modal:setActive(function()
               deleteBuild(i)
-            end
+            end)
           end
         end
       end

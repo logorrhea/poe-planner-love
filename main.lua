@@ -470,7 +470,9 @@ function love.draw()
   local cx, cy = winWidth/(2*camera.scale), winHeight/(2*camera.scale)
 
   -- Draw fancy class background if applicable
-  if fancyBackground ~= nil then
+  -- if fancyBackground ~= nil then
+  if Node.Classes[activeClass].bg ~= 'none' then
+    -- print(activeClass)
     love.graphics.draw(fancyBackground, startNode.position.x, startNode.position.y, 0, 1, 1, Node.Classes[activeClass].bg_pos.x, Node.Classes[activeClass].bg_pos.y)
   end
 
@@ -1141,8 +1143,6 @@ function changeActiveClass(class, aclass)
 
   -- Provide confirmation dialog; no need to confirm when starting a new build
   if isClassChange then
-    -- local buttons = {"Cancel", "OK", escapebutton=1, enterbutton=2}
-    -- if love.window.showMessageBox('Change Class?', 'Are you sure you want to change class and reset the skill tree?', buttons, 'info', true) ~= 2 then return end
     modal:setTitle('Change class and reset the skill tree?')
     modal:setActive(function()
       doChangeActiveClass(class, aclass)
@@ -1152,16 +1152,8 @@ end
 
 function doChangeActiveClass(class, aclass)
   -- -- Don't do anything if not new class
-  -- local isClassChange = not startingNewBuild and not changingBuild
-  -- if isClassChange and class == activeClass and aclass == ascendancyClass then return false end
-
-  -- -- Provide confirmation dialog; no need to confirm when starting a new build
-  -- if isClassChange then
-  --   local buttons = {"Cancel", "OK", escapebutton=1, enterbutton=2}
-  --   if love.window.showMessageBox('Change Class?', 'Are you sure you want to change class and reset the skill tree?', buttons, 'info', true) ~= 2 then return end
-  --   modal:changeTitleText('Change class and reset the skill tree?')
-  --   modal:setActive()
-  -- end
+  local isClassChange = not startingNewBuild and not changingBuild
+  if isClassChange and class == activeClass and aclass == ascendancyClass then return false end
 
   addTrail    = {}
   removeTrail = {}
@@ -1228,7 +1220,7 @@ function changeActiveBuild(buildId)
   currentBuild = buildId
   activeClass, ascendancyClass, savedNodes = Graph.parse(saveData.builds[buildId].nodes)
   changingBuild = true
-  changeActiveClass(activeClass, ascendancyClass)
+  doChangeActiveClass(activeClass, ascendancyClass)
   for _, nid in ipairs(savedNodes) do
     activateNode(nid)
   end
