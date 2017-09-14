@@ -1147,6 +1147,8 @@ function changeActiveClass(class, aclass)
     modal:setActive(function()
       doChangeActiveClass(class, aclass)
     end)
+  else
+    doChangeActiveClass(class, aclass)
   end
 end
 
