@@ -8,7 +8,7 @@ local legend = {
 			description = 'Toggle debug panel',
 		},
 		{
-			key = '` (backtick)',
+			key = '`',
 			description = 'Toggle stat panel',
 		},
 		{
@@ -16,13 +16,21 @@ local legend = {
 			description = 'Close active UI element or exit application',
 		},
 		{
-			key = '?  (hold)',
+			key = '?',
 			description = 'Display this help screen',
 		},
 		{
 			key = '[ and ]',
 			description = 'Toggle between stat list and build list when stat panel is open',
-		}
+		},
+    {
+      key = 'Ctrl+f',
+      description = 'Toggle search'
+    },
+    {
+      key = '/',
+      description = 'Enable search'
+    }
 	}
 }
 

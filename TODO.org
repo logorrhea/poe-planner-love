@@ -13,16 +13,18 @@ CLOSED: [2016-10-22 Sat 09:07]
 ** Ascendancy Support
 *** DONE Support ascendancy classes
 CLOSED: [2016-10-18 Tue 09:48]
-*** TODO Fix issue with ascendant "Path of XYZ" skill paths
+*** DONE Fix issue with ascendant "Path of XYZ" skill paths
+    CLOSED: [2017-09-15 Fri 10:05]
 
 Seems to work fine when activating the nodes initially. It might be part
 of the serialization/de-serialization process to where the information is
 not being saved correctly? Should check the encoded string we generate against
 the official skill tree.
 ** Misc Fixes
-*** TODO Some character stats still not being recorded correctly
+*** DONE Some character stats still not being recorded correctly
+    CLOSED: [2017-09-15 Fri 10:05]
 *** TODO Better organize character stats?
-*** TODO Display number of regular and ascendancy points allocated
+*** TODO Improve display of number of regular and ascendancy points allocated
 
 This should not be prohibitive (don't lock the user at the max active). However,
 once the user has reached the maximum allowed points, the text should change
@@ -45,7 +47,8 @@ seems to work fine on the emulator, but pressing them on the phone is nigh on im
 ** Bugz
 *** TODO Can pan camera out way past skill tree
 *** TODO Definitely bugs with initializing the save file
-*** TODO Slight visual bugs with the sprites
+*** DONE Slight visual bugs with the sprites
+    CLOSED: [2017-09-15 Fri 10:05]
     - Maybe we can simply change the filter mode?
     - Might also try scaling the inner node icons down just a tad to make sure they
     are properly hidden behind the frame.

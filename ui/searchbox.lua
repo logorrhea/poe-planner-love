@@ -123,6 +123,12 @@ function searchbox:click(x, y)
 end
 
 function searchbox:show()
+  if self.state == 'opening' or self.state == 'focused' then return false end
+  if self.state == 'active' then
+    self.state = 'focused'
+    return true
+  end
+
   self.state = 'opening'
   Timer.tween(0.5, self.dims, {x = self.maxDims.x}, 'out-cubic', function()
     self.state = 'focused'

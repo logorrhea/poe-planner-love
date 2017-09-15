@@ -812,6 +812,18 @@ function love.keypressed(key, scancode, isRepeat)
     if modal:isActive() then
       modal:confirm()
     end
+  elseif scancode == 'f' then
+    if love.keyboard.isScancodeDown('lctrl') or love.keyboard.isScancodeDown('rctrl') then
+      if searchBox:isActive() then
+        searchBox:hide()
+      else
+        searchBox:show()
+      end
+    end
+  elseif scancode == '/' then
+    if not love.keyboard.isScancodeDown('lshift') and not love.keyboard.isScancodeDown('rshift') then
+      searchBox:show()
+    end
   else
     if DEBUG then
       print('scancode: '..scancode)
