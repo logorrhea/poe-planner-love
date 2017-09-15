@@ -5,7 +5,9 @@ local modal = {
   state = 'inactive',
   titleText = love.graphics.newText(headerFont, ''),
   cancelText = love.graphics.newText(font, 'Cancel'),
+  cancelButtonIsHovered = false,
   confirmText = love.graphics.newText(font, 'OK'),
+  confirmButtonIsHovered = false,
   w = 300,
   button_width_pad = love.window.toPixels(10)*3,
   button_height_pad = love.window.toPixels(10),
@@ -81,8 +83,18 @@ function modal:draw()
   y = (h+self.h)/2 - ten - self.button_height
   x = w/2
   love.graphics.rectangle('line', x-five-self.button_width, y, self.button_width, self.button_height)
+  if self.confirmButtonIsHovered then
+    love.graphics.setColor(255, 0, 0, 100)
+    love.graphics.rectangle('fill', x-five-self.button_width, y, self.button_width, self.button_height)
+    clearColor()
+  end
   love.graphics.rectangle('line', x+five, y, self.button_width, self.button_height)
-  
+  if self.cancelButtonIsHovered then
+    love.graphics.setColor(255, 0, 0, 100)
+    love.graphics.rectangle('fill', x+five, y, self.button_width, self.button_height)
+    clearColor()
+  end
+
   -- Draw button text
   y = y + self.button_height_pad/2
   love.graphics.draw(self.confirmText, x-five-self.button_width/2-self.confirmText:getWidth()/2, y)
@@ -114,6 +126,38 @@ function modal:click(mx, my)
      my < y + self.button_height then
     self:setInactive()
     return true
+  end
+
+  return false
+end
+
+function modal:mousemoved(mx, my, dx, dy)
+  if not self:isActive() then return false end
+
+  local ten = love.window.toPixels(10)
+  local w, h = love.graphics.getDimensions()
+  local x, y = w/2, (h+self.h)/2 - ten - self.button_height
+
+  -- Check left button (OK)
+  if mx > x - ten/2 - self.button_width and
+    mx < x - ten/2 and
+    my > y and
+    my < y + self.button_height then
+    self.confirmButtonIsHovered = true
+    return true
+  else
+    self.confirmButtonIsHovered = false
+  end
+
+  -- Check right button (Cancel)
+  if mx > x + ten/2 and
+    mx < x + ten/2 + self.button_width and
+    my > y and
+    my < y + self.button_height then
+    self.cancelButtonIsHovered = true
+    return true
+  else
+    self.cancelButtonIsHovered = false
   end
 
   return false

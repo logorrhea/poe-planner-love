@@ -617,7 +617,10 @@ end
 function love.touchmoved(id, x, y, dx, dy, pressure)
   local touches = love.touch.getTouches()
   if #touches == 1 then
-    if not classPicker:isActive() and not ascendancyClassPicker:isActive() then
+    -- potentially trigger hover states on modal buttons
+    if modal:isActive() then
+      modal:mousemoved(x, y, dx, dy)
+    elseif not classPicker:isActive() and not ascendancyClassPicker:isActive() then
       -- scroll text
       if not menu:mousemoved(x, y, dx, dy) then
         -- camera pan
@@ -704,7 +707,9 @@ function love.mousemoved(x, y, dx, dy, isTouch)
   if isTouch then return end
 
   -- Bail if modal is active
-  if modal:isActive() then return end
+  if modal:isActive() then
+    return modal:mousemoved(x, y, dx, dy)
+  end
 
   -- Bail if either classpicker is active
   if classPicker:isActive() or ascendancyClassPicker:isActive() then return end
