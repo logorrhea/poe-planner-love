@@ -62,24 +62,21 @@ function searchbox:draw()
     w = love.window.toPixels(w)
     h = love.window.toPixels(h)
 
-    -- Move all this shit up 100px for testing
-    -- love.graphics.push()
-    -- love.graphics.translate(0, -love.window.toPixels(100))
     -- Black box
     love.graphics.setColor(50, 50, 50, 255)
     local x = self.pos.x - w + (self.maxDims.x - self.dims.x)
     love.graphics.rectangle('fill', x, self.pos.y, self.dims.x, self.dims.y)
 
     -- Search text
+    -- Use scissor to limit width of text to width of the text box
     clearColor()
+    love.graphics.setScissor(x, self.pos.y, self.dims.x, self.dims.y)
     local text = self.data.text
     if self.cursor == true and self:isFocused() then
       text = text .. '_'
     end
     love.graphics.print(text, x + self.padding/2, self.pos.y+self.padding/2)
-    clearColor()
-    -- love.graphics.pop()
-    -- Done w/ test stuff
+    love.graphics.setScissor()
 
     -- suit.Input(self.data, self.options, self.pos.x - w + (self.maxDims.x - self.dims.x), self.pos.y, self.dims.x, self.dims.y)
     if suit.SpritesheetButton(self.icons.close.sheet,
@@ -138,7 +135,7 @@ end
 function searchbox:hide()
   self.state = 'closing'
   Timer.tween(0.5, self.dims, {x = 3}, 'out-cubic', function()
-    self.data.text = ''
+    -- self.data.text = ''
     self.state = 'inactive'
   end)
 end
