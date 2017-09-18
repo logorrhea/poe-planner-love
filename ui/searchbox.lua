@@ -70,7 +70,9 @@ function searchbox:draw()
     -- Search text
     -- Use scissor to limit width of text to width of the text box
     clearColor()
-    love.graphics.setScissor(x, self.pos.y, self.dims.x, self.dims.y)
+    if self.dims.x > 0 then
+      love.graphics.setScissor(x, self.pos.y, self.dims.x, self.dims.y)
+    end
     local text = self.data.text
     if self.cursor == true and self:isFocused() then
       text = text .. '_'
