@@ -20,6 +20,7 @@ local generalStatText = love.graphics.newText(font, '')
 local keystoneLabels = {}
 local keystoneDescriptions = {}
 
+local buttonText = love.graphics.newText(headerFont, '')
 
 local plusbutton = love.graphics.newImage('assets/cross100x100.png')
 
@@ -58,6 +59,9 @@ function panel:resize()
   else
     self.width = math.min(math.max(w/3, love.window.toPixels(300)), maxWidth)
   end
+
+  self.buttonWidth = self.width / 3
+  self.buttonHeight = love.window.toPixels(50)
 end
 
 function panel:toggle()
@@ -250,18 +254,36 @@ function panel:draw(character)
                      w/2,
                      h/2)
 
+
   -- Draw stat button
-  local labelHeight = love.window.toPixels(headerFont:getHeight())
   local padding = love.window.toPixels(5)
-  scale = love.window.getPixelScale()
-  if suit.Label('Stats', {font=headerFont}, padding, self.y+winHeight-labelHeight-padding).hit then
-    self.innerContent = 'stats'
+  local y = self.y + winHeight - padding - self.buttonHeight
+  love.graphics.rectangle('line', padding, y, self.buttonWidth, self.buttonHeight)
+  if self.statsButtonIsHovered then
+    love.graphics.setColor(255, 0, 0, 100)
+    love.graphics.rectangle('fill', padding, y, self.buttonWidth, self.buttonHeight)
+    clearColor()
   end
 
   -- Draw builds button
-  if suit.Label("Builds", {font=headerFont}, self.width-love.window.toPixels(65), self.y+winHeight-labelHeight-padding).hit then
-    self.innerContent = 'builds'
+  love.graphics.rectangle('line', self.width - padding - self.buttonWidth, y, self.buttonWidth, self.buttonHeight)
+  if self.buildsButtonIsHovered then
+    love.graphics.setColor(255, 0, 0, 100)
+    love.graphics.rectangle('fill', self.width - padding - self.buttonWidth, y, self.buttonWidth, self.buttonHeight)
+    clearColor()
   end
+
+  -- Stats button text
+  buttonText:set('Stats')
+  local textWidth, textHeight = buttonText:getWidth(), buttonText:getHeight()
+  local y = y + (self.buttonHeight - textHeight)/2
+  love.graphics.draw(buttonText, padding + (self.buttonWidth - textWidth)/2, y)
+
+  -- Builds button text
+  buttonText:set('Builds')
+  textWidth, textHeight = buttonText:getWidth(), buttonText:getHeight()
+  love.graphics.draw(buttonText, self.width - padding - (self.buttonWidth + textWidth)/2, y)
+
 end
 
 function panel:updateStatText(character)
@@ -331,14 +353,37 @@ end
 function panel:mousemoved(x, y, dx, dy)
   if not self:isActive() then
     return false
-  elseif self.scrolling then
+  end
+
+  if love.mouse.isDown(1) and self.scrolling then
     self:scrollContent(dy)
     return true
-  elseif self.mouseOnToggle then
-    return true
-  else
-    return false
   end
+
+  -- Check if mouse is over either stats or builds button
+  local padding = love.window.toPixels(5)
+  local bx = padding
+  local by = self.y + winHeight - padding - self.buttonHeight
+  if x > bx and x < bx + self.buttonWidth and y > by and y < by + self.buttonHeight then
+    self.statsButtonIsHovered = true
+    return true
+  end
+  bx = self.width - padding - self.buttonWidth
+  if x > bx and x < bx + self.buttonWidth and y > by and y < by + self.buttonHeight then
+    self.buildsButtonIsHovered = true
+    return true
+  end
+
+  -- Otherwise disable related flags
+  print('disabling stat and build button hover flags')
+  self.statsButtonIsHovered = false
+  self.buildsButtonIsHovered = false
+
+  if self.mouseOnToggle then
+    return true
+  end
+
+  return false
 end
 
 function panel:containsMouse(x, y)

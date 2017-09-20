@@ -11,7 +11,7 @@ function love.conf(t)
   t.window.highdpi = true
   t.window.msaa = 4
   t.gammacorrect = true
-	t.window.display = 1
+	t.window.display = 2
 
   -- t.console = true
 

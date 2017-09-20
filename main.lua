@@ -722,6 +722,9 @@ function love.mousemoved(x, y, dx, dy, isTouch)
       refillBatches()
     end
     return
+  else
+    -- send this event anyway, for button hover events
+    menu:mousemoved(x, y, dx, dy)
   end
 
   if not isTouch then
