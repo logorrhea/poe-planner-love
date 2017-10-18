@@ -420,6 +420,7 @@ function love.load()
     cursorImage = love.graphics.newImage('assets/pointer2.png')
     cursor = love.mouse.newCursor(cursorImage:getData(), 0, 0)
     love.mouse.setCursor(cursor)
+    love.keyboard.setKeyRepeat(true)
   end
 end
 

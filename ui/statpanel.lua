@@ -9,6 +9,7 @@ local panel = {
   builds = {},
   buildName = love.graphics.newText(headerFont, ''),
   className = love.graphics.newText(font, ''),
+  mouseDown = nil
 }
 
 local divider  = love.graphics.newImage('assets/LineConnectorNormal.png')
@@ -346,8 +347,27 @@ function panel:updateStatText(character)
 end
 
 function panel:mousepressed(x, y)
-  self.mouseOnToggle = self:isMouseOverToggleButton(x, y)
-  self.scrolling = self:isMouseInStatSection(x, y) and not self.mouseOnToggle
+  self.mouseOnToggle = false
+  self.mouseDown = nil
+  self.scrolling = false
+
+  if self:isMouseOverToggleButton(x, y) then
+    self.mouseOnToggle = true
+    return true
+  elseif self:isMouseOverStatButton(x, y) then
+    self.mouseDown = 'button.stats'
+    return true
+  elseif self:isMouseOverBuildsButton(x, y) then
+    self.mouseDown = 'button.builds'
+    return true
+  else
+    if self:isMouseInStatSection(x, y) then
+      self.scrolling = true
+      return true
+    end
+  end
+
+  return false
 end
 
 function panel:mousemoved(x, y, dx, dy)
@@ -361,21 +381,10 @@ function panel:mousemoved(x, y, dx, dy)
   end
 
   -- Check if mouse is over either stats or builds button
-  local padding = love.window.toPixels(5)
-  local bx = padding
-  local by = self.y + winHeight - padding - self.buttonHeight
-  if x > bx and x < bx + self.buttonWidth and y > by and y < by + self.buttonHeight then
-    self.statsButtonIsHovered = true
-    return true
-  end
-  bx = self.width - padding - self.buttonWidth
-  if x > bx and x < bx + self.buttonWidth and y > by and y < by + self.buttonHeight then
-    self.buildsButtonIsHovered = true
-    return true
-  end
+  if self:isMouseOverBuildsButton(x, y) or self:isMouseOverStatButton(x, y) then return true end
 
   -- Otherwise disable related flags
-  print('disabling stat and build button hover flags')
+  -- print('disabling stat and build button hover flags')
   self.statsButtonIsHovered = false
   self.buildsButtonIsHovered = false
 
@@ -415,6 +424,32 @@ function panel:isMouseOverToggleButton(x, y)
   return x > x1 and x < x2 and y > y1 and y < y2
 end
 
+function panel:isMouseOverStatButton(x, y)
+  local padding = love.window.toPixels(5)
+  local bx = padding
+  local by = self.y + winHeight - padding - self.buttonHeight
+
+  if x > bx and x < bx + self.buttonWidth and y > by and y < by + self.buttonHeight then
+    self.statsButtonIsHovered = true
+    return true
+  end
+
+  return false
+end
+
+function panel:isMouseOverBuildsButton(x, y)
+  local padding = love.window.toPixels(5)
+  local bx = self.width - padding - self.buttonWidth
+  local by = self.y + winHeight - padding - self.buttonHeight
+
+  if x > bx and x < bx + self.buttonWidth and y > by and y < by + self.buttonHeight then
+    self.buildsButtonIsHovered = true
+    return true
+  end
+
+  return false
+end
+
 function panel:scrollContent(dy)
   if self.innerContent == 'stats' then
     self.statText:yadj(dy)
@@ -424,9 +459,22 @@ function panel:scrollContent(dy)
 end
 
 function panel:click(x, y)
+  -- Stop scrolling
+  self.scrolling = false
+
   -- Check if menu close button was pushed
   if self.mouseOnToggle and self:isMouseOverToggleButton(x, y) then
     self:toggle()
+    return true
+  end
+
+  -- Check if mouse is over either stats or builds button
+  if self.mouseDown == 'button.stats' and self:isMouseOverStatButton(x, y) then
+    self.innerContent = 'stats'
+    return true
+  end
+  if self.mouseDown == 'button.builds' and self:isMouseOverBuildsButton(x, y) then
+    self.innerContent = 'builds'
     return true
   end
 
