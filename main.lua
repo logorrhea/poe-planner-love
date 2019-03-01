@@ -105,11 +105,11 @@ characterURL = ''
 
 
 -- le Fonts
-headerFont = love.graphics.newFont('fonts/fontin-bold-webfont.ttf', 20*love.window.getPixelScale())
+headerFont = love.graphics.newFont('fonts/fontin-bold-webfont.ttf', 20*love.window.getDPIScale())
 headerFont:setFilter('nearest', 'nearest')
-font = love.graphics.newFont('fonts/fontin-bold-webfont.ttf', 14*love.window.getPixelScale())
+font = love.graphics.newFont('fonts/fontin-bold-webfont.ttf', 14*love.window.getDPIScale())
 font:setFilter('nearest', 'nearest')
-reminderFont = love.graphics.newFont('fonts/fontin-italic-webfont.ttf', 14*love.window.getPixelScale())
+reminderFont = love.graphics.newFont('fonts/fontin-italic-webfont.ttf', 14*love.window.getDPIScale())
 reminderFont:setFilter('nearest', 'nearest')
 
 -- Change default font
@@ -415,10 +415,10 @@ function love.load()
   -- Dimming shader
   dimmer = love.graphics.newShader('shaders/dimmer.hlsl')
 
-  if OS ~= 'iOS' and OS ~= 'Android' then
-    -- Mouse cursor
-    cursorImage = love.graphics.newImage('assets/pointer2.png')
-    cursor = love.mouse.newCursor(cursorImage:getData(), 0, 0)
+  -- Change mouse cursor if supported
+  if love.mouse.isCursorSupported() then
+    -- cursorImage = love.graphics.newImage('assets/pointer2.png')
+    cursor = love.mouse.newCursor('assets/pointer2.png', 0, 0)
     love.mouse.setCursor(cursor)
     love.keyboard.setKeyRepeat(true)
   end

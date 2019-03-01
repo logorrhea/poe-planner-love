@@ -171,14 +171,7 @@ function panel:draw(character)
 
         -- Draw edit icon
         self.icons.edit.options.id = 'edit-button-'..tostring(i)
-        if suit.SpritesheetButton(self.icons.edit.sheet,
-                                  self.icons.edit.options,
-                                  self.width - love.window.toPixels(75),
-                                  self.y+y,
-                                  0,
-                                  love.window.getPixelScale(),
-                                  love.window.getPixelScale()
-                                ).hit then
+        if suit.ImageButton(self.icons.edit.default, self.icons.edit.options, self.width - love.window.toPixels(75), self.y+y).hit then
           if self.editing == nil then
             if DEBUG then
               print("enable editing for "..i)
@@ -199,13 +192,7 @@ function panel:draw(character)
         -- Draw delete icon
         if #self.builds > 1 then
           self.icons.delete.options.id = 'delete-button-'..tostring(i)
-          if suit.SpritesheetButton(self.icons.delete.sheet,
-                                    self.icons.delete.options,
-                                    self.width - love.window.toPixels(37),
-                                    self.y+y,
-                                    0,
-                                    love.window.getPixelScale(),
-                                    love.window.getPixelScale()).hit then
+          if suit.ImageButton(self.icons.delete.default, self.icons.delete.options, self.width - love.window.toPixels(37), self.y+y).hit then
             modal:setTitle('Delete Build '..build.name..'?')
             modal:setActive(function()
               deleteBuild(i)
@@ -230,7 +217,7 @@ function panel:draw(character)
     end
 
     -- Show new build button
-    local scale = 0.5*love.window.getPixelScale()
+    local scale = 0.5*love.window.getDPIScale()
     if suit.ImageButton(plusbutton, {}, five, self.y+y, 0, scale, scale).hit then
       startNewBuild()
       self:hide()
@@ -250,8 +237,8 @@ function panel:draw(character)
                      self.x+self.width/2,
                      self.y+winHeight-sw/2-love.window.toPixels(10),
                      math.pi/2,
-                     love.window.getPixelScale(),
-                     love.window.getPixelScale(),
+                     love.window.getDPIScale(),
+                     love.window.getDPIScale(),
                      w/2,
                      h/2)
 
@@ -410,7 +397,7 @@ function panel:isMouseInStatSection(x, y)
 end
 
 function panel:isMouseOverToggleButton(x, y)
-  love.graphics.draw(leftIcon, self.x+love.window.toPixels(295)-love.window.toPixels(w), (winHeight-love.window.toPixels(h))/2, 0, love.window.getPixelScale(), love.window.getPixelScale())
+  love.graphics.draw(leftIcon, self.x+love.window.toPixels(295)-love.window.toPixels(w), (winHeight-love.window.toPixels(h))/2, 0, love.window.getDPIScale(), love.window.getDPIScale())
   local w, h = leftIcon:getDimensions()
   w, h = love.window.toPixels(w), love.window.toPixels(h)
 
@@ -489,29 +476,21 @@ function panel:setBuilds(builds)
 end
 
 function panel:initIcons()
-  local editsheet = love.graphics.newImage('icons/edit-button.png')
-  local w, h = editsheet:getDimensions()
-  self.icons = {
-    edit = {
-      sheet = editsheet,
-      options = {
-        id = 'edit-button',
-        normal = love.graphics.newQuad(0, 0, 32, 32, w, h),
-        active = love.graphics.newQuad(32, 0, 32, 32, w, h),
-        hovered = love.graphics.newQuad(64, 0, 32, 32, w, h),
-      }
+  self.icons = {}
+  self.icons.edit = {
+    default = love.graphics.newImage('icons/edit_default.png'),
+    options = {
+      id = 'edit-button',
+      hovered = love.graphics.newImage('icons/edit_hovered.png'),
+      active = love.graphics.newImage('icons/edit_active.png'),
     }
   }
-
-  local deletesheet = love.graphics.newImage('icons/delete-button.png')
-  w,h = deletesheet:getDimensions()
   self.icons.delete = {
-    sheet = deletesheet,
+    default = love.graphics.newImage('icons/delete_default.png'),
     options = {
       id = 'delete-button',
-      normal = love.graphics.newQuad(0, 0, 32, 32, w, h),
-      active = love.graphics.newQuad(64, 0, 32, 32, w, h),
-      hovered = love.graphics.newQuad(32, 0, 32, 32, w, h),
+      hovered = love.graphics.newImage('icons/delete_hovered.png'),
+      active = love.graphics.newImage('icons/delete_active.png'),
     }
   }
 end

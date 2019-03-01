@@ -6,9 +6,9 @@ local theme = {}
 theme.cornerRadius = 4
 
 theme.color = {
-	normal   = {bg = { 66, 66, 66}, fg = {188,188,188}},
-	hovered  = {bg = { 50,153,187}, fg = {255,255,255}},
-	active   = {bg = {255,153,  0}, fg = {225,225,225}}
+	normal   = {bg = { 0.25, 0.25, 0.25}, fg = {0.73,0.73,0.73}},
+	hovered  = {bg = { 0.19,0.6,0.73}, fg = {1,1,1}},
+	active   = {bg = {1,0.6,  0}, fg = {1,1,1}}
 }
 
 
@@ -19,7 +19,7 @@ function theme.getColorForState(opt)
 end
 
 function theme.drawBox(x,y,w,h, colors, cornerRadius)
-	local colors = colors or theme.getColorForState(opt)
+	colors = colors or theme.getColorForState(opt)
 	cornerRadius = cornerRadius or theme.cornerRadius
 	w = math.max(cornerRadius/2, w)
 	if h < cornerRadius/2 then
@@ -123,12 +123,26 @@ function theme.Input(input, opt, x,y,w,h)
 	love.graphics.setFont(opt.font)
 	love.graphics.print(input.text, x, y+(h-th)/2)
 
+	-- candidate text
+	local tw = opt.font:getWidth(input.text)
+	local ctw = opt.font:getWidth(input.candidate_text.text)
+	love.graphics.setColor((opt.color and opt.color.normal and opt.color.normal.fg) or theme.color.normal.fg)
+	love.graphics.print(input.candidate_text.text, x + tw, y+(h-th)/2)
+	
+	-- candidate text rectangle box
+	love.graphics.rectangle("line", x + tw, y+(h-th)/2, ctw, th)
+
 	-- cursor
 	if opt.hasKeyboardFocus and (love.timer.getTime() % 1) > .5 then
+		local ct = input.candidate_text;
+		local ss = ct.text:sub(1, utf8.offset(ct.text, ct.start))
+		local ws = opt.font:getWidth(ss)
+		if ct.start == 0 then ws = 0 end
+
 		love.graphics.setLineWidth(1)
 		love.graphics.setLineStyle('rough')
-		love.graphics.line(x + opt.cursor_pos, y + (h-th)/2,
-		                   x + opt.cursor_pos, y + (h+th)/2)
+		love.graphics.line(x + opt.cursor_pos + ws, y + (h-th)/2,
+		                   x + opt.cursor_pos + ws, y + (h+th)/2)
 	end
 
 	-- reset scissor
