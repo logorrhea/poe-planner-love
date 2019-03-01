@@ -49,7 +49,7 @@ function legend:resize()
 		y = self.padding,
 		w = width - self.padding*2,
 		h = height - self.padding*2,
-		color = {20, 20, 20, 240}
+		color = {0.1, 0.1, 0.1, 0.9}
 	}
 end
 
@@ -57,7 +57,7 @@ function legend:draw()
 	-- Outer Rectangle
 	love.graphics.setColor(self.outer_rect.color)
 	love.graphics.rectangle('fill', self.outer_rect.x, self.outer_rect.y, self.outer_rect.w, self.outer_rect.h)
-	love.graphics.setColor(255, 255, 255, 255)
+	love.graphics.setColor(1, 1, 1, 1)
 
 	-- Main Header
 	local win_w, win_h = love.graphics.getDimensions()

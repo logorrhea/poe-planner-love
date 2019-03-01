@@ -66,7 +66,7 @@ function modal:draw()
   local x, y = (w-self.w)/2, (h-self.h)/2
 
   -- Draw inner and outer rect
-  love.graphics.setColor(1, 1, 1, 250)
+  love.graphics.setColor(0.1, 0.1, 0.1, 0.9)
   love.graphics.rectangle('fill', x, y, self.w, self.h)
   clearColor()
   love.graphics.rectangle('line', x, y, self.w, self.h)
@@ -84,13 +84,13 @@ function modal:draw()
   x = w/2
   love.graphics.rectangle('line', x-five-self.button_width, y, self.button_width, self.button_height)
   if self.confirmButtonIsHovered then
-    love.graphics.setColor(255, 0, 0, 100)
+    love.graphics.setColor(1, 0, 0, 0.4)
     love.graphics.rectangle('fill', x-five-self.button_width, y, self.button_width, self.button_height)
     clearColor()
   end
   love.graphics.rectangle('line', x+five, y, self.button_width, self.button_height)
   if self.cancelButtonIsHovered then
-    love.graphics.setColor(255, 0, 0, 100)
+    love.graphics.setColor(1, 0, 0, 0.4)
     love.graphics.rectangle('fill', x+five, y, self.button_width, self.button_height)
     clearColor()
   end

@@ -154,7 +154,7 @@ function love.load()
   -- Read save file
   local savedNodes = {}
   saveData = {}
-  if love.filesystem.exists('builds.lua') then
+  if love.filesystem.getInfo('builds.lua') ~= nil then
     local saveDataFunc = love.filesystem.load('builds.lua')
     saveData = saveDataFunc()
     currentBuild = saveData.lastOpened
@@ -513,7 +513,7 @@ function love.draw()
     love.graphics.draw(batches[class.frame])
   end
 
-  love.graphics.setColor(255, 255, 0, 150)
+  love.graphics.setColor(1, 1, 0, 0.6)
   for _, nid in ipairs(searchBox:getMatches('regular')) do
     love.graphics.circle('fill', nodes[nid].position.x, nodes[nid].position.y, nodes[nid].radius)
   end
@@ -568,7 +568,7 @@ function love.draw()
     local fps, timePerFrame = love.timer.getFPS(), 1000 * love.timer.getAverageDelta()
     local stats = love.graphics.getStats()
 
-    love.graphics.setColor(255, 255, 255, 255)
+    love.graphics.setColor(1, 1, 1, 1)
     love.graphics.print(string.format("Current FPS: %.2f | Average frame time: %.3f ms", fps, timePerFrame), winWidth - love.window.toPixels(400), love.window.toPixels(10))
 
     love.graphics.print(string.format("Draw calls: %d", stats.drawcalls), winWidth - love.window.toPixels(400), love.window.toPixels(30))

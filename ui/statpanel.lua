@@ -104,7 +104,7 @@ end
 function panel:draw(character)
   local five = love.window.toPixels(5)
 
-  love.graphics.setColor(1, 1, 1, 240)
+  love.graphics.setColor(0.1, 0.1, 0.1, 0.9)
   love.graphics.rectangle('fill', self.x, self.y, self.width, winHeight)
 
   -- Stat panel outline
@@ -124,7 +124,7 @@ function panel:draw(character)
   local min_y = self.y + love.window.toPixels(125)
   local max_y = winHeight - love.window.toPixels(leftIcon:getWidth() + 20)
   if DEBUG then
-    love.graphics.setColor(255, 0, 0, 100)
+    love.graphics.setColor(1, 0, 0, 0.4)
     love.graphics.rectangle('fill', self.x+five, min_y, love.window.toPixels(self.width)-2*five, max_y-min_y)
     clearColor()
   end
@@ -232,7 +232,7 @@ function panel:draw(character)
   local sw, sh = love.window.toPixels(w, h)
 
   -- Draw toggle icon
-  love.graphics.setColor(255, 255, 255, 255)
+  love.graphics.setColor(1, 1, 1, 1)
   love.graphics.draw(leftIcon,
                      self.x+self.width/2,
                      self.y+winHeight-sw/2-love.window.toPixels(10),
@@ -248,7 +248,7 @@ function panel:draw(character)
   local y = self.y + winHeight - padding - self.buttonHeight
   love.graphics.rectangle('line', padding, y, self.buttonWidth, self.buttonHeight)
   if self.statsButtonIsHovered then
-    love.graphics.setColor(255, 0, 0, 100)
+    love.graphics.setColor(1, 0, 0, 0.4)
     love.graphics.rectangle('fill', padding, y, self.buttonWidth, self.buttonHeight)
     clearColor()
   end
@@ -256,7 +256,7 @@ function panel:draw(character)
   -- Draw builds button
   love.graphics.rectangle('line', self.width - padding - self.buttonWidth, y, self.buttonWidth, self.buttonHeight)
   if self.buildsButtonIsHovered then
-    love.graphics.setColor(255, 0, 0, 100)
+    love.graphics.setColor(1, 0, 0, 0.4)
     love.graphics.rectangle('fill', self.width - padding - self.buttonWidth, y, self.buttonWidth, self.buttonHeight)
     clearColor()
   end

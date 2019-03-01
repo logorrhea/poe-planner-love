@@ -55,7 +55,7 @@ function searchbox:draw()
     h = love.window.toPixels(h)
 
     -- Black box
-    love.graphics.setColor(50, 50, 50, 255)
+    love.graphics.setColor(0.2, 0.2, 0.2, 1)
     local x = self.pos.x - w + (self.maxDims.x - self.dims.x)
     love.graphics.rectangle('fill', x, self.pos.y, self.dims.x, self.dims.y)
 
