@@ -9,12 +9,11 @@ local modal = {
   confirmText = love.graphics.newText(font, 'OK'),
   confirmButtonIsHovered = false,
   w = 300,
-  button_width_pad = love.window.toPixels(10)*3,
-  button_height_pad = love.window.toPixels(10),
+  button_width_pad = 30,
+  button_height_pad = 10,
 }
 
-local five = love.window.toPixels(5)
-local ten = 2*five
+local padding = 10
 
 modal.name = 'Message Box Modal'
 
@@ -64,6 +63,7 @@ end
 function modal:draw()
   local w, h = love.graphics.getDimensions()
   local x, y = (w-self.w)/2, (h-self.h)/2
+  local padding = 5
 
   -- Draw inner and outer rect
   love.graphics.setColor(0.1, 0.1, 0.1, 0.9)
@@ -72,33 +72,33 @@ function modal:draw()
   love.graphics.rectangle('line', x, y, self.w, self.h)
 
   -- Draw Title bar
-  y = y + ten
+  y = y + padding
   love.graphics.draw(self.titleText, (w-self.titleText:getWidth())/2, y)
 
   -- Draw text
-  y = y + self.titleText:getHeight() + ten
-  love.graphics.draw(self.text, x+ten, y)
+  y = y + self.titleText:getHeight() + padding
+  love.graphics.draw(self.text, x+padding, y)
 
   -- Draw buttons
-  y = (h+self.h)/2 - ten - self.button_height
+  y = (h+self.h)/2 - padding - self.button_height
   x = w/2
-  love.graphics.rectangle('line', x-five-self.button_width, y, self.button_width, self.button_height)
+  love.graphics.rectangle('line', x-padding-self.button_width, y, self.button_width, self.button_height)
   if self.confirmButtonIsHovered then
     love.graphics.setColor(1, 0, 0, 0.4)
-    love.graphics.rectangle('fill', x-five-self.button_width, y, self.button_width, self.button_height)
+    love.graphics.rectangle('fill', x-padding-self.button_width, y, self.button_width, self.button_height)
     clearColor()
   end
-  love.graphics.rectangle('line', x+five, y, self.button_width, self.button_height)
+  love.graphics.rectangle('line', x+padding, y, self.button_width, self.button_height)
   if self.cancelButtonIsHovered then
     love.graphics.setColor(1, 0, 0, 0.4)
-    love.graphics.rectangle('fill', x+five, y, self.button_width, self.button_height)
+    love.graphics.rectangle('fill', x+padding, y, self.button_width, self.button_height)
     clearColor()
   end
 
   -- Draw button text
   y = y + self.button_height_pad/2
-  love.graphics.draw(self.confirmText, x-five-self.button_width/2-self.confirmText:getWidth()/2, y)
-  love.graphics.draw(self.cancelText, x+five+(self.button_width/2-self.cancelText:getWidth()/2), y)
+  love.graphics.draw(self.confirmText, x-padding-self.button_width/2-self.confirmText:getWidth()/2, y)
+  love.graphics.draw(self.cancelText, x+padding+(self.button_width/2-self.cancelText:getWidth()/2), y)
 
 end
 
@@ -106,13 +106,13 @@ end
 function modal:click(mx, my)
   if not self:isActive() then return false end
 
-  local ten = love.window.toPixels(10)
+  local padding = 10
   local w, h = love.graphics.getDimensions()
-  local x, y = w/2, (h+self.h)/2 - ten - self.button_height
+  local x, y = w/2, (h+self.h)/2 - padding - self.button_height
 
   -- Check left button (OK)
-  if mx > x - ten/2 - self.button_width and
-     mx < x - ten/2 and
+  if mx > x - padding/2 - self.button_width and
+     mx < x - padding/2 and
      my > y and
      my < y + self.button_height then
     self.cb()
@@ -120,8 +120,8 @@ function modal:click(mx, my)
   end
 
   -- Check right button (Cancel)
-  if mx > x + ten/2 and
-     mx < x + ten/2 + self.button_width and
+  if mx > x + padding/2 and
+     mx < x + padding/2 + self.button_width and
      my > y and
      my < y + self.button_height then
     self:setInactive()
@@ -134,13 +134,13 @@ end
 function modal:mousemoved(mx, my, dx, dy)
   if not self:isActive() then return false end
 
-  local ten = love.window.toPixels(10)
+  local padding = 10
   local w, h = love.graphics.getDimensions()
-  local x, y = w/2, (h+self.h)/2 - ten - self.button_height
+  local x, y = w/2, (h+self.h)/2 - padding - self.button_height
 
   -- Check left button (OK)
-  if mx > x - ten/2 - self.button_width and
-    mx < x - ten/2 and
+  if mx > x - padding/2 - self.button_width and
+    mx < x - padding/2 and
     my > y and
     my < y + self.button_height then
     self.confirmButtonIsHovered = true
@@ -150,8 +150,8 @@ function modal:mousemoved(mx, my, dx, dy)
   end
 
   -- Check right button (Cancel)
-  if mx > x + ten/2 and
-    mx < x + ten/2 + self.button_width and
+  if mx > x + padding/2 and
+    mx < x + padding/2 + self.button_width and
     my > y and
     my < y + self.button_height then
     self.cancelButtonIsHovered = true
@@ -164,13 +164,13 @@ function modal:mousemoved(mx, my, dx, dy)
 end
 
 function modal:setTitle(text)
-  local width, wrappedtext = headerFont:getWrap(text, self.w - 2*ten)
+  local width, wrappedtext = headerFont:getWrap(text, self.w - 2*padding)
   self.titleText:set(table.concat(wrappedtext, "\n"))
   self:updateHeights()
 end
 
 function modal:setText(text)
-  local width, wrappedtext = font:getWrap(text, self.w - 2*ten)
+  local width, wrappedtext = font:getWrap(text, self.w - 2*padding)
   self.text = love.graphics.newText(font, table.concat(wrappedtext, "\n"))
   self:updateHeights()
 end
@@ -179,7 +179,7 @@ function modal:updateHeights()
   if self.text == nil or self.titleText == nil then return end
   self.button_width = math.max(self.cancelText:getWidth(), self.confirmText:getWidth()) + self.button_width_pad
   self.button_height = math.max(self.cancelText:getHeight(), self.confirmText:getHeight()) + self.button_height_pad
-  self.h = ten * 4 + self.button_height + self.text:getHeight() + self.titleText:getHeight()
+  self.h = padding * 4 + self.button_height + self.text:getHeight() + self.titleText:getHeight()
 end
 
 return modal

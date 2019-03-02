@@ -49,7 +49,7 @@ end
 function camera:worldToScreenCoords(x, y)
   local w,h,_ = love.window.getMode()
   x, y = x - self.x, y - self.y
-  return love.window.toPixels(x * self.scale + w/2), love.window.toPixels(y * self.scale + h/2)
+  return x * self.scale + w/2, y * self.scale + h/2
 end
 
 return camera

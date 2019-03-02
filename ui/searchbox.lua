@@ -2,9 +2,7 @@ local searchbox = {
   name = 'Search Box',
   data = {text = '', prevtext = '', cursor = false},
   options = {font = headerFont},
-  padding = love.window.toPixels(10),
-  -- dims = vec(0, love.window.toPixels(30)),
-  -- maxDims = vec(love.window.toPixels(200), love.window.toPixels(30)),
+  padding = 10,
   dims = vec(0, 30),
   maxDims = vec(200, 30),
   state = 'inactive',
@@ -51,8 +49,6 @@ function searchbox:draw()
 
     -- Need icon dimensions for drawing the search box
     local w, h = self.icons.close.default:getDimensions()
-    w = love.window.toPixels(w)
-    h = love.window.toPixels(h)
 
     -- Black box
     love.graphics.setColor(0.2, 0.2, 0.2, 1)
@@ -77,8 +73,6 @@ function searchbox:draw()
     end
   else
     local w, h = self.icons.search.default:getDimensions()
-    w = love.window.toPixels(w)
-    h = love.window.toPixels(h)
     if suit.ImageButton(self.icons.search.default, {hovered=self.icons.search.hovered, active=self.icons.search.active}, winWidth - self.padding - w, winHeight - self.padding - h).hit then
       self:show()
     end

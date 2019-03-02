@@ -105,11 +105,11 @@ characterURL = ''
 
 
 -- le Fonts
-headerFont = love.graphics.newFont('fonts/fontin-bold-webfont.ttf', 20*love.window.getDPIScale())
+headerFont = love.graphics.newFont('fonts/fontin-bold-webfont.ttf', 20)
 headerFont:setFilter('nearest', 'nearest')
-font = love.graphics.newFont('fonts/fontin-bold-webfont.ttf', 14*love.window.getDPIScale())
+font = love.graphics.newFont('fonts/fontin-bold-webfont.ttf', 14)
 font:setFilter('nearest', 'nearest')
-reminderFont = love.graphics.newFont('fonts/fontin-italic-webfont.ttf', 14*love.window.getDPIScale())
+reminderFont = love.graphics.newFont('fonts/fontin-italic-webfont.ttf', 14)
 reminderFont:setFilter('nearest', 'nearest')
 
 -- Change default font
@@ -121,11 +121,11 @@ local statsTransitioning = false
 local portrait
 
 -- Dialog Window stuff
-local statPanelLocation = {x = -love.window.toPixels(300), y = 0}
+local statPanelLocation = {x = 300, y = 0}
 local statTextLocation  = {
-  maxY = love.window.toPixels(125),
-  minY = love.window.toPixels(125),
-  y    = love.window.toPixels(125),
+  maxY = 125,
+  minY = 125,
+  y    = 125,
   yadj = function(self, dy)
     self.y = lume.clamp(self.y+dy, self.minY, self.maxY)
   end
@@ -569,12 +569,12 @@ function love.draw()
     local stats = love.graphics.getStats()
 
     love.graphics.setColor(1, 1, 1, 1)
-    love.graphics.print(string.format("Current FPS: %.2f | Average frame time: %.3f ms", fps, timePerFrame), winWidth - love.window.toPixels(400), love.window.toPixels(10))
+    love.graphics.print(string.format("Current FPS: %.2f | Average frame time: %.3f ms", fps, timePerFrame), winWidth - 400, 10)
 
-    love.graphics.print(string.format("Draw calls: %d", stats.drawcalls), winWidth - love.window.toPixels(400), love.window.toPixels(30))
+    love.graphics.print(string.format("Draw calls: %d", stats.drawcalls), winWidth - 400, 30)
 
     -- Print character URL below
-    love.graphics.print(characterURL, winWidth-love.window.toPixels(400), love.window.toPixels(30))
+    love.graphics.print(characterURL, winWidth-400, 30)
     clearColor()
   end
 
@@ -597,8 +597,8 @@ function love.draw()
   end
 
   -- Draw # active nodes
-  love.graphics.print(string.format("%i/%i", activeNodes, maxActive), winWidth - love.window.toPixels(100), love.window.toPixels(10))
-  love.graphics.print(string.format("%i/%i", activeAscendancy, maxAscendancy), winWidth - love.window.toPixels(100), love.window.toPixels(30))
+  love.graphics.print(string.format("%i/%i", activeNodes, maxActive), winWidth - 100, 10)
+  love.graphics.print(string.format("%i/%i", activeAscendancy, maxAscendancy), winWidth - 100, 30)
 
   if not menu:isActive() then
     searchBox:draw()
@@ -754,7 +754,7 @@ end
 
 function love.wheelmoved(x, y)
   if menu:isActive() and menu:isMouseInStatSection() then
-    menu:scrollContent(y*love.window.toPixels(5))
+    menu:scrollContent(y*5)
   else
     if y > 0 then
       camera:zoomIn()
@@ -804,11 +804,11 @@ function love.keypressed(key, scancode, isRepeat)
     end
   elseif scancode == 'pagedown' then
     if menu:isActive() then
-      menu:scrollContent(-love.window.toPixels(125))
+      menu:scrollContent(-125)
     end
   elseif scancode == 'pageup' then
     if menu:isActive() then
-      menu:scrollContent(love.window.toPixels(125))
+      menu:scrollContent(125)
     end
   elseif scancode == 'backspace' and searchBox:isFocused() then
     searchBox:backspace()

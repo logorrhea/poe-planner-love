@@ -22,9 +22,7 @@ end
 
 function toggle:draw()
   if not self.target:isActive() then
-    local x, y = love.window.toPixels(self.x, self.y)
-    local w, h = self.icon.default:getDimensions()
-    if suit.ImageButton(self.icon.default, {hovered = self.icon.hovered, active = self.icon.active}, x, y).hit then
+    if suit.ImageButton(self.icon.default, {hovered = self.icon.hovered, active = self.icon.active}, self.x, self.y).hit then
       self.target:toggle()
     end
   end

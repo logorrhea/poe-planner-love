@@ -72,8 +72,8 @@ local function new(x,y, zoom, rot, smoother)
       scale = zoom,
       rot = rot,
       smoother = smoother,
-      maxScale = 1*love.window.getDPIScale(),
-      minScale = 0.2*love.window.getDPIScale(),
+      maxScale = 1,
+      minScale = 0.2,
       scaleStep = 0.05},
     camera)
 end

@@ -1,6 +1,6 @@
 local portrait = {
-  x = love.window.toPixels(5),
-  y = love.window.toPixels(5),
+  x = 5,
+  y = 5,
 }
 
 
@@ -13,12 +13,12 @@ end
 function portrait:updatePortrait(image)
   self.image = image
   local w, h = self.image:getDimensions()
-  self.w = w*love.window.getDPIScale()
-  self.h = h*love.window.getDPIScale()
+  self.w = w
+  self.h = h
 end
 
 function portrait:draw()
-  love.graphics.draw(self.image, self.parent.x + self.x, self.parent.y+self.y, 0, love.window.getDPIScale(), love.window.getDPIScale())
+  love.graphics.draw(self.image, self.parent.x + self.x, self.parent.y+self.y, 0)
 end
 
 function portrait:isActive()

@@ -1,7 +1,7 @@
 local legend = {
 	name = 'Keyboard Shortcut Legend',
-	padding = love.window.toPixels(50),
-	column_padding = love.window.toPixels(200),
+	padding = 50,
+	column_padding = 200,
 	shortcuts = {
 		{
 			key = 'F1',
