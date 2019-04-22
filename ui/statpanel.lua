@@ -121,14 +121,15 @@ function panel:draw(character)
   love.graphics.draw(divider, self.x+padding, self.y+115, 0, sx, 1.0)
 
   -- Set stat panel scissor
-  local min_y = self.y + 125
-  local max_y = winHeight - leftIcon:getWidth() + 20
+  local min_y = self.y + 125 + padding
+  local statHeight = winHeight - min_y - self.buttonHeight - padding*2
+  local max_y = min_y + statHeight
   if DEBUG then
     love.graphics.setColor(1, 0, 0, 0.4)
-    love.graphics.rectangle('fill', self.x+padding, min_y, self.width-2*padding, max_y-min_y)
+    love.graphics.rectangle('fill', self.x+padding, min_y, self.width-2*padding, statHeight)
     clearColor()
   end
-  love.graphics.setScissor(self.x+padding, min_y, self.width-2*padding, max_y-min_y)
+  love.graphics.setScissor(self.x+padding, min_y, self.width-2*padding, statHeight)
 
   if self.innerContent == 'stats' then
     -- Draw keystone node text
