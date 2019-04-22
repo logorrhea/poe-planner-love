@@ -1,6 +1,8 @@
 local suit = require 'lib.suit'
 local strings = require 'lib.strings'
 
+local padding = 5
+
 local panel = {
   x = 0,
   y = -winHeight,
@@ -27,11 +29,12 @@ local plusbutton = love.graphics.newImage('assets/cross100x100.png')
 
 function panel:init(builds)
   self.statText = {
-    maxY = 125,
-    minY = 125,
-    y    = 125,
+    maxOffset = 0, -- ranges from 
+    offset = 0,
+    y    = 125 + padding,
+    height = 0,
     yadj = function(self, dy)
-      self.y = lume.clamp(self.y+dy, self.minY, self.maxY)
+      self.offset = lume.clamp(self.offset-dy, 0, self.maxOffset);
     end
   }
 
@@ -39,6 +42,7 @@ function panel:init(builds)
     y    = 125,
     maxY = 125,
     minY = 125,
+    height = 0,
     lastCheck = nil, -- last # of builds for which the height was checked
     yadj = function(self, dy)
       self.y = lume.clamp(self.y+dy, self.minY, self.maxY)
@@ -63,6 +67,7 @@ function panel:resize()
 
   self.buttonWidth = self.width / 3
   self.buttonHeight = 50
+  self.statText.height = h - self.statText.y - self.buttonHeight - 2*padding
 end
 
 function panel:toggle()
@@ -121,19 +126,19 @@ function panel:draw(character)
   love.graphics.draw(divider, self.x+padding, self.y+115, 0, sx, 1.0)
 
   -- Set stat panel scissor
-  local min_y = self.y + 125 + padding
-  local statHeight = winHeight - min_y - self.buttonHeight - padding*2
-  local max_y = min_y + statHeight
+  local min_y = self.y
+  -- local statHeight = winHeight - min_y - self.buttonHeight - padding*2
+  local max_y = min_y + self.statText.height
   if DEBUG then
     love.graphics.setColor(1, 0, 0, 0.4)
-    love.graphics.rectangle('fill', self.x+padding, min_y, self.width-2*padding, statHeight)
+    love.graphics.rectangle('fill', self.x+padding, self.statText.y, self.width-2*padding, self.statText.height)
     clearColor()
   end
-  love.graphics.setScissor(self.x+padding, min_y, self.width-2*padding, statHeight)
+  love.graphics.setScissor(self.x+padding, self.y+self.statText.y, self.width-2*padding, self.statText.height)
 
   if self.innerContent == 'stats' then
     -- Draw keystone node text
-    local y = self.statText.y
+    local y = self.statText.y - self.statText.offset
     for i=1,character.keystoneCount do
       love.graphics.draw(keystoneLabels[i], self.x+padding, self.y+y)
       y = y + keystoneLabels[i]:getHeight()
@@ -148,6 +153,27 @@ function panel:draw(character)
     -- Draw general stats
     love.graphics.draw(generalStatLabels, self.x+padding, self.y+y)
     love.graphics.draw(generalStatText, self.x+padding+generalStatLabels:getWidth()*1.5, self.y+y)
+
+    -- Scrollbar
+    -- TODO:
+    --  - move into separate component
+    --  - handle mouse/touch input
+    --  - use image instead of rectangle
+    if (self.statText.maxOffset > 0) then
+      local scrollbarWidth = 10
+      local scrollbarRatio = self.statText.height/(self.statText.height+self.statText.maxOffset)
+      local scrollbarHeight = self.statText.height * scrollbarRatio
+      local scrollbarOffset = self.statText.offset * scrollbarRatio
+
+      love.graphics.setColor(1, 0, 0, 1)
+      love.graphics.rectangle('fill',
+        self.width - padding - scrollbarWidth,
+        self.y + self.statText.y + scrollbarOffset,
+        scrollbarWidth,
+        scrollbarHeight)
+      love.graphics.setColor(1, 1, 1, 1)
+    end
+
   elseif self.innerContent == 'builds' then
     -- Show builds listing
     local y = self.buildPanel.y + padding
@@ -270,7 +296,6 @@ function panel:draw(character)
   buttonText:set('Builds')
   textWidth, textHeight = buttonText:getWidth(), buttonText:getHeight()
   love.graphics.draw(buttonText, self.width - padding - (self.buttonWidth + textWidth)/2, y)
-
 end
 
 function panel:updateStatText(character)
@@ -326,9 +351,13 @@ function panel:updateStatText(character)
     height = height + headerFont:getHeight()
   end
 
-  local diff = (winHeight - 125) - height
-  if diff < 0 then
-    self.statText.minY = diff
+  -- local diff = (winHeight - self.statText.minY) - height
+  if height > self.statText.height then
+    self.statText.maxOffset = height - self.statText.height
+    -- self.statText.minY = diff
+  else
+    self.statText.offset = 0
+    self.statText.maxOffset = 0
   end
 end
 
@@ -370,7 +399,6 @@ function panel:mousemoved(x, y, dx, dy)
   if self:isMouseOverBuildsButton(x, y) or self:isMouseOverStatButton(x, y) then return true end
 
   -- Otherwise disable related flags
-  -- print('disabling stat and build button hover flags')
   self.statsButtonIsHovered = false
   self.buildsButtonIsHovered = false
 

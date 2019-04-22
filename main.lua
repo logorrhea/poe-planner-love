@@ -120,17 +120,6 @@ local statsShowing = false
 local statsTransitioning = false
 local portrait
 
--- Dialog Window stuff
-local statPanelLocation = {x = 300, y = 0}
-local statTextLocation  = {
-  maxY = 125,
-  minY = 125,
-  y    = 125,
-  yadj = function(self, dy)
-    self.y = lume.clamp(self.y+dy, self.minY, self.maxY)
-  end
-}
-
 -- Use to determine whether to plan route/refund or activate nodes
 local lastClicked = nil
 
