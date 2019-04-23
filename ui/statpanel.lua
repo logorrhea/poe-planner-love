@@ -11,7 +11,9 @@ local panel = {
   builds = {},
   buildName = love.graphics.newText(headerFont, ''),
   className = love.graphics.newText(font, ''),
-  mouseDown = nil
+  mouseDown = nil,
+  scrolling = false,
+  useScrollbar = false,
 }
 
 local divider  = love.graphics.newImage('assets/LineConnectorNormal.png')
@@ -107,7 +109,6 @@ function panel:isExclusive()
 end
 
 function panel:draw(character)
-  local padding = 5
 
   love.graphics.setColor(0.1, 0.1, 0.1, 0.9)
   love.graphics.rectangle('fill', self.x, self.y, self.width, winHeight)
@@ -127,7 +128,6 @@ function panel:draw(character)
 
   -- Set stat panel scissor
   local min_y = self.y
-  -- local statHeight = winHeight - min_y - self.buttonHeight - padding*2
   local max_y = min_y + self.statText.height
   if DEBUG then
     love.graphics.setColor(1, 0, 0, 0.4)
@@ -269,7 +269,6 @@ function panel:draw(character)
 
 
   -- Draw stat button
-  local padding = 5
   local y = self.y + winHeight - padding - self.buttonHeight
   love.graphics.rectangle('line', padding, y, self.buttonWidth, self.buttonHeight)
   if self.statsButtonIsHovered then
@@ -375,9 +374,13 @@ function panel:mousepressed(x, y)
   elseif self:isMouseOverBuildsButton(x, y) then
     self.mouseDown = 'button.builds'
     return true
+  elseif self:isMouseOverScrollBar(x, y) then
+    self.scrolling = true
+    self.useScrollbar = true
   else
     if self:isMouseInStatSection(x, y) then
       self.scrolling = true
+      self.useScrollbar = false
       return true
     end
   end
@@ -416,6 +419,13 @@ function panel:containsMouse(x, y)
   return self:isActive() and x < self.width
 end
 
+function panel:isMouseOverScrollBar(x, y)
+  if x == nil or y == nil then
+    x, y = love.mouse.getPosition()
+  end
+  return x > (self.width - padding - 10) and x < self.width and y > self.statText.y and y < (self.statText.y + self.statText.height)
+end
+
 function panel:isMouseInStatSection(x, y)
   if x == nil or y == nil then
     x, y = love.mouse.getPosition()
@@ -438,7 +448,6 @@ function panel:isMouseOverToggleButton(x, y)
 end
 
 function panel:isMouseOverStatButton(x, y)
-  local padding = 5
   local bx = padding
   local by = self.y + winHeight - padding - self.buttonHeight
 
@@ -451,7 +460,6 @@ function panel:isMouseOverStatButton(x, y)
 end
 
 function panel:isMouseOverBuildsButton(x, y)
-  local padding = 5
   local bx = self.width - padding - self.buttonWidth
   local by = self.y + winHeight - padding - self.buttonHeight
 
@@ -464,6 +472,12 @@ function panel:isMouseOverBuildsButton(x, y)
 end
 
 function panel:scrollContent(dy)
+
+  if self.useScrollbar then
+      local ratio = (self.statText.height+self.statText.maxOffset)/self.statText.height
+      dy = -dy * ratio
+  end
+
   if self.innerContent == 'stats' then
     self.statText:yadj(dy)
   else
