@@ -7,17 +7,11 @@ local toggle = {
 
 function toggle:init(target)
   self.target = target
-
-  local menu = love.graphics.newImage('icons/menu.png')
-  w, h = menu:getDimensions()
   self.icon = {
-    sheet = menu,
-    options = {
-      id = 'search-menu',
-      normal = love.graphics.newQuad(0, 0, w/3, w/3, w, h),
-      active = love.graphics.newQuad(w/3, 0, w/3, w/3, w, h),
-      hovered = love.graphics.newQuad(w/3, 0, w/3, w/3, w, h),
-    }
+    id = 'search-menu',
+    default = love.graphics.newImage('icons/menu_default.png'),
+    hovered = love.graphics.newImage('icons/menu_hovered.png'),
+    active = love.graphics.newImage('icons/menu_active.png'),
   }
 end
 
@@ -28,17 +22,7 @@ end
 
 function toggle:draw()
   if not self.target:isActive() then
-    local _, _, w, h = self.icon.options.normal:getViewport()
-    w, h = love.window.toPixels(w, h)
-    local x, y = love.window.toPixels(self.x, self.y)
-    if suit.SpritesheetButton(self.icon.sheet,
-                              self.icon.options,
-                              x,
-                              y,
-                              0,
-                              love.window.getPixelScale(),
-                              love.window.getPixelScale()
-                             ).hit then
+    if suit.ImageButton(self.icon.default, {hovered = self.icon.hovered, active = self.icon.active}, self.x, self.y).hit then
       self.target:toggle()
     end
   end

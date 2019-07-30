@@ -2,9 +2,9 @@ local searchbox = {
   name = 'Search Box',
   data = {text = '', prevtext = '', cursor = false},
   options = {font = headerFont},
-  padding = love.window.toPixels(10),
-  dims = vec(0, love.window.toPixels(30)),
-  maxDims = vec(love.window.toPixels(200), love.window.toPixels(30)),
+  padding = 10,
+  dims = vec(0, 30),
+  maxDims = vec(200, 30),
   state = 'inactive',
   matches = {
     regular = {},
@@ -20,29 +20,19 @@ function searchbox:init()
   self.icons = {}
 
   -- Search icon
-  local search = love.graphics.newImage('icons/search.png')
-  local w, h = search:getDimensions()
   self.icons.search = {
-    sheet = search,
-    options = {
-      id = 'search-open',
-      normal = love.graphics.newQuad(0, 0, 32, 32, w, h),
-      active = love.graphics.newQuad(32, 0, 32, 32, w, h),
-      hovered = love.graphics.newQuad(32, 0, 32, 32, w, h),
-    }
+    id = 'search-open',
+    default = love.graphics.newImage('icons/search_default.png'),
+    hover = love.graphics.newImage('icons/search_hovered.png'),
+    active = love.graphics.newImage('icons/search_active.png'),
   }
 
   -- Close icon
-  local close = love.graphics.newImage('icons/delete-button.png')
-  w, h = close:getDimensions()
   self.icons.close = {
-    sheet = close,
-    options = {
-      id = 'search-close',
-      normal = love.graphics.newQuad(0, 0, 32, 32, w, h),
-      active = love.graphics.newQuad(64, 0, 32, 32, w, h),
-      hovered = love.graphics.newQuad(32, 0, 32, 32, w, h),
-    }
+    id = 'search-close',
+    default = love.graphics.newImage('icons/delete_default.png'),
+    hovered = love.graphics.newImage('icons/delete_hovered.png'),
+    active = love.graphics.newImage('icons/delete_active.png'),
   }
 end
 
@@ -58,12 +48,10 @@ function searchbox:draw()
   if self.state ~= 'inactive' then
 
     -- Need icon dimensions for drawing the search box
-    local _, _, w, h = self.icons.close.options.normal:getViewport()
-    w = love.window.toPixels(w)
-    h = love.window.toPixels(h)
+    local w, h = self.icons.close.default:getDimensions()
 
     -- Black box
-    love.graphics.setColor(50, 50, 50, 255)
+    love.graphics.setColor(0.2, 0.2, 0.2, 1)
     local x = self.pos.x - w + (self.maxDims.x - self.dims.x)
     love.graphics.rectangle('fill', x, self.pos.y, self.dims.x, self.dims.y)
 
@@ -80,29 +68,12 @@ function searchbox:draw()
     love.graphics.print(text, x + self.padding/2, self.pos.y+self.padding/2)
     love.graphics.setScissor()
 
-    -- suit.Input(self.data, self.options, self.pos.x - w + (self.maxDims.x - self.dims.x), self.pos.y, self.dims.x, self.dims.y)
-    if suit.SpritesheetButton(self.icons.close.sheet,
-                              self.icons.close.options,
-                              winWidth - self.padding - w,
-                              winHeight - self.padding - h,
-                              0,
-                              love.window.getPixelScale(),
-                              love.window.getPixelScale()
-                             ).hit then
+    if suit.ImageButton(self.icons.close.default, {hovered=self.icons.close.hovered, active=self.icons.close.active}, winWidth - self.padding - w, winHeight - self.padding - h).hit then
       self:hide()
     end
   else
-    local _, _, w, h = self.icons.search.options.normal:getViewport()
-    w = love.window.toPixels(w)
-    h = love.window.toPixels(h)
-    if suit.SpritesheetButton(self.icons.search.sheet,
-                              self.icons.search.options,
-                              winWidth - self.padding - w,
-                              winHeight - self.padding - h,
-                              0,
-                              love.window.getPixelScale(),
-                              love.window.getPixelScale()
-                             ).hit then
+    local w, h = self.icons.search.default:getDimensions()
+    if suit.ImageButton(self.icons.search.default, {hovered=self.icons.search.hovered, active=self.icons.search.active}, winWidth - self.padding - w, winHeight - self.padding - h).hit then
       self:show()
     end
   end

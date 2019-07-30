@@ -27,18 +27,18 @@ local plusbutton = love.graphics.newImage('assets/cross100x100.png')
 
 function panel:init(builds)
   self.statText = {
-    maxY = love.window.toPixels(125),
-    minY = love.window.toPixels(125),
-    y    = love.window.toPixels(125),
+    maxY = 125,
+    minY = 125,
+    y    = 125,
     yadj = function(self, dy)
       self.y = lume.clamp(self.y+dy, self.minY, self.maxY)
     end
   }
 
   self.buildPanel = {
-    y = love.window.toPixels(125),
-    maxY = love.window.toPixels(125),
-    minY = love.window.toPixels(125),
+    y    = 125,
+    maxY = 125,
+    minY = 125,
     lastCheck = nil, -- last # of builds for which the height was checked
     yadj = function(self, dy)
       self.y = lume.clamp(self.y+dy, self.minY, self.maxY)
@@ -53,16 +53,16 @@ end
 
 function panel:resize()
   local w, h = love.graphics.getDimensions()
-  local minWidth, maxWidth = love.window.toPixels(300), love.window.toPixels(400)
+  local minWidth, maxWidth = 300, 400
 
   if h > w then
     self.width = math.min(math.max(w, minWidth), maxWidth)
   else
-    self.width = math.min(math.max(w/3, love.window.toPixels(300)), maxWidth)
+    self.width = math.min(math.max(w/3, 300), maxWidth)
   end
 
   self.buttonWidth = self.width / 3
-  self.buttonHeight = love.window.toPixels(50)
+  self.buttonHeight = 50
 end
 
 function panel:toggle()
@@ -102,9 +102,9 @@ function panel:isExclusive()
 end
 
 function panel:draw(character)
-  local five = love.window.toPixels(5)
+  local padding = 5
 
-  love.graphics.setColor(1, 1, 1, 240)
+  love.graphics.setColor(0.1, 0.1, 0.1, 0.9)
   love.graphics.rectangle('fill', self.x, self.y, self.width, winHeight)
 
   -- Stat panel outline
@@ -112,31 +112,32 @@ function panel:draw(character)
   love.graphics.rectangle('line', self.x, self.y, self.width, winHeight)
 
   -- Character stats
-  love.graphics.draw(charStatLabels, self.x+love.window.toPixels(155), self.y+love.window.toPixels(18))
-  love.graphics.draw(charStatText, self.x+love.window.toPixels(155)+charStatLabels:getWidth()*2, self.y+love.window.toPixels(18))
+  love.graphics.draw(charStatLabels, self.x+155, self.y+18)
+  love.graphics.draw(charStatText, self.x+155+charStatLabels:getWidth()*2, self.y+18)
 
   -- Draw divider
   local w, h = divider:getDimensions()
-  local sx = (self.width - five*2)/w
-  love.graphics.draw(divider, self.x+five, self.y+love.window.toPixels(115), 0, sx, 1.0)
+  local sx = (self.width - padding*2)/w
+  love.graphics.draw(divider, self.x+padding, self.y+115, 0, sx, 1.0)
 
   -- Set stat panel scissor
-  local min_y = self.y + love.window.toPixels(125)
-  local max_y = winHeight - love.window.toPixels(leftIcon:getWidth() + 20)
+  local min_y = self.y + 125 + padding
+  local statHeight = winHeight - min_y - self.buttonHeight - padding*2
+  local max_y = min_y + statHeight
   if DEBUG then
-    love.graphics.setColor(255, 0, 0, 100)
-    love.graphics.rectangle('fill', self.x+five, min_y, love.window.toPixels(self.width)-2*five, max_y-min_y)
+    love.graphics.setColor(1, 0, 0, 0.4)
+    love.graphics.rectangle('fill', self.x+padding, min_y, self.width-2*padding, statHeight)
     clearColor()
   end
-  love.graphics.setScissor(self.x+five, min_y, love.window.toPixels(self.width)-2*five, max_y-min_y)
+  love.graphics.setScissor(self.x+padding, min_y, self.width-2*padding, statHeight)
 
   if self.innerContent == 'stats' then
     -- Draw keystone node text
     local y = self.statText.y
     for i=1,character.keystoneCount do
-      love.graphics.draw(keystoneLabels[i], self.x+five, self.y+y)
+      love.graphics.draw(keystoneLabels[i], self.x+padding, self.y+y)
       y = y + keystoneLabels[i]:getHeight()
-      love.graphics.draw(keystoneDescriptions[i], self.x+five, self.y+y)
+      love.graphics.draw(keystoneDescriptions[i], self.x+padding, self.y+y)
       y = y + keystoneDescriptions[i]:getHeight()
     end
 
@@ -145,11 +146,11 @@ function panel:draw(character)
     end
 
     -- Draw general stats
-    love.graphics.draw(generalStatLabels, self.x+five, self.y+y)
-    love.graphics.draw(generalStatText, self.x+five+generalStatLabels:getWidth()*1.5, self.y+y)
+    love.graphics.draw(generalStatLabels, self.x+padding, self.y+y)
+    love.graphics.draw(generalStatText, self.x+padding+generalStatLabels:getWidth()*1.5, self.y+y)
   elseif self.innerContent == 'builds' then
     -- Show builds listing
-    local y = self.buildPanel.y + five
+    local y = self.buildPanel.y + padding
     love.graphics.setFont(font)
     clearColor()
     for i, build in ipairs(self.builds) do
@@ -162,23 +163,16 @@ function panel:draw(character)
 
         -- Draw build title
         if self.editing ~= nil and self.editing.index == i then
-          local input = suit.Input(self.editing, {id = 'edit-build-name', font=headerFont}, five, self.y+y)
+          local input = suit.Input(self.editing, {id = 'edit-build-name', font=headerFont}, padding, self.y+y)
         else
-          if suit.Label(build.name, {font=headerFont}, five, self.y+y).hit then
+          if suit.Label(build.name, {font=headerFont}, padding, self.y+y).hit then
             changeActiveBuild(i)
           end
         end
 
         -- Draw edit icon
         self.icons.edit.options.id = 'edit-button-'..tostring(i)
-        if suit.SpritesheetButton(self.icons.edit.sheet,
-                                  self.icons.edit.options,
-                                  self.width - love.window.toPixels(75),
-                                  self.y+y,
-                                  0,
-                                  love.window.getPixelScale(),
-                                  love.window.getPixelScale()
-                                ).hit then
+        if suit.ImageButton(self.icons.edit.default, self.icons.edit.options, self.width - 75, self.y+y).hit then
           if self.editing == nil then
             if DEBUG then
               print("enable editing for "..i)
@@ -199,13 +193,7 @@ function panel:draw(character)
         -- Draw delete icon
         if #self.builds > 1 then
           self.icons.delete.options.id = 'delete-button-'..tostring(i)
-          if suit.SpritesheetButton(self.icons.delete.sheet,
-                                    self.icons.delete.options,
-                                    self.width - love.window.toPixels(37),
-                                    self.y+y,
-                                    0,
-                                    love.window.getPixelScale(),
-                                    love.window.getPixelScale()).hit then
+          if suit.ImageButton(self.icons.delete.default, self.icons.delete.options, self.width - 37, self.y+y).hit then
             modal:setTitle('Delete Build '..build.name..'?')
             modal:setActive(function()
               deleteBuild(i)
@@ -216,22 +204,21 @@ function panel:draw(character)
 
       -- Draw class name
       y = y + self.buildName:getHeight()
-      love.graphics.draw(self.className, five, self.y+y)
+      love.graphics.draw(self.className, padding, self.y+y)
       y = y + self.className:getHeight()
     end
 
     -- Update height of build panel if necessary
     if self.buildPanel.lastCheck == nil or self.buildPanel.lastCheck ~= #self.builds then
       self.buildPanel.lastCheck = #self.builds
-      local diff = (winHeight - love.window.toPixels(125)) - y
+      local diff = (winHeight - 125) - y
       if diff < 0 then
         self.buildPanel.minY = diff
       end
     end
 
     -- Show new build button
-    local scale = 0.5*love.window.getPixelScale()
-    if suit.ImageButton(plusbutton, {}, five, self.y+y, 0, scale, scale).hit then
+    if suit.ImageButton(plusbutton, {}, padding, self.y+y, 0).hit then
       startNewBuild()
       self:hide()
     end
@@ -242,26 +229,25 @@ function panel:draw(character)
 
   -- Draw left icon (click to close stats drawer)
   local w, h = leftIcon:getDimensions()
-  local sw, sh = love.window.toPixels(w, h)
 
   -- Draw toggle icon
-  love.graphics.setColor(255, 255, 255, 255)
+  love.graphics.setColor(1, 1, 1, 1)
   love.graphics.draw(leftIcon,
                      self.x+self.width/2,
-                     self.y+winHeight-sw/2-love.window.toPixels(10),
+                     self.y+winHeight-w/2-10,
                      math.pi/2,
-                     love.window.getPixelScale(),
-                     love.window.getPixelScale(),
+                     1,
+                     1,
                      w/2,
                      h/2)
 
 
   -- Draw stat button
-  local padding = love.window.toPixels(5)
+  local padding = 5
   local y = self.y + winHeight - padding - self.buttonHeight
   love.graphics.rectangle('line', padding, y, self.buttonWidth, self.buttonHeight)
   if self.statsButtonIsHovered then
-    love.graphics.setColor(255, 0, 0, 100)
+    love.graphics.setColor(1, 0, 0, 0.4)
     love.graphics.rectangle('fill', padding, y, self.buttonWidth, self.buttonHeight)
     clearColor()
   end
@@ -269,7 +255,7 @@ function panel:draw(character)
   -- Draw builds button
   love.graphics.rectangle('line', self.width - padding - self.buttonWidth, y, self.buttonWidth, self.buttonHeight)
   if self.buildsButtonIsHovered then
-    love.graphics.setColor(255, 0, 0, 100)
+    love.graphics.setColor(1, 0, 0, 0.4)
     love.graphics.rectangle('fill', self.width - padding - self.buttonWidth, y, self.buttonWidth, self.buttonHeight)
     clearColor()
   end
@@ -297,7 +283,7 @@ function panel:updateStatText(character)
   local text
   for desc, n in pairs(character.stats) do
     if n > 0 then
-      local width, wrapped = font:getWrap(desc, love.window.toPixels(270))
+      local width, wrapped = font:getWrap(desc, 270)
       for i, text in ipairs(wrapped) do
         if i == 1 then
           _labels[#_labels+1] = n
@@ -321,7 +307,7 @@ function panel:updateStatText(character)
 
     local _desc = {}
     for _, line in ipairs(descriptions) do
-      local width, wrapped = font:getWrap(line, love.window.toPixels(270))
+      local width, wrapped = font:getWrap(line, 270)
       for _, wrappedLine in ipairs(wrapped) do
         _desc[#_desc+1] = wrappedLine
       end
@@ -340,7 +326,7 @@ function panel:updateStatText(character)
     height = height + headerFont:getHeight()
   end
 
-  local diff = (winHeight - love.window.toPixels(125)) - height
+  local diff = (winHeight - 125) - height
   if diff < 0 then
     self.statText.minY = diff
   end
@@ -406,26 +392,25 @@ function panel:isMouseInStatSection(x, y)
   if x == nil or y == nil then
     x, y = love.mouse.getPosition()
   end
-  return x < self.width and y > love.window.toPixels(125)
+  return x < self.width and y > 125
 end
 
 function panel:isMouseOverToggleButton(x, y)
-  love.graphics.draw(leftIcon, self.x+love.window.toPixels(295)-love.window.toPixels(w), (winHeight-love.window.toPixels(h))/2, 0, love.window.getPixelScale(), love.window.getPixelScale())
+  love.graphics.draw(leftIcon, self.x+295-w, (winHeight-h)/2, 0)
   local w, h = leftIcon:getDimensions()
-  w, h = love.window.toPixels(w), love.window.toPixels(h)
 
   local x1 = (self.width-h)/2
 
   local x1 = (self.width-h)/2
   local x2 = (self.width+h)/2
-  local y2 = self.y+winHeight-love.window.toPixels(10)
+  local y2 = self.y+winHeight-10
   local y1 = y2-w
 
   return x > x1 and x < x2 and y > y1 and y < y2
 end
 
 function panel:isMouseOverStatButton(x, y)
-  local padding = love.window.toPixels(5)
+  local padding = 5
   local bx = padding
   local by = self.y + winHeight - padding - self.buttonHeight
 
@@ -438,7 +423,7 @@ function panel:isMouseOverStatButton(x, y)
 end
 
 function panel:isMouseOverBuildsButton(x, y)
-  local padding = love.window.toPixels(5)
+  local padding = 5
   local bx = self.width - padding - self.buttonWidth
   local by = self.y + winHeight - padding - self.buttonHeight
 
@@ -489,29 +474,21 @@ function panel:setBuilds(builds)
 end
 
 function panel:initIcons()
-  local editsheet = love.graphics.newImage('icons/edit-button.png')
-  local w, h = editsheet:getDimensions()
-  self.icons = {
-    edit = {
-      sheet = editsheet,
-      options = {
-        id = 'edit-button',
-        normal = love.graphics.newQuad(0, 0, 32, 32, w, h),
-        active = love.graphics.newQuad(32, 0, 32, 32, w, h),
-        hovered = love.graphics.newQuad(64, 0, 32, 32, w, h),
-      }
+  self.icons = {}
+  self.icons.edit = {
+    default = love.graphics.newImage('icons/edit_default.png'),
+    options = {
+      id = 'edit-button',
+      hovered = love.graphics.newImage('icons/edit_hovered.png'),
+      active = love.graphics.newImage('icons/edit_active.png'),
     }
   }
-
-  local deletesheet = love.graphics.newImage('icons/delete-button.png')
-  w,h = deletesheet:getDimensions()
   self.icons.delete = {
-    sheet = deletesheet,
+    default = love.graphics.newImage('icons/delete_default.png'),
     options = {
       id = 'delete-button',
-      normal = love.graphics.newQuad(0, 0, 32, 32, w, h),
-      active = love.graphics.newQuad(64, 0, 32, 32, w, h),
-      hovered = love.graphics.newQuad(32, 0, 32, 32, w, h),
+      hovered = love.graphics.newImage('icons/delete_hovered.png'),
+      active = love.graphics.newImage('icons/delete_active.png'),
     }
   }
 end

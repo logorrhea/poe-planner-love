@@ -13,12 +13,12 @@ function suit.new(theme)
 		theme = theme or default_theme,
 		mouse_x = 0, mouse_y = 0,
 		mouse_button_down = false,
+		candidate_text = {text="", start=0, length=0},
 
 		draw_queue = {n = 0},
 
 		Button = require(BASE.."button"),
 		ImageButton = require(BASE.."imagebutton"),
-		SpritesheetButton = require(BASE.."spritesheetbutton"),
 		Label = require(BASE.."label"),
 		Checkbox = require(BASE.."checkbox"),
 		Input = require(BASE.."input"),
@@ -37,6 +37,10 @@ function suit.getOptionsAndSize(opt, ...)
 end
 
 -- gui state
+function suit:setHovered(id)
+	return self.hovered ~= id
+end
+
 function suit:anyHovered()
 	return self.hovered ~= nil
 end
@@ -49,12 +53,25 @@ function suit:wasHovered(id)
 	return id == self.hovered_last
 end
 
+function suit:setActive(id)
+	return self.active ~= nil
+end
+
 function suit:anyActive()
 	return self.active ~= nil
 end
 
 function suit:isActive(id)
 	return id == self.active
+end
+
+
+function suit:setHit(id)
+	self.hit = id
+	-- simulate mouse release on button -- see suit:mouseReleasedOn()
+	self.mouse_button_down = false
+	self.active = id
+	self.hovered = id
 end
 
 function suit:anyHit()
@@ -83,7 +100,7 @@ function suit:mouseInRect(x,y,w,h)
 end
 
 function suit:registerMouseHit(id, ul_x, ul_y, hit)
-	if hit(self.mouse_x - ul_x, self.mouse_y - ul_y) then
+	if not self.hovered and hit(self.mouse_x - ul_x, self.mouse_y - ul_y) then
 		self.hovered = id
 		if self.active == nil and self.mouse_button_down then
 			self.active = id
@@ -128,6 +145,12 @@ end
 
 function suit:textinput(char)
 	self.textchar = char
+end
+
+function suit:textedited(text, start, length)
+	self.candidate_text.text = text
+	self.candidate_text.start = start
+	self.candidate_text.length = length
 end
 
 function suit:grabKeyboardFocus(id)
@@ -183,7 +206,7 @@ end
 function suit:draw()
 	self:exitFrame()
 	love.graphics.push('all')
-	for i = 1,self.draw_queue.n do
+	for i = self.draw_queue.n,1,-1 do
 		self.draw_queue[i]()
 	end
 	love.graphics.pop()

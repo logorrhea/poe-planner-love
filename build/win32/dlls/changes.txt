@@ -362,7 +362,7 @@ LOVE 0.9.1 [Baby Inspector]
   * Added CircleShape:getPoint and CircleShape:setPoint.
   * Added Mesh/SpriteBatch/ParticleSystem:setTexture, accepts Canvases and Images.
   * Added high-dpi window support for Retina displays in OS X, via the 'highdpi' window flag.
-  * Added love.window.getPixelScale.
+  * Added love.window.getDPIScale.
   * Added love.graphics.getSystemLimit.
   * Added antialiasing support to Canvases.
   * Added Canvas:getFSAA.

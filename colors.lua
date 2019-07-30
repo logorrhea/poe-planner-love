@@ -1,7 +1,7 @@
-activeConnector = {255, 255, 51, 255}
-inactiveConnector = {123, 123, 123}
-addConnector = {0, 255, 0, 255}
-removeConnector = {255, 0, 0, 255}
+activeConnector = {1, 1, 51/255, 1}
+inactiveConnector = {123/255, 123/255, 123/255}
+addConnector = {0, 1, 0, 1}
+removeConnector = {1, 0, 0, 1}
 
-mutedTextColor = {175, 175, 175, 255}
-flavorTextColor = {146, 76, 15, 255}
+mutedTextColor = {175/255, 175/255, 175/255, 1}
+flavorTextColor = {146/255, 76/255, 15/255, 1}

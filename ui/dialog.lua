@@ -2,8 +2,8 @@ local dialog = {
   x = 0,
   y = 0,
   status = 'inactive',
-  width = love.window.toPixels(600),
-  height = love.window.toPixels(300),
+  width = 600,
+  height = 300,
   maxWidth = 500,
 
   headerText = love.graphics.newText(headerFont, ''),
@@ -19,7 +19,7 @@ function dialog:init()
   -- Determine max dialog width. The dialog box will
   -- be as wide as the text it contains, up to the max
   -- at which point it will wrap the contained text.
-  local padding = love.window.toPixels(10)
+  local padding = 10
   local w, h = love.graphics.getDimensions()
   if (padding*2 + self.maxWidth) > w then
     self.maxWidth = w - padding*2
@@ -41,7 +41,7 @@ end
 function dialog:show(node, x, y)
   if node == nil then return end
 
-  local padding = love.window.toPixels(10)
+  local padding = 10
   local w, h = love.graphics.getDimensions()
   local width = 0
   local text = ''
@@ -117,7 +117,7 @@ function dialog:show(node, x, y)
 end
 
 function dialog:adjustPosition()
-  local offset = love.window.toPixels(20)
+  local offset = 20
   local x, y = self.position.x, self.position.y
   local w, h = love.graphics.getDimensions()
 
@@ -140,34 +140,33 @@ function dialog:adjustPosition()
 end
 
 function dialog:draw()
-  local five = love.window.toPixels(5)
-  local ten = 2*five
+  local padding = 10
 
   -- Draw innner and outer rectangle
-  love.graphics.setColor(1, 1, 1, 250)
+  love.graphics.setColor(0.1, 0.1, 0.1, 0.9)
   love.graphics.rectangle('fill', self.position.x, self.position.y, self.width, self.height)
   clearColor()
   love.graphics.rectangle('line', self.position.x, self.position.y, self.width, self.height)
 
   -- Draw text
-  local x = self.position.x + ten
-  local y = self.position.y + ten
+  local x = self.position.x + padding
+  local y = self.position.y + padding
 
   love.graphics.draw(self.headerText, x, y)
-  y = y + self.headerText:getHeight() + ten
+  y = y + self.headerText:getHeight() + padding
 
   love.graphics.draw(self.contentText, x, y)
   y = y + self.contentText:getHeight()
 
   if self.reminderText:getHeight() > 0 then
-    y = y + ten
+    y = y + padding
     love.graphics.setColor(mutedTextColor)
     love.graphics.draw(self.reminderText, x, y)
     y = y + self.reminderText:getHeight()
   end
 
   if self.flavorText:getHeight() > 0 then
-    y = y + ten
+    y = y + padding
     love.graphics.setColor(flavorTextColor)
     love.graphics.draw(self.flavorText, x, y)
     y = y + self.flavorText:getHeight()

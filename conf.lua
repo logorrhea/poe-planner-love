@@ -1,6 +1,6 @@
 function love.conf(t)
   t.identity = 'poe-planner-love'
-  t.version = '0.10.1'
+  t.version = '11.2'
 
   t.window.title = 'PoE Skill Tree Planner'
   t.window.icon = 'logo.png'
@@ -11,7 +11,7 @@ function love.conf(t)
   t.window.highdpi = true
   t.window.msaa = 4
   t.gammacorrect = true
-	t.window.display = 2
+	t.window.display = 1
 
   -- t.console = true
 
